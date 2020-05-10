@@ -3,6 +3,11 @@
 
 ; ******** Source: ../common/kernal/constants.asm
      1                          CHROUT=$FFD2	; CHROUT outputs a character (C64 Kernal API)
+     2                          CHRIN=$FFCF		; CHRIN read from default input
+     3                          
+     4                          SETLFS			= $FFBA
+     5                          SETNAM			= $FFBD
+     6                          LOAD			= $FFD5
 
 ; ******** Source: hello.asm
      1                          
@@ -61,13 +66,10 @@
     10  0803 0a00               !byte $0A,$00		; 2-byte line number ($000A = 10)
     11  0805 9e                 !byte $9E		; SYS BASIC token
     12  0806 20                 !byte $20		; [space]
-    13  0807 32303634           !byte $32,$30,$36,$34	; $32="2",$30="0",$36="6",$34="4"
+    13  0807 32303634           !text "2064"	; $32="2",$30="0",$36="6",$34="4"
     14                          			; (ASCII encoded nums for dec starting addr)
-    15  080b 00                 !byte $00		; End of Line
-    16  080c 0000               !byte $00,$00		; This is address $080C containing
-    17                          			; 2-byte pointer to next line of BASIC code
-    18                          			; ($0000 = end of program)
-    19                          
+    15  080b 000000             !byte $00,$00,$00	
+    16                          
 
 ; ******** Source: hello.asm
      3                          
@@ -108,89 +110,262 @@
      7                          
 
 ; ******** Source: ../common/vera/vera.asm
-     1                          verareg =$9f20
-     2                          veralo  = verareg+0
-     3                          veramid = verareg+1
-     4                          verahi  = verareg+2
-     5                          veradat = verareg+3
-     6                          veradat2= verareg+4
-     7                          veractl = verareg+5
-     8                          veraien = verareg+6
-     9                          veraisr = verareg+7
+     1                          
+     2                          !macro vset .addr {
+     3                          	lda #<(.addr >> 16) | $10
+     4                          	sta VERA_ADDRx_H
+     5                          	lda #<(.addr >> 8)
+     6                          	sta VERA_ADDRx_M
+     7                          	lda #<(.addr)
+     8                          	sta VERA_ADDRx_L
+     9                          }
     10                          
-    11                          vreg_cmp  = $F0000
-    12                          vreg_pal  = $F1000
-    13                          vreg_lay1 = $F2000
-    14                          vreg_lay2 = $F3000
-    15                          vreg_spr  = $F4000
-    16                          vreg_sprd = $F5000
+    11                          !macro vstore .addr {
+    12                          	pha
+    13                          	+vset .addr
+    14                          	pla
+    15                          	sta VERA_DATA0
+    16                          }
     17                          
-    18                          AUTO_INC_1 = $100000
-    19                          
-    20                          !macro vset .addr {
-    21                          	lda #<(.addr >> 16) | $10
-    22                          	sta verahi
-    23                          	lda #<(.addr >> 8)
-    24                          	sta veramid
-    25                          	lda #<(.addr)
-    26                          	sta veralo
-    27                          }
-    28                          
-    29                          !macro vstore .addr {
-    30                          	pha
-    31                          	+vset .addr
-    32                          	pla
-    33                          	sta veradat
-    34                          }
-    35                          
-    36                          !macro vload .addr {
-    37                          	+vset .addr
-    38                          	lda veradat
-    39                          }
-    40                          
-    41                          !macro sprset .offset {
-    42                          	lda #<(vreg_sprd >> 16) | $10
-    43                          	sta verahi
-    44                          	txa
-    45                          	lsr
-    46                          	lsr
-    47                          	lsr
-    48                          	lsr
-    49                          	lsr
-    50                          	clc
-    51                          	adc #<(vreg_sprd + .offset >> 8)
-    52                          	sta veramid
-    53                          	txa
-    54                          	asl
-    55                          	asl
-    56                          	asl
-    57                          	clc
-    58                          	adc #<((vreg_sprd + .offset))
-    59                          	sta veralo
-    60                          }
-    61                          
-    62                          !macro sprload .offset {
-    63                          	+sprset .offset
-    64                          	lda veradat
-    65                          }
-    66                          
-    67                          !macro sprstore .offset {
-    68                          	pha
-    69                          	+sprset .offset
-    70                          	pla
-    71                          	sta veradat
-    72                          }
-    73                          
-    74                          !macro video_init {
-    75                          	lda #0
-    76                          	sta veractl ; set ADDR1 active
-    77                          	sta veramid
-    78                          	lda #$1F    ; $F0000 increment 1
-    79                          	sta verahi
-    80                          	lda #$00
-    81                          	sta veralo
-    82                          	lda #1
-    83                          	sta veradat ; VGA output
+    18                          !macro vload .addr {
+    19                          	+vset .addr
+    20                          	lda VERA_DATA0
+    21                          }
+    22                          
+    23                          !macro vreg register, value {
+    24                            lda #value
+    25                            sta register
+    26                          }
+    27                          
+    28                          !macro vdata0 value {
+    29                            +vreg VERA_DATA0, value
+    30                          }
+    31                          
+    32                          !macro vreg16 register, value {
+    33                            lda #<value
+    34                            sta register
+    35                            lda #>value
+    36                            sta register
+    37                          }
+    38                          
+    39                          !macro vdata016 value {
+    40                            +vreg16 VERA_DATA0, value
+    41                          }
+    42                          
+    43                          
+    44                          !macro video_init {
+    45                            +vreg VERA_CTRL, $80
+    46                          
+    47                            +vset $200
+    48                          
+    49                            ldy #32
+    50                          
+    51                          .nextMapRow:
+    52                            ldx #16
+    53                          
+    54                          .nextMapCell:
+    55                            +vdata0 $01
+    56                            +vdata0 $10
+    57                            +vdata0 $01
+    58                            +vdata0 $00
+    59                            +vdata0 $01
+    60                            +vdata0 $20
+    61                            dex
+    62                            bne .nextMapCell
+    63                            dey
+    64                            bne .nextMapRow
+    65                          
+    66                            +vset $4000
+    67                          
+    68                            ldy #16
+    69                          
+    70                          .nextTileRow:
+    71                            +vdata0 $00
+    72                            +vdata0 $00
+    73                            +vdata0 $00
+    74                            +vdata0 $00
+    75                            +vdata0 $55
+    76                            +vdata0 $55
+    77                            +vdata0 $11
+    78                            +vdata0 $11
+    79                            +vdata0 $00
+    80                            dey
+    81                            bne .nextTileRow
+    82                            
+    83                          	+vdata0 $00
+    84                            +vdata0 $00
+    85                            +vdata0 $34
+    86                            +vdata0 $55
+    87                            +vdata0 $55
+    88                            +vdata0 $42
+    89                            +vdata0 $00
+    90                            +vdata0 $00
+    91                            +vdata0 $00
+    92                            +vdata0 $24
+    93                            +vdata0 $56
+    94                            +vdata0 $66
+    95                           
+    96                          	+vdata0 $66
+    97                            +vdata0 $65
+    98                            +vdata0 $30
+    99                            +vdata0 $00
+   100                            +vdata0 $02
+   101                            +vdata0 $45
+   102                            +vdata0 $66
+   103                            +vdata0 $99
+   104                            +vdata0 $99
+   105                            +vdata0 $96
+   106                            +vdata0 $63
+   107                            +vdata0 $00
+   108                           
+   109                          	+vdata0 $04
+   110                            +vdata0 $56
+   111                            +vdata0 $69
+   112                            +vdata0 $9B
+   113                            +vdata0 $BC
+   114                            +vdata0 $C9
+   115                            +vdata0 $96
+   116                            +vdata0 $30
+   117                            +vdata0 $85
+   118                            +vdata0 $66
+   119                            +vdata0 $9E
+   120                            +vdata0 $BB
+   121                           
+   122                          	+vdata0 $DD
+   123                            +vdata0 $DC
+   124                            +vdata0 $96
+   125                            +vdata0 $50
+   126                            +vdata0 $45
+   127                            +vdata0 $66
+   128                            +vdata0 $7E
+   129                            +vdata0 $BC
+   130                            +vdata0 $DD
+   131                            +vdata0 $DD
+   132                            +vdata0 $B9
+   133                            +vdata0 $52
+   134                           
+   135                          	+vdata0 $45
+   136                            +vdata0 $66
+   137                            +vdata0 $69
+   138                            +vdata0 $BC
+   139                            +vdata0 $DD
+   140                            +vdata0 $DC
+   141                            +vdata0 $B9
+   142                            +vdata0 $64
+   143                            +vdata0 $45
+   144                            +vdata0 $66
+   145                            +vdata0 $99
+   146                            +vdata0 $BB
+   147                           
+   148                          	+vdata0 $CD
+   149                            +vdata0 $CC
+   150                            +vdata0 $99
+   151                            +vdata0 $64
+   152                            +vdata0 $04
+   153                            +vdata0 $56
+   154                            +vdata0 $99
+   155                            +vdata0 $9B
+   156                            +vdata0 $BB
+   157                            +vdata0 $BB
+   158                            +vdata0 $96
+   159                            +vdata0 $64
+   160                           
+   161                          	+vdata0 $00
+   162                            +vdata0 $07
+   163                            +vdata0 $77
+   164                            +vdata0 $49
+   165                            +vdata0 $BB
+   166                            +vdata0 $99
+   167                            +vdata0 $96
+   168                            +vdata0 $53
+   169                            +vdata0 $00
+   170                            +vdata0 $77
+   171                            +vdata0 $77
+   172                            +vdata0 $59
+   173                           
+   174                          	+vdata0 $99
+   175                            +vdata0 $99
+   176                            +vdata0 $66
+   177                            +vdata0 $50
+   178                            +vdata0 $07
+   179                            +vdata0 $88
+   180                            +vdata0 $84
+   181                            +vdata0 $69
+   182                            +vdata0 $99
+   183                            +vdata0 $66
+   184                            +vdata0 $65
+   185                            +vdata0 $40
+   186                           
+   187                          	+vdata0 $08
+   188                            +vdata0 $A8
+   189                            +vdata0 $36
+   190                            +vdata0 $66
+   191                            +vdata0 $66
+   192                            +vdata0 $66
+   193                            +vdata0 $54
+   194                            +vdata0 $20
+   195                            +vdata0 $01
+   196                            +vdata0 $34
+   197                            +vdata0 $55
+   198                            +vdata0 $56
+   199                           
+   200                          	+vdata0 $66
+   201                            +vdata0 $55
+   202                            +vdata0 $42
+   203                            +vdata0 $00
+   204                            +vdata0 $00
+   205                            +vdata0 $13
+   206                            +vdata0 $44
+   207                            +vdata0 $55
+   208                            +vdata0 $55
+   209                            +vdata0 $44
+   210                            +vdata0 $20
+   211                            +vdata0 $00
+   212                           
+   213                          	+vdata0 $00
+   214                            +vdata0 $00
+   215                            +vdata0 $03
+   216                            +vdata0 $44
+   217                            +vdata0 $43
+   218                            +vdata0 $00
+   219                            +vdata0 $00
+   220                            +vdata0 $00
+   221                          
+   222                          .doneLoad
+   223                          
+   224                          
+   225                            +vreg VERA_CTRL, $00   
+   226                            +vreg VERA_L0_MAPBASE, $01    ; map data starting at 0x00
+   227                            +vreg VERA_L0_TILEBASE, $23   ; 16x16 tiles starting at 0 0100 0000 0000 0000
+   228                            +vreg VERA_L0_CONFIG, $02  ; 32x32, 4bpp
+   229                            +vreg VERA_L0_HSCROLL_L, $00
+   230                            +vreg VERA_L0_HSCROLL_H, $00
+   231                            +vreg VERA_L0_VSCROLL_L, $00
+   232                            +vreg VERA_L0_VSCROLL_H, $00
+   233                            +vreg VERA_DC_VIDEO, $11
+   234                            +vreg VERA_DC_HSCALE, 64   
+   235                            +vreg VERA_DC_VSCALE, 64   
+   236                          
+   237                            +vset $1FA20 ; palette
+   238                            +vdata016 $0000 ;0  -RGB
+   239                            +vdata016 $0500 ;1  -RGB
+   240                            +vdata016 $0600 ;2  -RGB
+   241                            +vdata016 $0900 ;3  -RGB
+   242                            +vdata016 $0A00 ;4  -RGB
+   243                            +vdata016 $0C00 ;5  -RGB
+   244                            +vdata016 $0E10 ;6  -RGB
+   245                            +vdata016 $0555 ;7  -RGB
+   246                            +vdata016 $0777 ;8  -RGB
+   247                            +vdata016 $0F52 ;9  -RGB
+   248                            +vdata016 $0888 ;10  -RGB
+   249                            +vdata016 $0F72 ;11  -RGB
+   250                            +vdata016 $0F94 ;12  -RGB
+   251                            +vdata016 $0FD0 ;13  -RGB
+   252                            +vdata016 $0DDD ;14  -RGB
+   253                            +vdata016 $0FFF ;15  -RGB
+   254                              
+   255                          
+   256                          
 
 ; ******** Source: hello.asm
      8                          
@@ -199,17 +374,31 @@
     11                          ; --------------------------------
     12                          entry:
     13                          
-    14  0828 a9008d259f8d219f...+video_init
+    14  0828 a9808d259fa9108d...+video_init
     15                          
-    16  083f a251a008201308     +printStr string1
-    17  0846 a261a008201308     +printStr string2
-    18                          
-    19                          
-    20  084d 20cfff             jsr	CHRIN	; read input until enter/return is pressed
-    21  0850 60                 rts		    ; program exit
-    22                          
-    23                          ; string data
-    24                          ; ---------------------------------
-    25  0851 48454c4c4f2c2054...string1 !pet	"hello, tr2oy!!",13,0
-    26  0861 48454c4c4f2c2057...string2 !pet	"hello, world!!",13,0
-    27                          
+    16  0c0b a901               	lda	#1			; Logical file number
+    17  0c0d a208               	ldx	#8			; Device 8 = sd card
+    18  0c0f a000               	ldy	#0			; 0=ignore address in bin file (2 first bytes)
+    19                          					; 1=use address in bin file
+    20  0c11 20baff             	jsr	SETLFS
+    21                          
+    22  0c14 a90a               	lda	#(End_fname-Fname)	; Length of filename
+    23  0c16 a22e               	ldx	#<Fname			; Low byte of Fname address
+    24  0c18 a00c               	ldy	#>Fname			; High byte of Fname address
+    25  0c1a 20bdff             	jsr	SETNAM
+    26                          
+    27  0c1d a001               	ldy	#$01			; VERA HIGH address
+    28  0c1f a220               	ldx	#$20			; VERA LOW address
+    29  0c21 a9fa               	lda	#$fa			; VERA BANK + 2
+    30  0c23 20d5ff             	jsr	LOAD			; Load binary file into VRAM, ignoring 2 first bytes
+    31                          
+    32  0c26 4c260c             	jmp *
+    33  0c29 60                 	rts
+    34                          
+    35                          
+    36  0c2a 4c2a0c             jmp *
+    37                          
+    38  0c2d 60                 rts		    ; program exit
+    39                          
+    40  0c2e 6d75727068792e62...Fname	!text	"murphy.bin"
+    41                          End_fname
