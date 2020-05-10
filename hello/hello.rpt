@@ -1,0 +1,215 @@
+
+; ******** Source: hello.asm
+
+; ******** Source: ../common/kernal/constants.asm
+     1                          CHROUT=$FFD2	; CHROUT outputs a character (C64 Kernal API)
+
+; ******** Source: hello.asm
+     1                          
+
+; ******** Source: ../common/vera/constants.asm
+     1                          VERA_ADDRx_L=$9F20
+     2                          VERA_ADDRx_M=$9F21
+     3                          VERA_ADDRx_H=$9F22
+     4                          VERA_DATA0=$9F23
+     5                          VERA_DATA1=$9F24
+     6                          VERA_CTRL=$9F25
+     7                          VERA_IEN=$9F26
+     8                          VERA_ISR=$9F27
+     9                          VERA_IRQLINE_L=$9F28
+    10                          VERA_DC_VIDEO=$9F29
+    11                          VERA_DC_HSCALE=$9F2A
+    12                          VERA_DC_VSCALE=$9F2B
+    13                          VERA_DC_BORDER=$9F2C
+    14                          VERA_DC_HSTART=$9F29
+    15                          VERA_DC_HSTOP=$9F2A
+    16                          VERA_DC_VSTART=$9F2B
+    17                          VERA_DC_VSTOP=$9F2C
+    18                          VERA_L0_CONFIG=$9F2D
+    19                          VERA_L0_MAPBASE=$9F2E
+    20                          VERA_L0_TILEBASE=$9F2F
+    21                          VERA_L0_HSCROLL_L=$9F30
+    22                          VERA_L0_HSCROLL_H=$9F31
+    23                          VERA_L0_VSCROLL_L=$9F32
+    24                          VERA_L0_VSCROLL_H=$9F33
+    25                          VERA_L1_CONFIG=$9F34
+    26                          VERA_L1_MAPBASE=$9F35
+    27                          VERA_L1_TILEBASE=$9F36
+    28                          VERA_L1_HSCROLL_L=$9F37
+    29                          VERA_L1_HSCROLL_H=$9F38
+    30                          VERA_L1_VSCROLL_L=$9F39
+    31                          VERA_L1_VSCROLL_H=$9F3A
+    32                          VERA_AUDIO_CTRL=$9F3B
+    33                          VERA_AUDIO_RATE=$9F3C
+    34                          VERA_AUDIO_DATA=$9F3D
+    35                          VERA_SPI_DATA=$9F3E
+    36                          VERA_SPI_CTRL=$9F3F
+
+; ******** Source: hello.asm
+     2                          
+
+; ******** Source: ../common/bootstrap.asm
+     1                          ; standard bootstrap
+     2                          ; generate SYS 2064 ($810)
+     3                          
+     4                          *=$0801			; Assembled code should start at $0801
+     5                          
+     6                          			; (where BASIC programs start)
+     7                          			; The real program starts at $0810 = 2064
+     8                                
+     9  0801 0c08               !byte $0C,$08		; $080C - pointer to next line of BASIC code
+    10  0803 0a00               !byte $0A,$00		; 2-byte line number ($000A = 10)
+    11  0805 9e                 !byte $9E		; SYS BASIC token
+    12  0806 20                 !byte $20		; [space]
+    13  0807 32303634           !byte $32,$30,$36,$34	; $32="2",$30="0",$36="6",$34="4"
+    14                          			; (ASCII encoded nums for dec starting addr)
+    15  080b 00                 !byte $00		; End of Line
+    16  080c 0000               !byte $00,$00		; This is address $080C containing
+    17                          			; 2-byte pointer to next line of BASIC code
+    18                          			; ($0000 = end of program)
+    19                          
+
+; ******** Source: hello.asm
+     3                          
+     4                          
+     5  0810 4c2808             jmp entry
+     6                          
+
+; ******** Source: ../common/string.asm
+     1                          
+     2                          
+     3                          ; Print a null-terminated string
+     4                          ; Inputs:
+     5                          ;  X: address LSB
+     6                          ;  Y: address MSB
+     7                          
+     8                          printStr:
+     9  0813 8e1c08               stx .loop + 1        ; save string pointer LSB
+    10  0816 8c1d08               sty .loop + 2        ; save string pointer MSB
+    11  0819 a000                 ldy #0               ; starting string index
+    12                          
+    13                          .loop:
+    14  081b b90010               lda $1000, y         ; get a character
+    15  081e f007                 beq .end             ; end of string
+    16                          
+    17  0820 20d2ff               jsr CHROUT           ; print character
+    18  0823 c8                   iny                  ; next
+    19  0824 4c1b08               jmp .loop
+    20                          
+    21                          .end:
+    22  0827 60                   rts
+    23                          
+    24                          !macro printStr stringAddr {
+    25                            ldx #<stringAddr
+    26                            ldy #>stringAddr
+    27                            jsr printStr
+
+; ******** Source: hello.asm
+     7                          
+
+; ******** Source: ../common/vera/vera.asm
+     1                          verareg =$9f20
+     2                          veralo  = verareg+0
+     3                          veramid = verareg+1
+     4                          verahi  = verareg+2
+     5                          veradat = verareg+3
+     6                          veradat2= verareg+4
+     7                          veractl = verareg+5
+     8                          veraien = verareg+6
+     9                          veraisr = verareg+7
+    10                          
+    11                          vreg_cmp  = $F0000
+    12                          vreg_pal  = $F1000
+    13                          vreg_lay1 = $F2000
+    14                          vreg_lay2 = $F3000
+    15                          vreg_spr  = $F4000
+    16                          vreg_sprd = $F5000
+    17                          
+    18                          AUTO_INC_1 = $100000
+    19                          
+    20                          !macro vset .addr {
+    21                          	lda #<(.addr >> 16) | $10
+    22                          	sta verahi
+    23                          	lda #<(.addr >> 8)
+    24                          	sta veramid
+    25                          	lda #<(.addr)
+    26                          	sta veralo
+    27                          }
+    28                          
+    29                          !macro vstore .addr {
+    30                          	pha
+    31                          	+vset .addr
+    32                          	pla
+    33                          	sta veradat
+    34                          }
+    35                          
+    36                          !macro vload .addr {
+    37                          	+vset .addr
+    38                          	lda veradat
+    39                          }
+    40                          
+    41                          !macro sprset .offset {
+    42                          	lda #<(vreg_sprd >> 16) | $10
+    43                          	sta verahi
+    44                          	txa
+    45                          	lsr
+    46                          	lsr
+    47                          	lsr
+    48                          	lsr
+    49                          	lsr
+    50                          	clc
+    51                          	adc #<(vreg_sprd + .offset >> 8)
+    52                          	sta veramid
+    53                          	txa
+    54                          	asl
+    55                          	asl
+    56                          	asl
+    57                          	clc
+    58                          	adc #<((vreg_sprd + .offset))
+    59                          	sta veralo
+    60                          }
+    61                          
+    62                          !macro sprload .offset {
+    63                          	+sprset .offset
+    64                          	lda veradat
+    65                          }
+    66                          
+    67                          !macro sprstore .offset {
+    68                          	pha
+    69                          	+sprset .offset
+    70                          	pla
+    71                          	sta veradat
+    72                          }
+    73                          
+    74                          !macro video_init {
+    75                          	lda #0
+    76                          	sta veractl ; set ADDR1 active
+    77                          	sta veramid
+    78                          	lda #$1F    ; $F0000 increment 1
+    79                          	sta verahi
+    80                          	lda #$00
+    81                          	sta veralo
+    82                          	lda #1
+    83                          	sta veradat ; VGA output
+
+; ******** Source: hello.asm
+     8                          
+     9                          
+    10                          ; program entry
+    11                          ; --------------------------------
+    12                          entry:
+    13                          
+    14  0828 a9008d259f8d219f...+video_init
+    15                          
+    16  083f a251a008201308     +printStr string1
+    17  0846 a261a008201308     +printStr string2
+    18                          
+    19                          
+    20  084d 20cfff             jsr	CHRIN	; read input until enter/return is pressed
+    21  0850 60                 rts		    ; program exit
+    22                          
+    23                          ; string data
+    24                          ; ---------------------------------
+    25  0851 48454c4c4f2c2054...string1 !pet	"hello, tr2oy!!",13,0
+    26  0861 48454c4c4f2c2057...string2 !pet	"hello, world!!",13,0
+    27                          

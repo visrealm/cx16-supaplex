@@ -1,0 +1,16 @@
+    dw $0000 ;0  -RGB
+    dw $0500 ;1  -RGB
+    dw $0600 ;2  -RGB
+    dw $0900 ;3  -RGB
+    dw $0A00 ;4  -RGB
+    dw $0C00 ;5  -RGB
+    dw $0E10 ;6  -RGB
+    dw $0555 ;7  -RGB
+    dw $0777 ;8  -RGB
+    dw $0F52 ;9  -RGB
+    dw $0888 ;10  -RGB
+    dw $0F72 ;11  -RGB
+    dw $0F94 ;12  -RGB
+    dw $0FD0 ;13  -RGB
+    dw $0DDD ;14  -RGB
+    dw $0FFF ;15  -RGB

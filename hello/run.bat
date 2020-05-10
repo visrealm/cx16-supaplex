@@ -1,0 +1,1 @@
+c:\cx16\x16emu\x16emu.exe -prg hello.prg -run
