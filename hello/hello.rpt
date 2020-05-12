@@ -2,12 +2,76 @@
 ; ******** Source: hello.asm
 
 ; ******** Source: ../common/kernal/constants.asm
-     1                          CHROUT=$FFD2	; CHROUT outputs a character (C64 Kernal API)
-     2                          CHRIN=$FFCF		; CHRIN read from default input
-     3                          
-     4                          SETLFS			= $FFBA
-     5                          SETNAM			= $FFBD
-     6                          LOAD			= $FFD5
+     1                          !cpu 65c02
+     2                          
+     3                          CHROUT      = $FFD2	; CHROUT outputs a character (C64 Kernal API)
+     4                          CHRIN       = $FFCF		; CHRIN read from default input
+     5                          
+     6                          SETLFS			= $FFBA
+     7                          SETNAM			= $FFBD
+     8                          LOAD			  = $FFD5
+     9                          OPEN        = $FFC0
+    10                          CLOSE       = $FFC3
+    11                          
+    12                          
+    13                          ; Joystick constants
+    14                          ; ----------------------------------------------------------------------------
+    15                          ; subroutines
+    16                          
+    17                          JOYSTICK_SCAN = $FF53
+    18                          
+    19                          ; Get joystick state
+    20                          ; A = buttons
+    21                          ; X = xtended buttons (SNES)
+    22                          ; Y = device present ($00) or not ($FF)
+    23                          JOYSTICK_GET  = $FF56
+    24                          
+    25                          ; constants
+    26                          JOY_RIGHT  = %00000001
+    27                          JOY_LEFT   = %00000010
+    28                          JOY_DOWN   = %00000100
+    29                          JOY_UP     = %00001000
+    30                          JOY_START  = %00010000
+    31                          JOY_SELECT = %00100000
+    32                          JOY_B      = %01000000
+    33                          JOY_A      = %10000000
+    34                          
+    35                          JOYSTICK_PRESENT     = $00
+    36                          JOYSTICK_NOT_PRESENT = $ff
+    37                          
+    38                          
+    39                          ; Virtual registers
+    40                          ; ----------------------------------------------------------------------------
+    41                          R0  = $02
+    42                          R0L = R0
+    43                          R0H = R0 + $01
+    44                          R1  = $04
+    45                          R1L = R1
+    46                          R1H = R1 + $01
+    47                          R2  = $06
+    48                          R2L = R2
+    49                          R2H = R2 + $01
+    50                          R3  = (R2 + 2)
+    51                          R3L = R3
+    52                          R3H = (R3 + 1)
+    53                          R4  = (R3 + 2)
+    54                          R4L = R4
+    55                          R4H = (R4 + 1)
+    56                          R5  = (R4 + 2)
+    57                          R5L = R5
+    58                          R5H = (R5 + 1)
+    59                          R6  = (R5 + 2)
+    60                          R6L = R6
+    61                          R6H = (R6 + 1)
+    62                          R7  = (R6 + 2)
+    63                          R7L = R7
+    64                          R7H = (R7 + 1)
+    65                          R8  = (R7 + 2)
+    66                          R8L = R8
+    67                          R8H = (R8 + 1)
+    68                          R9  = (R8 + 2)
+    69                          R9L = R9
+    70                          R9H = (R9 + 1)
 
 ; ******** Source: hello.asm
      1                          
@@ -49,6 +113,9 @@
     34                          VERA_AUDIO_DATA=$9F3D
     35                          VERA_SPI_DATA=$9F3E
     36                          VERA_SPI_CTRL=$9F3F
+    37                          
+    38                          
+    39                          VERA_PALETTE=$1FA00
 
 ; ******** Source: hello.asm
      2                          
@@ -74,40 +141,67 @@
 ; ******** Source: hello.asm
      3                          
      4                          
-     5  0810 4c2808             jmp entry
+     5  0810 4c5709             jmp entry
      6                          
+     7  0813 0000               Default_irq_handler: !le16 $0000
+     8                          
+     9                          VSYNC_FLAG = $30
+    10                          
 
 ; ******** Source: ../common/string.asm
      1                          
      2                          
-     3                          ; Print a null-terminated string
+     3                          ; Length of a null-terminated string
      4                          ; Inputs:
      5                          ;  X: address LSB
      6                          ;  Y: address MSB
-     7                          
-     8                          printStr:
-     9  0813 8e1c08               stx .loop + 1        ; save string pointer LSB
-    10  0816 8c1d08               sty .loop + 2        ; save string pointer MSB
-    11  0819 a000                 ldy #0               ; starting string index
-    12                          
-    13                          .loop:
-    14  081b b90010               lda $1000, y         ; get a character
-    15  081e f007                 beq .end             ; end of string
-    16                          
-    17  0820 20d2ff               jsr CHROUT           ; print character
-    18  0823 c8                   iny                  ; next
-    19  0824 4c1b08               jmp .loop
+     7                          ; Outputs:
+     8                          ;  A: length
+     9                          strLen:
+    10                          !zone 
+    11  0815 8e1e08               stx .loop + 1        ; save string pointer LSB
+    12  0818 8c1f08               sty .loop + 2        ; save string pointer MSB
+    13  081b a000                 ldy #0               ; starting string index
+    14                          
+    15                          .loop:
+    16  081d b90010               lda $1000, y         ; get a character
+    17  0820 f004                 beq .end             ; end of string
+    18  0822 c8                   iny                  ; next
+    19  0823 4c1d08               jmp .loop
     20                          
     21                          .end:
-    22  0827 60                   rts
-    23                          
-    24                          !macro printStr stringAddr {
-    25                            ldx #<stringAddr
-    26                            ldy #>stringAddr
-    27                            jsr printStr
+    22  0826 98                   tya
+    23  0827 60                   rts
+    24                          
+    25                          
+    26                          ; Print a null-terminated string
+    27                          ; Inputs:
+    28                          ;  X: address LSB
+    29                          ;  Y: address MSB
+    30                          printStr:
+    31                          !zone 
+    32  0828 8e3108               stx .loop + 1        ; save string pointer LSB
+    33  082b 8c3208               sty .loop + 2        ; save string pointer MSB
+    34  082e a000                 ldy #0               ; starting string index
+    35                          
+    36                          .loop:
+    37  0830 b90010               lda $1000, y         ; get a character
+    38  0833 f007                 beq .end             ; end of string
+    39                          
+    40  0835 20d2ff               jsr CHROUT           ; print character
+    41  0838 c8                   iny                  ; next
+    42  0839 4c3008               jmp .loop
+    43                          
+    44                          .end:
+    45  083c 60                   rts
+    46                          
+    47                          !macro printStr stringAddr {
+    48                            ldx #<stringAddr
+    49                            ldy #>stringAddr
+    50                            jsr printStr
 
 ; ******** Source: hello.asm
-     7                          
+    11                          
 
 ; ******** Source: ../common/vera/vera.asm
      1                          
@@ -120,285 +214,457 @@
      8                          	sta VERA_ADDRx_L
      9                          }
     10                          
-    11                          !macro vstore .addr {
-    12                          	pha
-    13                          	+vset .addr
-    14                          	pla
-    15                          	sta VERA_DATA0
-    16                          }
-    17                          
-    18                          !macro vload .addr {
-    19                          	+vset .addr
-    20                          	lda VERA_DATA0
+    11                          !macro vchannel .channel {
+    12                            +vreg VERA_CTRL, .channel 
+    13                          }
+    14                          
+    15                          !macro vchannel0 {
+    16                            +vchannel $00 
+    17                          }
+    18                          
+    19                          !macro vchannel1 {
+    20                            +vchannel $01 
     21                          }
     22                          
-    23                          !macro vreg register, value {
-    24                            lda #value
-    25                            sta register
-    26                          }
-    27                          
-    28                          !macro vdata0 value {
-    29                            +vreg VERA_DATA0, value
-    30                          }
-    31                          
-    32                          !macro vreg16 register, value {
-    33                            lda #<value
-    34                            sta register
-    35                            lda #>value
-    36                            sta register
-    37                          }
-    38                          
-    39                          !macro vdata016 value {
-    40                            +vreg16 VERA_DATA0, value
-    41                          }
-    42                          
-    43                          
-    44                          !macro video_init {
-    45                            +vreg VERA_CTRL, $80
-    46                          
-    47                            +vset $200
+    23                          !macro vstore .addr {
+    24                          	pha
+    25                          	+vset .addr
+    26                          	pla
+    27                          	sta VERA_DATA0
+    28                          }
+    29                          
+    30                          !macro vReadByte0 .addr {
+    31                          	+vset .addr
+    32                          	lda VERA_DATA0
+    33                          }
+    34                          
+    35                          !macro vReadByte1 .addr {
+    36                          	+vset .addr
+    37                          	lda VERA_DATA1
+    38                          }
+    39                          
+    40                          !macro vreg register, value {
+    41                            lda #value
+    42                            sta register
+    43                          }
+    44                          
+    45                          !macro vWriteByte0 value {
+    46                            +vreg VERA_DATA0, value
+    47                          }
     48                          
-    49                            ldy #32
-    50                          
-    51                          .nextMapRow:
-    52                            ldx #16
-    53                          
-    54                          .nextMapCell:
-    55                            +vdata0 $01
-    56                            +vdata0 $10
-    57                            +vdata0 $01
-    58                            +vdata0 $00
-    59                            +vdata0 $01
-    60                            +vdata0 $20
-    61                            dex
-    62                            bne .nextMapCell
-    63                            dey
-    64                            bne .nextMapRow
-    65                          
-    66                            +vset $4000
+    49                          !macro vWriteByte1 value {
+    50                            +vreg VERA_DATA1, value
+    51                          }
+    52                          
+    53                          !macro vreg16 register, value {
+    54                            lda #<value
+    55                            sta register
+    56                            lda #>value
+    57                            sta register
+    58                          }
+    59                          
+    60                          !macro vWriteWord0 value {
+    61                            +vreg16 VERA_DATA0, value
+    62                          }
+    63                          
+    64                          !macro vWriteWord1 value {
+    65                            +vreg16 VERA_DATA1, value
+    66                          }
     67                          
-    68                            ldy #16
-    69                          
-    70                          .nextTileRow:
-    71                            +vdata0 $00
-    72                            +vdata0 $00
-    73                            +vdata0 $00
-    74                            +vdata0 $00
-    75                            +vdata0 $55
-    76                            +vdata0 $55
-    77                            +vdata0 $11
-    78                            +vdata0 $11
-    79                            +vdata0 $00
-    80                            dey
-    81                            bne .nextTileRow
-    82                            
-    83                          	+vdata0 $00
-    84                            +vdata0 $00
-    85                            +vdata0 $34
-    86                            +vdata0 $55
-    87                            +vdata0 $55
-    88                            +vdata0 $42
-    89                            +vdata0 $00
-    90                            +vdata0 $00
-    91                            +vdata0 $00
-    92                            +vdata0 $24
-    93                            +vdata0 $56
-    94                            +vdata0 $66
-    95                           
-    96                          	+vdata0 $66
-    97                            +vdata0 $65
-    98                            +vdata0 $30
-    99                            +vdata0 $00
-   100                            +vdata0 $02
-   101                            +vdata0 $45
-   102                            +vdata0 $66
-   103                            +vdata0 $99
-   104                            +vdata0 $99
-   105                            +vdata0 $96
-   106                            +vdata0 $63
-   107                            +vdata0 $00
-   108                           
-   109                          	+vdata0 $04
-   110                            +vdata0 $56
-   111                            +vdata0 $69
-   112                            +vdata0 $9B
-   113                            +vdata0 $BC
-   114                            +vdata0 $C9
-   115                            +vdata0 $96
-   116                            +vdata0 $30
-   117                            +vdata0 $85
-   118                            +vdata0 $66
-   119                            +vdata0 $9E
-   120                            +vdata0 $BB
-   121                           
-   122                          	+vdata0 $DD
-   123                            +vdata0 $DC
-   124                            +vdata0 $96
-   125                            +vdata0 $50
-   126                            +vdata0 $45
-   127                            +vdata0 $66
-   128                            +vdata0 $7E
-   129                            +vdata0 $BC
-   130                            +vdata0 $DD
-   131                            +vdata0 $DD
-   132                            +vdata0 $B9
-   133                            +vdata0 $52
-   134                           
-   135                          	+vdata0 $45
-   136                            +vdata0 $66
-   137                            +vdata0 $69
-   138                            +vdata0 $BC
-   139                            +vdata0 $DD
-   140                            +vdata0 $DC
-   141                            +vdata0 $B9
-   142                            +vdata0 $64
-   143                            +vdata0 $45
-   144                            +vdata0 $66
-   145                            +vdata0 $99
-   146                            +vdata0 $BB
-   147                           
-   148                          	+vdata0 $CD
-   149                            +vdata0 $CC
-   150                            +vdata0 $99
-   151                            +vdata0 $64
-   152                            +vdata0 $04
-   153                            +vdata0 $56
-   154                            +vdata0 $99
-   155                            +vdata0 $9B
-   156                            +vdata0 $BB
-   157                            +vdata0 $BB
-   158                            +vdata0 $96
-   159                            +vdata0 $64
-   160                           
-   161                          	+vdata0 $00
-   162                            +vdata0 $07
-   163                            +vdata0 $77
-   164                            +vdata0 $49
-   165                            +vdata0 $BB
-   166                            +vdata0 $99
-   167                            +vdata0 $96
-   168                            +vdata0 $53
-   169                            +vdata0 $00
-   170                            +vdata0 $77
-   171                            +vdata0 $77
-   172                            +vdata0 $59
-   173                           
-   174                          	+vdata0 $99
-   175                            +vdata0 $99
-   176                            +vdata0 $66
-   177                            +vdata0 $50
-   178                            +vdata0 $07
-   179                            +vdata0 $88
-   180                            +vdata0 $84
-   181                            +vdata0 $69
-   182                            +vdata0 $99
-   183                            +vdata0 $66
-   184                            +vdata0 $65
-   185                            +vdata0 $40
-   186                           
-   187                          	+vdata0 $08
-   188                            +vdata0 $A8
-   189                            +vdata0 $36
-   190                            +vdata0 $66
-   191                            +vdata0 $66
-   192                            +vdata0 $66
-   193                            +vdata0 $54
-   194                            +vdata0 $20
-   195                            +vdata0 $01
-   196                            +vdata0 $34
-   197                            +vdata0 $55
-   198                            +vdata0 $56
-   199                           
-   200                          	+vdata0 $66
-   201                            +vdata0 $55
-   202                            +vdata0 $42
-   203                            +vdata0 $00
-   204                            +vdata0 $00
-   205                            +vdata0 $13
-   206                            +vdata0 $44
-   207                            +vdata0 $55
-   208                            +vdata0 $55
-   209                            +vdata0 $44
-   210                            +vdata0 $20
-   211                            +vdata0 $00
-   212                           
-   213                          	+vdata0 $00
-   214                            +vdata0 $00
-   215                            +vdata0 $03
-   216                            +vdata0 $44
-   217                            +vdata0 $43
-   218                            +vdata0 $00
-   219                            +vdata0 $00
-   220                            +vdata0 $00
-   221                          
-   222                          .doneLoad
-   223                          
-   224                          
-   225                            +vreg VERA_CTRL, $00   
-   226                            +vreg VERA_L0_MAPBASE, $01    ; map data starting at 0x00
-   227                            +vreg VERA_L0_TILEBASE, $23   ; 16x16 tiles starting at 0 0100 0000 0000 0000
-   228                            +vreg VERA_L0_CONFIG, $02  ; 32x32, 4bpp
-   229                            +vreg VERA_L0_HSCROLL_L, $00
-   230                            +vreg VERA_L0_HSCROLL_H, $00
-   231                            +vreg VERA_L0_VSCROLL_L, $00
-   232                            +vreg VERA_L0_VSCROLL_H, $00
-   233                            +vreg VERA_DC_VIDEO, $11
-   234                            +vreg VERA_DC_HSCALE, 64   
-   235                            +vreg VERA_DC_VSCALE, 64   
-   236                          
-   237                            +vset $1FA20 ; palette
-   238                            +vdata016 $0000 ;0  -RGB
-   239                            +vdata016 $0500 ;1  -RGB
-   240                            +vdata016 $0600 ;2  -RGB
-   241                            +vdata016 $0900 ;3  -RGB
-   242                            +vdata016 $0A00 ;4  -RGB
-   243                            +vdata016 $0C00 ;5  -RGB
-   244                            +vdata016 $0E10 ;6  -RGB
-   245                            +vdata016 $0555 ;7  -RGB
-   246                            +vdata016 $0777 ;8  -RGB
-   247                            +vdata016 $0F52 ;9  -RGB
-   248                            +vdata016 $0888 ;10  -RGB
-   249                            +vdata016 $0F72 ;11  -RGB
-   250                            +vdata016 $0F94 ;12  -RGB
-   251                            +vdata016 $0FD0 ;13  -RGB
-   252                            +vdata016 $0DDD ;14  -RGB
-   253                            +vdata016 $0FFF ;15  -RGB
-   254                              
-   255                          
-   256                          
+    68                          video_init:
+    69  083d a9008d259f           +vreg VERA_CTRL, $00   
+    70  0842 a9108d229fa90a8d...  +vset $A00
+    71                          
+    72  0851 a020                 ldy #32
+    73                          
+    74                          .nextMapRow:
+    75  0853 a220                 ldx #32
+    76                          
+    77                          .nextMapCell:
+    78  0855 a9018d239f           +vWriteByte0 $01
+    79  085a a9108d239f           +vWriteByte0 $10
+    80  085f ca                   dex
+    81  0860 d0f3                 bne .nextMapCell
+    82  0862 88                   dey
+    83  0863 d0ee                 bne .nextMapRow
+    84                          
+    85  0865 a9108d229fa90a8d...  +vset $A08
+    86  0874 a9018d239f           +vWriteByte0 $01
+    87  0879 a9108d239f           +vWriteByte0 $10
+    88                          
+    89  087e a9108d229fa9408d...  +vset $4000
+    90                          
+    91  088d a010                 ldy #16
+    92                          
+    93                          .nextTileRow:
+    94  088f a9008d239f           +vWriteByte0 $00
+    95  0894 a9008d239f           +vWriteByte0 $00
+    96  0899 a9008d239f           +vWriteByte0 $00
+    97  089e a9008d239f           +vWriteByte0 $00
+    98  08a3 a9558d239f           +vWriteByte0 $55
+    99  08a8 a9558d239f           +vWriteByte0 $55
+   100  08ad a9118d239f           +vWriteByte0 $11
+   101  08b2 a9118d239f           +vWriteByte0 $11
+   102  08b7 88                   dey
+   103  08b8 d0d5                 bne .nextTileRow
+   104                            
+   105                          .doneLoad
+   106                          
+   107                          
+   108  08ba a9058d2e9f           +vreg VERA_L0_MAPBASE, $05    ; map data starting at 0x00
+   109  08bf a9238d2f9f           +vreg VERA_L0_TILEBASE, $23   ; 16x16 tiles starting at 0 0100 0000 0000 0000
+   110  08c4 a9028d2d9f           +vreg VERA_L0_CONFIG, $02  ; 32x32, 4bpp
+   111  08c9 a9008d309f           +vreg VERA_L0_HSCROLL_L, $00
+   112  08ce a9008d319f           +vreg VERA_L0_HSCROLL_H, $00
+   113  08d3 a9008d329f           +vreg VERA_L0_VSCROLL_L, $00
+   114  08d8 a9008d339f           +vreg VERA_L0_VSCROLL_H, $00
+   115  08dd a9118d299f           +vreg VERA_DC_VIDEO, $11
+   116  08e2 a9408d2a9f           +vreg VERA_DC_HSCALE, 64   
+   117  08e7 a9408d2b9f           +vreg VERA_DC_VSCALE, 64   
+   118  08ec a9018d269f           +vreg VERA_IEN, 1
+   119  08f1 a9018d279f           +vreg VERA_ISR, 1
+   120                          
+   121  08f6 a9118d229fa9fa8d...  +vset VERA_PALETTE + $10 ; palette
+   122  0905 a9008d239fa9008d...  +vWriteWord0 $0000 ;0  -RGB
+   123  090f a9008d239fa9058d...  +vWriteWord0 $0500 ;1  -RGB
+   124  0919 a9008d239fa9068d...  +vWriteWord0 $0600 ;2  -RGB
+   125  0923 a9008d239fa9098d...  +vWriteWord0 $0900 ;3  -RGB
+   126                          ;  +vWriteWord0 $0A00 ;4  -RGB
+   127                          ;  +vWriteWord0 $0C00 ;5  -RGB
+   128                          ;  +vWriteWord0 $0E10 ;6  -RGB
+   129                          ;  +vWriteWord0 $0555 ;7  -RGB
+   130                          ;  +vWriteWord0 $0777 ;8  -RGB
+   131                          ;  +vWriteWord0 $0F52 ;9  -RGB
+   132                          ;  +vWriteWord0 $0888 ;10  -RGB
+   133                          ;  +vWriteWord0 $0F72 ;11  -RGB
+   134                          ;  +vWriteWord0 $0F94 ;12  -RGB
+   135                          ;  +vWriteWord0 $0FD0 ;13  -RGB
+   136                          ;  +vWriteWord0 $0DDD ;14  -RGB
+   137                          ;  +vWriteWord0 $0FFF ;15  -RGB
+   138  092d 60                 rts
+   139                          
+   140                          
+   141                          !macro vLoadRaw filename, vramAddress {
+   142                            +vset vramAddress
+   143                          
+   144                            ldx #<filename
+   145                            ldy #>filename
+   146                            jsr strLen
+   147                          
+   148                            jsr loadRaw
+   149                          }
+   150                          
+   151                          loadRaw:
+   152                          !zone
+   153                          tempLoadAddress = $8000
+   154  092e 20bdff               jsr SETNAM
+   155                          
+   156  0931 a901                 lda #$01
+   157  0933 a6ba                 ldx $BA       ; last used device number
+   158  0935 d002                 bne .skip
+   159  0937 a208                 ldx #$08      ; default to device 8
+   160                          .skip
+   161  0939 a000                 ldy #$00      ; $00 means: load to new address
+   162  093b 20baff               jsr SETLFS
+   163                          
+   164  093e a200                 ldx #<tempLoadAddress
+   165  0940 a080                 ldy #>tempLoadAddress
+   166  0942 a900                 lda #$00      ; $00 means: load to memory (not verify)
+   167  0944 20d5ff               jsr LOAD
+   168  0947 b00d                 bcs .error    ; if carry set, a load error has happened
+   169                          
+   170  0949 a000                 ldy #0
+   171                          
+   172                          .nextByte:        
+   173  094b b90080               lda tempLoadAddress, Y
+   174  094e 8d239f               sta VERA_DATA0
+   175  0951 c8                   iny
+   176  0952 ca                   dex
+   177  0953 d0f6                 bne .nextByte
+   178                          
+   179  0955 60                   rts
+   180                          .error
+   181                          
+   182                            ; Accumulator contains BASIC error code
+   183                          
+   184                            ; most likely errors:
+   185                            ; A = $05 (DEVICE NOT PRESENT)
+   186                            ; A = $04 (FILE NOT FOUND)
+   187                            ; A = $1D (LOAD ERROR)
+   188                            ; A = $00 (BREAK, RUN/STOP has been pressed during loading)
+   189                          
+   190                            ;... error handling ...
+   191  0956 60                   rts
 
 ; ******** Source: hello.asm
+    12                          
+    13                          
+    14                          !macro vLoadPcx filename, vramAddress, palOffset {
+    15                            
+    16                            +vchannel1
+    17                            
+    18                            +vset VERA_PALETTE + 32 ;+vset $1FA20;(VERA_PALETTE + (palOffset << 4))
+    19                            +vchannel0
+    20                            +vset vramAddress
+    21                          
+    22                            ldx #<filename
+    23                            ldy #>filename
+    24                            jsr strLen
+    25                            
+    26                            jsr loadPcxFile
+    27                          }
+    28                          
+    29                          ; program entry
+    30                          ; --------------------------------
+    31                          entry:
+    32                          
+    33                            
+    34  0957 203d08              jsr video_init
+    35  095a a9108d229fa9408d...+vLoadRaw murphyBin, $4080
+    36  0973 a9018d259fa9118d...  +vLoadPcx murphyPcx, $4080, $02
+    37                          
+    38                            ;+vset $1F9C0
+    39                            ;+vdata016 590
+    40                            ;+vdata0 $7f
+    41                            ;+vdata0 $3f
+    42                          
+    43                            ;+vLoadRaw murphyBin, $4080
+    44                            ;+vLoadPcx murphyPcx, $4080, $02
+    45                           ; +vset $4080
+    46                          
+    47  09a5 ad1403                 lda $0314
+    48  09a8 8d1308                 sta Default_irq_handler
+    49  09ab ad1503                 lda $0315
+    50  09ae 8d1408                 sta Default_irq_handler+1
+    51                          
+    52  09b1 a909                   lda #<custom_irq_handler
+    53  09b3 8d1403                 sta $0314
+    54  09b6 a90a                   lda #>custom_irq_handler+1
+    55  09b8 8d1503                 sta $0315
+    56                          
+    57  09bb 6400                 stz $00
+    58                          
+    59                          
+    60                          anykeyloop:
+    61  09bd 2053ff               jsr JOYSTICK_SCAN
+    62  09c0 2056ff               jsr JOYSTICK_GET
+    63  09c3 c9ff                 cmp #$ff
+    64  09c5 d0f6                 bne anykeyloop
+    65                          
+    66                          
+    67                          loop:
+    68  09c7 a530                 lda VSYNC_FLAG
+    69  09c9 f003                 beq tick  
+    70  09cb 4cc709               jmp loop
+    71                          
+    72                          
+    73                          tick:
+    74  09ce 2053ff               jsr JOYSTICK_SCAN
+    75  09d1 2056ff               jsr JOYSTICK_GET
+    76                          .testLeft:  
+    77  09d4 8902                 bit #JOY_LEFT
+    78  09d6 d005                 bne .testRight
+    79  09d8 a600                 ldx $00
+    80  09da e8                   inx
+    81  09db 8600                 stx $00
+    82                          .testRight:
+    83  09dd 8901                 bit #JOY_RIGHT
+    84  09df d005                 bne .testUp
+    85  09e1 a600                 ldx $00
+    86  09e3 ca                   dex
+    87  09e4 8600                 stx $00
+    88                          .testUp:
+    89  09e6 8908                 bit #JOY_UP
+    90  09e8 d005                 bne .testDown
+    91  09ea a601                 ldx $01
+    92  09ec ca                   dex
+    93  09ed 8601                 stx $01
+    94                          .testDown:
+    95  09ef 8904                 bit #JOY_DOWN
+    96  09f1 d005                 bne .doneTests
+    97  09f3 a601                 ldx $01
+    98  09f5 e8                   inx
+    99  09f6 8601                 stx $01
+   100                          
+   101                          .doneTests  
+   102  09f8 a500                 lda $00
+   103  09fa 8d309f               sta VERA_L0_HSCROLL_L
+   104  09fd a501                 lda $01
+   105  09ff 8d329f               sta VERA_L0_VSCROLL_L
+   106                          
+   107  0a02 a901                 lda #1
+   108  0a04 8530                 sta VSYNC_FLAG
+   109  0a06 4cc709             	jmp loop
+   110                          
+   111                          
+   112                          custom_irq_handler:
+   113  0a09 ad279f                 lda $9F27
+   114  0a0c 2901                   and #$01
+   115  0a0e f007                   beq irq_done
+   116                          
+   117                              ; Whatever code your program
+   118                              ; wanted to execute...
+   119  0a10 6430                   stz VSYNC_FLAG
+   120                          
+   121                          
+   122  0a12 a901                   lda #$01
+   123                              
+   124  0a14 8d279f                 sta $9F27
+   125                          
+   126                              ; Return to whatever had been interrupted:
+   127                          irq_done:
+   128  0a17 6c1308                 jmp (Default_irq_handler)
+   129                          
+   130                          murphyPcx:  
+   131  0a1a 6d75727068792e70...!text "murphy.pcx",0
+   132                          murphyBin:  
+   133  0a25 6d75727068792e62...!text "murphy.bin",0
+   134                          
+   135                          
+
+; ******** Source: ../common/vera/pcx.asm
+     1                          ; PCX file support
+     2                          ; load and decode a PCX file into VRAM
+     3                          
+     4                          ; filename:   zero-terminated string
+     5                          ; vramArress: address to load the pixel data
+     6                          ; palOffset:  0-15 - high nibble of palette address offset
+     7                          
      8                          
      9                          
-    10                          ; program entry
-    11                          ; --------------------------------
-    12                          entry:
-    13                          
-    14  0828 a9808d259fa9108d...+video_init
-    15                          
-    16  0c0b a901               	lda	#1			; Logical file number
-    17  0c0d a208               	ldx	#8			; Device 8 = sd card
-    18  0c0f a000               	ldy	#0			; 0=ignore address in bin file (2 first bytes)
-    19                          					; 1=use address in bin file
-    20  0c11 20baff             	jsr	SETLFS
-    21                          
-    22  0c14 a90a               	lda	#(End_fname-Fname)	; Length of filename
-    23  0c16 a22e               	ldx	#<Fname			; Low byte of Fname address
-    24  0c18 a00c               	ldy	#>Fname			; High byte of Fname address
-    25  0c1a 20bdff             	jsr	SETNAM
+    10                          ; XY contains address of filename
+    11                          ; vera already configured:
+    12                          ;   channel 0 for pixel data
+    13                          ;   channel 1 for palette
+    14                          loadPcxFile:
+    15                          !zone
+    16                          TMP_ADDR = $8000
+    17  0a30 20bdff               jsr SETNAM
+    18                          
+    19  0a33 a901                 lda #$01
+    20  0a35 a6ba                 ldx $BA       ; last used device number
+    21  0a37 d002                 bne .skip
+    22  0a39 a208                 ldx #$08      ; default to device 8
+    23                          .skip
+    24  0a3b a000                 ldy #$00      ; $00 means: load to new address
+    25  0a3d 20baff               jsr SETLFS
     26                          
-    27  0c1d a001               	ldy	#$01			; VERA HIGH address
-    28  0c1f a220               	ldx	#$20			; VERA LOW address
-    29  0c21 a9fa               	lda	#$fa			; VERA BANK + 2
-    30  0c23 20d5ff             	jsr	LOAD			; Load binary file into VRAM, ignoring 2 first bytes
-    31                          
-    32  0c26 4c260c             	jmp *
-    33  0c29 60                 	rts
-    34                          
-    35                          
-    36  0c2a 4c2a0c             jmp *
-    37                          
-    38  0c2d 60                 rts		    ; program exit
-    39                          
-    40  0c2e 6d75727068792e62...Fname	!text	"murphy.bin"
-    41                          End_fname
+    27  0a40 a200                 ldx #<TMP_ADDR
+    28  0a42 a080                 ldy #>TMP_ADDR
+    29  0a44 a900                 lda #$00      ; $00 means: load to memory (not verify)
+    30  0a46 20d5ff               jsr LOAD
+    31  0a49 b06e                 bcs .error    ; if carry set, a load error has happened
+    32                          
+    33                            ; store pointer to the last byte
+    34  0a4b 8606                 stx R2L
+    35  0a4d 8407                 sty R2H
+    36                          
+    37                          ; load palette data
+    38                          
+    39                            
+    40                          ;  +vset VERA_PALETTE + $20
+    41                          
+    42  0a4f a00e                 ldy #$0e   ; palette offset
+    43  0a51 a210                 ldx #$10   ; 16 colors
+    44                          .nextColor:
+    45  0a53 b90080               lda TMP_ADDR, Y   ; load red, reduce to 4 bits and store in R0L
+    46  0a56 4a                   lsr
+    47  0a57 4a                   lsr
+    48  0a58 4a                   lsr
+    49  0a59 4a                   lsr
+    50  0a5a 8502                 sta R0L
+    51  0a5c c8                   iny
+    52  0a5d b90080               lda TMP_ADDR, Y   ; load green, use high 4 bits and store in R0H
+    53  0a60 29f0                 and #$f0
+    54  0a62 8503                 sta R0H
+    55  0a64 c8                   iny
+    56  0a65 b90080               lda TMP_ADDR, Y    ; load blue, reduce to 4 bits and combine with green
+    57  0a68 4a                   lsr
+    58  0a69 4a                   lsr
+    59  0a6a 4a                   lsr
+    60  0a6b 4a                   lsr
+    61  0a6c 0503                 ora R0H
+    62                            ;lda #$ff
+    63  0a6e 8d249f               sta VERA_DATA1   ; store GB byte in vram
+    64  0a71 a502                 lda R0L
+    65                            ;lda #$ff
+    66  0a73 8d249f               sta VERA_DATA1   ; store 0R byte in vram
+    67  0a76 c8                   iny
+    68  0a77 ca                   dex
+    69  0a78 d0d9                 bne .nextColor
+    70                            ;brk
+    71                            
+    72                            ;rts
+    73                            
+    74  0a7a a900                 lda #<TMP_ADDR
+    75  0a7c 8504                 sta R1L
+    76  0a7e a980                 lda #>TMP_ADDR
+    77  0a80 8505                 sta R1H
+    78  0a82 a07e                 ldy #$7e
+    79                            
+    80                          .checkNextPixel
+    81  0a84 a505                 lda R1H
+    82  0a86 c507                 cmp R2H
+    83  0a88 d005                 bne .nextPixel
+    84  0a8a 98                   tya
+    85  0a8b c506                 cmp R2L
+    86  0a8d f029                 beq .done
+    87                          
+    88                          .nextPixel:
+    89  0a8f a201                 ldx #1
+    90  0a91 b104                 lda (R1),Y
+    91  0a93 c9c0                 cmp #$c0
+    92  0a95 9008                 bcc .noseq  ; if is >= c0 (high 2 bits are set), then we're a sequence
+    93  0a97 293f                 and #$3f
+    94  0a99 aa                   tax         ; store count in X
+    95  0a9a c8                   iny
+    96  0a9b f014                 beq .increaseAddress2
+    97                          
+    98                          .afterIncrease2  
+    99  0a9d b104                 lda (R1),Y
+   100                           
+   101                            ; not a sequence
+   102                          .noseq:
+   103  0a9f 8d239f               sta VERA_DATA0
+   104                          
+   105                          .addressOk:
+   106  0aa2 ca                   dex
+   107  0aa3 d0fa                 bne .noseq
+   108  0aa5 c8                   iny
+   109  0aa6 f002                 beq .increaseAddress
+   110  0aa8 80da                 bra .checkNextPixel
+   111                          
+   112                            ; looped over, increase high byte
+   113                          .increaseAddress:  
+   114  0aaa a505                 lda R1H
+   115  0aac 1a                   inc
+   116  0aad 8505                 sta R1H
+   117  0aaf 80d3                 bra .checkNextPixel
+   118                          
+   119                            ; looped over, increase high byte
+   120                          .increaseAddress2:  
+   121  0ab1 a505                 lda R1H
+   122  0ab3 1a                   inc
+   123  0ab4 8505                 sta R1H
+   124  0ab6 80e5                 bra .afterIncrease2
+   125                          
+   126                          .done
+   127  0ab8 60                   rts
+   128                          
+   129                          .error
+   130                          
+   131                            ; Accumulator contains BASIC error code
+   132                          
+   133                            ; most likely errors:
+   134                            ; A = $05 (DEVICE NOT PRESENT)
+   135                            ; A = $04 (FILE NOT FOUND)
+   136                            ; A = $1D (LOAD ERROR)
+   137                            ; A = $00 (BREAK, RUN/STOP has been pressed during loading)
+   138                          
+   139                            ;... error handling ...
+
+; ******** Source: hello.asm
+   136  0ab9 60                 
+   137                          
+   138  0aba 4552524f520d00     errorStr:  !pet "error",13,0
+   139  0ac1 4c4546540d00       leftStr:  !pet "left",13,0

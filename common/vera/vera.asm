@@ -8,6 +8,18 @@
 	sta VERA_ADDRx_L
 }
 
+!macro vchannel .channel {
+  +vreg VERA_CTRL, .channel 
+}
+
+!macro vchannel0 {
+  +vchannel $00 
+}
+
+!macro vchannel1 {
+  +vchannel $01 
+}
+
 !macro vstore .addr {
 	pha
 	+vset .addr
@@ -15,9 +27,14 @@
 	sta VERA_DATA0
 }
 
-!macro vload .addr {
+!macro vReadByte0 .addr {
 	+vset .addr
 	lda VERA_DATA0
+}
+
+!macro vReadByte1 .addr {
+	+vset .addr
+	lda VERA_DATA1
 }
 
 !macro vreg register, value {
@@ -25,8 +42,12 @@
   sta register
 }
 
-!macro vdata0 value {
+!macro vWriteByte0 value {
   +vreg VERA_DATA0, value
+}
+
+!macro vWriteByte1 value {
+  +vreg VERA_DATA1, value
 }
 
 !macro vreg16 register, value {
@@ -36,194 +57,55 @@
   sta register
 }
 
-!macro vdata016 value {
+!macro vWriteWord0 value {
   +vreg16 VERA_DATA0, value
 }
 
+!macro vWriteWord1 value {
+  +vreg16 VERA_DATA1, value
+}
 
-!macro video_init {
-  +vreg VERA_CTRL, $80
-
-  +vset $200
+video_init:
+  +vreg VERA_CTRL, $00   
+  +vset $A00
 
   ldy #32
 
 .nextMapRow:
-  ldx #16
+  ldx #32
 
 .nextMapCell:
-  +vdata0 $01
-  +vdata0 $10
-  +vdata0 $01
-  +vdata0 $00
-  +vdata0 $01
-  +vdata0 $20
+  +vWriteByte0 $01
+  +vWriteByte0 $10
   dex
   bne .nextMapCell
   dey
   bne .nextMapRow
+
+  +vset $A08
+  +vWriteByte0 $01
+  +vWriteByte0 $10
 
   +vset $4000
 
   ldy #16
 
 .nextTileRow:
-  +vdata0 $00
-  +vdata0 $00
-  +vdata0 $00
-  +vdata0 $00
-  +vdata0 $55
-  +vdata0 $55
-  +vdata0 $11
-  +vdata0 $11
-  +vdata0 $00
+  +vWriteByte0 $00
+  +vWriteByte0 $00
+  +vWriteByte0 $00
+  +vWriteByte0 $00
+  +vWriteByte0 $55
+  +vWriteByte0 $55
+  +vWriteByte0 $11
+  +vWriteByte0 $11
   dey
   bne .nextTileRow
   
-	+vdata0 $00
-  +vdata0 $00
-  +vdata0 $34
-  +vdata0 $55
-  +vdata0 $55
-  +vdata0 $42
-  +vdata0 $00
-  +vdata0 $00
-  +vdata0 $00
-  +vdata0 $24
-  +vdata0 $56
-  +vdata0 $66
- 
-	+vdata0 $66
-  +vdata0 $65
-  +vdata0 $30
-  +vdata0 $00
-  +vdata0 $02
-  +vdata0 $45
-  +vdata0 $66
-  +vdata0 $99
-  +vdata0 $99
-  +vdata0 $96
-  +vdata0 $63
-  +vdata0 $00
- 
-	+vdata0 $04
-  +vdata0 $56
-  +vdata0 $69
-  +vdata0 $9B
-  +vdata0 $BC
-  +vdata0 $C9
-  +vdata0 $96
-  +vdata0 $30
-  +vdata0 $85
-  +vdata0 $66
-  +vdata0 $9E
-  +vdata0 $BB
- 
-	+vdata0 $DD
-  +vdata0 $DC
-  +vdata0 $96
-  +vdata0 $50
-  +vdata0 $45
-  +vdata0 $66
-  +vdata0 $7E
-  +vdata0 $BC
-  +vdata0 $DD
-  +vdata0 $DD
-  +vdata0 $B9
-  +vdata0 $52
- 
-	+vdata0 $45
-  +vdata0 $66
-  +vdata0 $69
-  +vdata0 $BC
-  +vdata0 $DD
-  +vdata0 $DC
-  +vdata0 $B9
-  +vdata0 $64
-  +vdata0 $45
-  +vdata0 $66
-  +vdata0 $99
-  +vdata0 $BB
- 
-	+vdata0 $CD
-  +vdata0 $CC
-  +vdata0 $99
-  +vdata0 $64
-  +vdata0 $04
-  +vdata0 $56
-  +vdata0 $99
-  +vdata0 $9B
-  +vdata0 $BB
-  +vdata0 $BB
-  +vdata0 $96
-  +vdata0 $64
- 
-	+vdata0 $00
-  +vdata0 $07
-  +vdata0 $77
-  +vdata0 $49
-  +vdata0 $BB
-  +vdata0 $99
-  +vdata0 $96
-  +vdata0 $53
-  +vdata0 $00
-  +vdata0 $77
-  +vdata0 $77
-  +vdata0 $59
- 
-	+vdata0 $99
-  +vdata0 $99
-  +vdata0 $66
-  +vdata0 $50
-  +vdata0 $07
-  +vdata0 $88
-  +vdata0 $84
-  +vdata0 $69
-  +vdata0 $99
-  +vdata0 $66
-  +vdata0 $65
-  +vdata0 $40
- 
-	+vdata0 $08
-  +vdata0 $A8
-  +vdata0 $36
-  +vdata0 $66
-  +vdata0 $66
-  +vdata0 $66
-  +vdata0 $54
-  +vdata0 $20
-  +vdata0 $01
-  +vdata0 $34
-  +vdata0 $55
-  +vdata0 $56
- 
-	+vdata0 $66
-  +vdata0 $55
-  +vdata0 $42
-  +vdata0 $00
-  +vdata0 $00
-  +vdata0 $13
-  +vdata0 $44
-  +vdata0 $55
-  +vdata0 $55
-  +vdata0 $44
-  +vdata0 $20
-  +vdata0 $00
- 
-	+vdata0 $00
-  +vdata0 $00
-  +vdata0 $03
-  +vdata0 $44
-  +vdata0 $43
-  +vdata0 $00
-  +vdata0 $00
-  +vdata0 $00
-
 .doneLoad
 
 
-  +vreg VERA_CTRL, $00   
-  +vreg VERA_L0_MAPBASE, $01    ; map data starting at 0x00
+  +vreg VERA_L0_MAPBASE, $05    ; map data starting at 0x00
   +vreg VERA_L0_TILEBASE, $23   ; 16x16 tiles starting at 0 0100 0000 0000 0000
   +vreg VERA_L0_CONFIG, $02  ; 32x32, 4bpp
   +vreg VERA_L0_HSCROLL_L, $00
@@ -233,25 +115,77 @@
   +vreg VERA_DC_VIDEO, $11
   +vreg VERA_DC_HSCALE, 64   
   +vreg VERA_DC_VSCALE, 64   
+  +vreg VERA_IEN, 1
+  +vreg VERA_ISR, 1
 
-  +vset $1FA20 ; palette
-  +vdata016 $0000 ;0  -RGB
-  +vdata016 $0500 ;1  -RGB
-  +vdata016 $0600 ;2  -RGB
-  +vdata016 $0900 ;3  -RGB
-  +vdata016 $0A00 ;4  -RGB
-  +vdata016 $0C00 ;5  -RGB
-  +vdata016 $0E10 ;6  -RGB
-  +vdata016 $0555 ;7  -RGB
-  +vdata016 $0777 ;8  -RGB
-  +vdata016 $0F52 ;9  -RGB
-  +vdata016 $0888 ;10  -RGB
-  +vdata016 $0F72 ;11  -RGB
-  +vdata016 $0F94 ;12  -RGB
-  +vdata016 $0FD0 ;13  -RGB
-  +vdata016 $0DDD ;14  -RGB
-  +vdata016 $0FFF ;15  -RGB
-    
+  +vset VERA_PALETTE + $10 ; palette
+  +vWriteWord0 $0000 ;0  -RGB
+  +vWriteWord0 $0500 ;1  -RGB
+  +vWriteWord0 $0600 ;2  -RGB
+  +vWriteWord0 $0900 ;3  -RGB
+;  +vWriteWord0 $0A00 ;4  -RGB
+;  +vWriteWord0 $0C00 ;5  -RGB
+;  +vWriteWord0 $0E10 ;6  -RGB
+;  +vWriteWord0 $0555 ;7  -RGB
+;  +vWriteWord0 $0777 ;8  -RGB
+;  +vWriteWord0 $0F52 ;9  -RGB
+;  +vWriteWord0 $0888 ;10  -RGB
+;  +vWriteWord0 $0F72 ;11  -RGB
+;  +vWriteWord0 $0F94 ;12  -RGB
+;  +vWriteWord0 $0FD0 ;13  -RGB
+;  +vWriteWord0 $0DDD ;14  -RGB
+;  +vWriteWord0 $0FFF ;15  -RGB
+rts
 
 
+!macro vLoadRaw filename, vramAddress {
+  +vset vramAddress
+
+  ldx #<filename
+  ldy #>filename
+  jsr strLen
+
+  jsr loadRaw
 }
+
+loadRaw:
+!zone
+tempLoadAddress = $8000
+  jsr SETNAM
+
+  lda #$01
+  ldx $BA       ; last used device number
+  bne .skip
+  ldx #$08      ; default to device 8
+.skip
+  ldy #$00      ; $00 means: load to new address
+  jsr SETLFS
+
+  ldx #<tempLoadAddress
+  ldy #>tempLoadAddress
+  lda #$00      ; $00 means: load to memory (not verify)
+  jsr LOAD
+  bcs .error    ; if carry set, a load error has happened
+
+  ldy #0
+
+.nextByte:        
+  lda tempLoadAddress, Y
+  sta VERA_DATA0
+  iny
+  dex
+  bne .nextByte
+
+  rts
+.error
+
+  ; Accumulator contains BASIC error code
+
+  ; most likely errors:
+  ; A = $05 (DEVICE NOT PRESENT)
+  ; A = $04 (FILE NOT FOUND)
+  ; A = $1D (LOAD ERROR)
+  ; A = $00 (BREAK, RUN/STOP has been pressed during loading)
+
+  ;... error handling ...
+  rts
