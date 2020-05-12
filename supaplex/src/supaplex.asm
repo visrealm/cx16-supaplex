@@ -13,11 +13,13 @@ jmp entry
 ; --------------------------------
 entry:
 
-  +vLoadPcx murphyPcx, $4080, $02
+  +vLoadPcx staticPcx, TILE_BASE_ADDRESS, $20
+  +vLoadPcx murphyPcx, TILE_BASE_ADDRESS + (128*32), $40
   
-  jsr configDisplay
-jsr loadMap
 
+  jsr loadMap
+
+  jsr configDisplay
   
   jsr registerVsyncIrq
 
@@ -89,32 +91,18 @@ loadMap:
   ldx #32
 
 .nextMapCell:
-  +vWriteByte0 $02
-  +vWriteByte0 $10
+  +vWriteByte0 $20
+  +vWriteByte0 $20
   dex
   bne .nextMapCell
   dey
   bne .nextMapRow
 
   +vset MAP_BASE_ADDRESS + $08
-  +vWriteWord0 $0110
+  +vWriteWord0 $0010
 
   +vset TILE_BASE_ADDRESS
 
-  ldy #16
-
-.nextTileRow:
-  +vWriteByte0 $00
-  +vWriteByte0 $00
-  +vWriteByte0 $00
-  +vWriteByte0 $00
-  +vWriteByte0 $55
-  +vWriteByte0 $55
-  +vWriteByte0 $11
-  +vWriteByte0 $11
-  dey
-  bne .nextTileRow
-  
 .doneLoad
   rts
 
@@ -136,3 +124,4 @@ configDisplay:
 !source "../common/vera/pcx.asm"
 
 !source "src/strings.asm"
+

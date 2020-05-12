@@ -35,5 +35,48 @@ VERA_AUDIO_DATA=$9F3D
 VERA_SPI_DATA=$9F3E
 VERA_SPI_CTRL=$9F3F
 
+; DC_VIDEO
+; -----------------------------------------------------------------------------
+VERA_VIDEO_SPRITES_ENABLED  = $40
+VERA_VIDEO_LAYER1_ENABLED   = $20
+VERA_VIDEO_LAYER0_ENABLED   = $10
+VERA_VIDEO_OUTPUT_DISABLED  = $00
+VERA_VIDEO_OUTPUT_VGA       = $01
+VERA_VIDEO_OUTPUT_NTSC      = $02
+VERA_VIDEO_OUTPUT_RGB       = $03
 
+; DC_SCALE
+; -----------------------------------------------------------------------------
+VERA_SCALE_1x               = $80
+VERA_SCALE_2x               = $40
+VERA_SCALE_4x               = $20
+
+; Lx_CONFIG
+; -----------------------------------------------------------------------------
+VERA_CONFIG_1BPP          = $0
+VERA_CONFIG_2BPP          = $1
+VERA_CONFIG_4BPP          = $2
+VERA_CONFIG_8BPP          = $3
+
+VERA_CONFIG_BITMAP_MODE   = $4
+
+VERA_CONFIG_MAP_WIDTH_32  = $0 << 8
+VERA_CONFIG_MAP_WIDTH_64  = $1 << 8
+VERA_CONFIG_MAP_WIDTH_128 = $2 << 8
+VERA_CONFIG_MAP_WIDTH_256 = $3 << 8
+
+VERA_CONFIG_MAP_HEIGHT_32  = $0 << 12
+VERA_CONFIG_MAP_HEIGHT_64  = $1 << 12
+VERA_CONFIG_MAP_HEIGHT_128 = $2 << 12
+VERA_CONFIG_MAP_HEIGHT_256 = $3 << 12
+
+; Lx_TILEBASE
+; -----------------------------------------------------------------------------
+VERA_TILE_WIDTH_8   = $00
+VERA_TILE_WIDTH_16  = $01
+VERA_TILE_HEIGHT_8  = $00
+VERA_TILE_HEIGHT_16 = $02
+
+; Other Vera addresses
+; -----------------------------------------------------------------------------
 VERA_PALETTE=$1FA00
