@@ -34,11 +34,6 @@ TMP_ADDR = $8000
   stx R2L
   sty R2H
 
-; load palette data
-
-  
-;  +vset VERA_PALETTE + $20
-
   ldy #$0e   ; palette offset
   ldx #$10   ; 16 colors
 .nextColor:
@@ -59,17 +54,12 @@ TMP_ADDR = $8000
   lsr
   lsr
   ora R0H
-  ;lda #$ff
   sta VERA_DATA1   ; store GB byte in vram
   lda R0L
-  ;lda #$ff
   sta VERA_DATA1   ; store 0R byte in vram
   iny
   dex
   bne .nextColor
-  ;brk
-  
-  ;rts
   
   lda #<TMP_ADDR
   sta R1L

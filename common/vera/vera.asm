@@ -72,11 +72,31 @@ video_init:
   ldy #32
 
 .nextMapRow:
-  ldx #32
+  ldx #2
 
 .nextMapCell:
   +vWriteByte0 $01
-  +vWriteByte0 $10
+  +vWriteByte0 $14
+  +vWriteByte0 $02
+  +vWriteByte0 $14
+  +vWriteByte0 $03
+  +vWriteByte0 $14
+  +vWriteByte0 $04
+  +vWriteByte0 $14
+  +vWriteByte0 $05
+  +vWriteByte0 $14
+  +vWriteByte0 $06
+  +vWriteByte0 $14
+  +vWriteByte0 $07
+  +vWriteByte0 $14
+  +vWriteByte0 $08
+  +vWriteByte0 $14
+  +vWriteByte0 $09
+  +vWriteByte0 $14
+  +vWriteByte0 $0a
+  +vWriteByte0 $14
+  +vWriteByte0 $0b
+  +vWriteByte0 $14
   dex
   bne .nextMapCell
   dey
