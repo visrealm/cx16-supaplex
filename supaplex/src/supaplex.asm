@@ -4,7 +4,35 @@
 
 jmp entry
 
+SCROLL_X      = $70
+SCROLL_X_L    = SCROLL_X
+SCROLL_X_H    = SCROLL_X + 1
+SCROLL_Y      = $72
+SCROLL_Y_L    = SCROLL_Y
+SCROLL_Y_H    = SCROLL_Y + 1
 
+PLAYER_CELL_X = $80
+PLAYER_CELL_Y = $81
+
+
+; VERA memory map:
+;    $00     (0) -   $9FF  (2559) - (2560 bytes): UNUSED
+;   $A00  (2560) -  $19FF  (6655) - (64 x 32 x 2 = 4096 bytes): even frame map
+;  $1A00  (6656) -  $29FF (10751) - (64 x 32 x 2 = 4096 bytes): odd frame map
+;  $2A00 (10752) -  $3FFF (16383) - (5632 bytes): UNUSED
+;  $4000 (16384) -  $BFFF (49151) - (16 x 16 x 128 = 32768 bytes): L0 tiles
+;  $C000 (49152) - $155FF (87551) - (320 x 240 / 2 = 38400 bytes): L1 overlay
+; $15600 (87552) - $1F9BF (129471) - (41920 bytes): UNUSED
+
+MAX_SCROLL_X = 60*16-320
+MAX_SCROLL_Y = 24*16-(240-24)
+
+MAP_BASE_ADDRESS_EVEN  =  $A00
+MAP_BASE_ADDRESS_ODD   = $1A00
+TILE_BASE_ADDRESS = $4000
+
+
+!source "../common/util.asm"
 !source "../common/string.asm"
 !source "../common/vera/vsync.asm"
 !source "../common/vera/macros.asm"
@@ -12,6 +40,7 @@ jmp entry
 ; program entry
 ; --------------------------------
 entry:
+  +vreg VERA_DC_VIDEO, $00
 
   STATIC_ADDR = TILE_BASE_ADDRESS
   PODIZO_ADDR = (STATIC_ADDR + (128*32))
@@ -22,7 +51,7 @@ entry:
   BUGBAS_ADDR = (TERMIN_ADDR + (128*16))
   EXPLOD_ADDR = (BUGBAS_ADDR + (128*16))
   ELECTR_ADDR = (EXPLOD_ADDR + (128*16))
-  OVERLAY_ADDR = (ELECTR_ADDR + (128*16))
+  OVERLAY_ADDR = $C000
   OVERLAY_BOTTOM_ADDR = (OVERLAY_ADDR + (160*(240 - 24)))
 
   +vClear OVERLAY_ADDR, OVERLAY_BOTTOM_ADDR - OVERLAY_ADDR
@@ -40,6 +69,29 @@ entry:
   
   jsr loadMap
 
+  ldx #0
+  lda PLAYER_CELL_X
+!for i, 0, 3 {
+  asl
+  bcc+
+  inx
++ nop 
+}
+  stx SCROLL_X_H
+  sta SCROLL_X_L
+
+  ldx #0
+  lda PLAYER_CELL_Y
+!for i, 0, 3 {
+  asl
+  bcc+
+  inx
++ nop
+}
+
+  stx SCROLL_Y_H
+  sta SCROLL_Y_L
+
   jsr configDisplay
   
   jsr registerVsyncIrq
@@ -56,44 +108,94 @@ tick:
 .testLeft:  
   bit #JOY_LEFT
   bne .testRight
-  inc $00
-  inc $00
+  +dec16 SCROLL_X
+  +dec16 SCROLL_X
 .testRight:
   bit #JOY_RIGHT
   bne .testUp
-  dec $00
-  dec $00
+  +inc16 SCROLL_X
+  +inc16 SCROLL_X
 .testUp:
   bit #JOY_UP
   bne .testDown
-  dec $01
-  dec $01
+  +dec16 SCROLL_Y
+  +dec16 SCROLL_Y
 .testDown:
   bit #JOY_DOWN
   bne .doneTests
-  inc $01
-  inc $01
+  +inc16 SCROLL_Y
+  +inc16 SCROLL_Y
 
-.doneTests  
-  lda $00
-  sta VERA_L0_HSCROLL_L
-  lda $01
-  sta VERA_L0_VSCROLL_L
+.doneTests
+  ldy SCROLL_X_L
+  lda SCROLL_X_H
+
+  
+  bit #$80
+  beq +
+  lda #0
+  tay
+  sta SCROLL_X_H
+  sty SCROLL_X_L
++
+
+  cmp #>MAX_SCROLL_X
+  bcc +
+  cpy #<MAX_SCROLL_X
+  bcc +
+  lda #>MAX_SCROLL_X
+  sta SCROLL_X_L
+  ldy #<MAX_SCROLL_X
+  sty SCROLL_X_L
++
+
+  sty VERA_L0_HSCROLL_L
+  sta VERA_L0_HSCROLL_H
+
+  ldy SCROLL_Y_L
+  lda SCROLL_Y_H
+
+  bit #$80
+  beq +
+  lda #0
+  tay
+  sta SCROLL_Y_H
+  sty SCROLL_Y_L
++
+
+  cmp #>MAX_SCROLL_Y
+  bcc +
+  cpy #<MAX_SCROLL_Y
+  bcc +
+  lda #>MAX_SCROLL_Y
+  sta SCROLL_Y_L
+  ldy #<MAX_SCROLL_Y
+  sty SCROLL_Y_L
++
+  sty VERA_L0_VSCROLL_L
+  sta VERA_L0_VSCROLL_H
+
 
   lda #1
   sta VSYNC_FLAG
 	jmp loop
 
 
-
+; load the map
+; -----------------------------------------------------------------------------
 loadMap:
+ 
+  ; load to both odd and even locations
+  +vchannel1
+  +vset MAP_BASE_ADDRESS_EVEN
 
-  TILE_BASE_ADDRESS = $4000
-  MAP_BASE_ADDRESS  = $A00
-  
-  
-  +vreg VERA_CTRL, $00   
-  +vset MAP_BASE_ADDRESS
+  +vchannel0
+  +vset MAP_BASE_ADDRESS_ODD
+
+  lda #<levelDat
+  sta .loadLevelValue + 1
+  lda #>levelDat
+  sta .loadLevelValue + 2
 
   ldy #24
 
@@ -102,41 +204,69 @@ loadMap:
 
 .nextMapCell:
   phy
-.label1
+
+.loadLevelValue
   lda levelDat
+  
+  ; check for player cell
+  cmp #3
+  bne +
+  stx PLAYER_CELL_X
+  sty PLAYER_CELL_Y
++
+  ; double the index since our map lookup has 
+  ; 2 bytes per tile type and store in y
   asl
   tay
 
-  inc .label1 + 1 
-  bne +
-  inc .label1 + 2
-+
+  ; increment the lda address above
+  +inc16 .loadLevelValue + 1
 
+  ; load the two tile bytes for vera
   lda tileMap,y
   sta VERA_DATA0
+  sta VERA_DATA1
   iny
   lda tileMap,y
   sta VERA_DATA0
+  sta VERA_DATA1
+
+  ; restore y
   ply
   dex
+
+  ; pad to 64 tiles wide
   bne .nextMapCell
-  stz VERA_DATA0
-  stz VERA_DATA0
-  stz VERA_DATA0
-  stz VERA_DATA0
-  stz VERA_DATA0
-  stz VERA_DATA0
-  stz VERA_DATA0
-  stz VERA_DATA0
+  !for i, 0, 3 {
+    lda tileMap
+    sta VERA_DATA0
+    sta VERA_DATA1
+    lda tileMap + 1
+    sta VERA_DATA0
+    sta VERA_DATA1
+  }
   dey
   bne .nextMapRow
 
 .doneLoad
+  lda #51
+  sbc PLAYER_CELL_X
+  sta PLAYER_CELL_X
+  lda #17
+  sbc PLAYER_CELL_Y
+  sta PLAYER_CELL_Y
+
+
   rts
 
+; end loadMap
 
+
+
+; configure the display
+; -----------------------------------------------------------------------------
 configDisplay:
-  +vreg VERA_L0_MAPBASE, MAP_BASE_ADDRESS >> 9
+  +vreg VERA_L0_MAPBASE, MAP_BASE_ADDRESS_ODD >> 9
   +vreg VERA_L0_TILEBASE, (TILE_BASE_ADDRESS >> 9) | VERA_TILE_WIDTH_16 | VERA_TILE_HEIGHT_16
   +vreg VERA_L0_CONFIG, VERA_CONFIG_MAP_WIDTH_64 | VERA_CONFIG_MAP_HEIGHT_32 | VERA_CONFIG_4BPP
   +vreg VERA_L0_HSCROLL_H, 1
