@@ -7,7 +7,8 @@
 ; Outputs:
 ;  A: length
 strLen:
-!zone 
+!zone
+  phy
   stx .loop + 1        ; save string pointer LSB
   sty .loop + 2        ; save string pointer MSB
   ldy #0               ; starting string index
@@ -20,6 +21,7 @@ strLen:
 
 .end:
   tya
+  ply
   rts
 
 

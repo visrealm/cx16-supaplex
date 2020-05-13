@@ -24,8 +24,20 @@ PLAYER_CELL_Y = $81
 ;  $C000 (49152) - $155FF (87551) - (320 x 240 / 2 = 38400 bytes): L1 overlay
 ; $15600 (87552) - $1F9BF (129471) - (41920 bytes): UNUSED
 
-MAX_SCROLL_X = 60*16-320
-MAX_SCROLL_Y = 24*16-(240-24)
+TILE_SIZE   = 16
+MAP_TILES_X = 60
+MAP_TILES_Y = 24
+MAP_PIXELS_X = MAP_TILES_X * TILE_SIZE
+MAP_PIXELS_Y = MAP_TILES_Y * TILE_SIZE
+
+DISPLAY_SIZE_X  = 320
+DISPLAY_SIZE_Y  = 240
+BOTTOM_PANEL_SIZE_Y  = 24
+VISIBLE_AREA_X  = DISPLAY_SIZE_X
+VISIBLE_AREA_Y  = DISPLAY_SIZE_Y - BOTTOM_PANEL_SIZE_Y
+
+MAX_SCROLL_X = MAP_PIXELS_X - VISIBLE_AREA_X
+MAX_SCROLL_Y = MAP_PIXELS_Y - VISIBLE_AREA_Y
 
 MAP_BASE_ADDRESS_EVEN  =  $A00
 MAP_BASE_ADDRESS_ODD   = $1A00
@@ -69,25 +81,38 @@ entry:
   
   jsr loadMap
 
+; set starting scroll position 
+; based on player location
   ldx #0
   lda PLAYER_CELL_X
-!for i, 0, 3 {
+
+  ; times player position by 16 
+  ; (1-59, so can safely shift twice before checking carry)
+  asl 
+  asl
+!for i, 0, 1 {
   asl
   bcc+
   inx
 + nop 
 }
+  eor #$08 ; minor adjustment to centre
   stx SCROLL_X_H
   sta SCROLL_X_L
 
   ldx #0
   lda PLAYER_CELL_Y
-!for i, 0, 3 {
+  
+  ; (1-22, so can safely shift thrice before checking carry)
+  asl
+  asl
+  asl
   asl
   bcc+
   inx
 + nop
-}
+
+  eor #$0b ; minor adjustment to centre
 
   stx SCROLL_Y_H
   sta SCROLL_Y_L
@@ -103,7 +128,6 @@ loop:
 
 
 tick:
-  ;jsr JOYSTICK_SCAN
   jsr JOYSTICK_GET
 .testLeft:  
   bit #JOY_LEFT
@@ -131,6 +155,7 @@ tick:
   lda SCROLL_X_H
 
   
+  ; check X scroll limits
   bit #$80
   beq +
   lda #0
@@ -149,12 +174,14 @@ tick:
   sty SCROLL_X_L
 +
 
+  ; update horz scroll
   sty VERA_L0_HSCROLL_L
   sta VERA_L0_HSCROLL_H
 
   ldy SCROLL_Y_L
   lda SCROLL_Y_H
 
+  ; check Y scroll limits
   bit #$80
   beq +
   lda #0
@@ -172,6 +199,8 @@ tick:
   ldy #<MAX_SCROLL_Y
   sty SCROLL_Y_L
 +
+
+  ; update vert scroll
   sty VERA_L0_VSCROLL_L
   sta VERA_L0_VSCROLL_H
 
@@ -288,7 +317,7 @@ configDisplay:
 !source "../common/vera/pcx.asm"
 
 
-!align 255, 0
+;!align 255, 0
 tileMap:
 !binary "src/tilemap.bin"
 

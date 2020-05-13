@@ -64,6 +64,20 @@
   +vreg16 VERA_DATA1, value
 }
 
+!macro vClear start, length {
+  +vset start
+
+  ldx #<length
+  ldy #>length
+  lda #0
+
+-
+  sta VERA_DATA0
+  dey
+  bne -
+  dex
+  bne -
+}
 
 !macro vLoadRaw filename, vramAddress {
   +vset vramAddress
@@ -76,11 +90,15 @@
 }
 
 
-!macro vLoadPcx filename, vramAddress, palOffset {
+!macro vLoadPcx filename, vramAddress, palIndex {
+
+  !if palIndex > 15 {
+    !error "Invalid palette index: ", palIndex, ". Must be between 0 and 15"
+  }
   
   +vchannel1
   
-  +vset VERA_PALETTE + palOffset
+  +vset VERA_PALETTE + (palIndex << 5)
   +vchannel0
   +vset vramAddress
 

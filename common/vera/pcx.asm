@@ -1,4 +1,6 @@
 ; PCX file support
+!zone pcxFile {
+
 ; load and decode a PCX file into VRAM
 
 ; filename:   zero-terminated string
@@ -13,28 +15,35 @@
 ;   channel 1 for palette
 loadPcxFile:
 !zone
-TMP_ADDR = $8000
+!addr TMP_ADDR = $8000
   jsr SETNAM
 
   lda #$01
   ldx $BA       ; last used device number
-  bne .skip
+  bne +
   ldx #$08      ; default to device 8
-.skip
-  ldy #$00      ; $00 means: load to new address
++ ldy #$00      ; $00 means: load to new address
   jsr SETLFS
 
-  ldx #<TMP_ADDR
-  ldy #>TMP_ADDR
+  ldx #<(TMP_ADDR + 2)
+  ldy #>(TMP_ADDR + 2)
   lda #$00      ; $00 means: load to memory (not verify)
   jsr LOAD
-  bcs .error    ; if carry set, a load error has happened
+  bcc .loadedOk ; if carry set, a load error has happened
+
+  brk
+  ; load error?
+  rts
+
+; if we get this far, the file has loaded to TMP_ADDR
+; and x/y contains the address of the last byte read
+.loadedOk:
 
   ; store pointer to the last byte
   stx R2L
   sty R2H
 
-  ldy #$0e   ; palette offset
+  ldy #$10   ; palette offset
   ldx #$10   ; 16 colors
 .nextColor:
   lda TMP_ADDR, Y   ; load red, reduce to 4 bits and store in R0L
@@ -65,66 +74,40 @@ TMP_ADDR = $8000
   sta R1L
   lda #>TMP_ADDR
   sta R1H
-  ldy #$7e
+  ldy #$80
   
-.checkNextPixel
+.checkNextPixel:
   lda R1H
   cmp R2H
-  bne .nextPixel
+  bne +
   tya
   cmp R2L
   beq .done
 
-.nextPixel:
-  ldx #1
++ ldx #1
   lda (R1),Y
   cmp #$c0
-  bcc .noseq  ; if is >= c0 (high 2 bits are set), then we're a sequence
+  bcc .noSequence  ; if is >= c0 (high 2 bits are set), then we're a sequence
+
+  ; is a sequence, so get the value and count
   and #$3f
   tax         ; store count in X
   iny
-  beq .increaseAddress2
+  bne +
+  inc R1H
 
-.afterIncrease2  
-  lda (R1),Y
++ lda (R1),Y
  
   ; not a sequence
-.noseq:
+.noSequence:
   sta VERA_DATA0
-
-.addressOk:
   dex
-  bne .noseq
+  bne .noSequence
   iny
-  beq .increaseAddress
+  bne .checkNextPixel
+  inc R1H
   bra .checkNextPixel
-
-  ; looped over, increase high byte
-.increaseAddress:  
-  lda R1H
-  inc
-  sta R1H
-  bra .checkNextPixel
-
-  ; looped over, increase high byte
-.increaseAddress2:  
-  lda R1H
-  inc
-  sta R1H
-  bra .afterIncrease2
 
 .done
   rts
-
-.error
-
-  ; Accumulator contains BASIC error code
-
-  ; most likely errors:
-  ; A = $05 (DEVICE NOT PRESENT)
-  ; A = $04 (FILE NOT FOUND)
-  ; A = $1D (LOAD ERROR)
-  ; A = $00 (BREAK, RUN/STOP has been pressed during loading)
-
-  ;... error handling ...
-  rts
+}

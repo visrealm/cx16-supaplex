@@ -1,8 +1,8 @@
 
+!zone vera {
 
 
 loadRaw:
-!zone
 tempLoadAddress = $8000
   jsr SETNAM
 
@@ -42,3 +42,4 @@ tempLoadAddress = $8000
 
   ;... error handling ...
   rts
+}
