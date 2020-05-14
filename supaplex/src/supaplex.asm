@@ -63,6 +63,8 @@ TILE_BASE_ADDRESS = $4000
 
 ; a: = Cell X index
 ; y: = Cell y index
+; returns:
+; x: contents of cell
 vTile:
   sty R0
   asl
@@ -73,6 +75,10 @@ vTile:
   lda R0
   adc #>MAP_BASE_ADDRESS_ODD
   sta VERA_ADDRx_M
+  stz VERA_ADDRx_H
+  ldx #$10
+  lda VERA_DATA0
+  stx VERA_ADDRx_H
   rts
 
 
@@ -138,20 +144,25 @@ doInput:
   pha
   lda PLAYER_CELL_X
   ldy PLAYER_CELL_Y
-
+  dec
+  jsr vTile
+  beq +
+  cmp #$31
+  bne ++
++
+  lda #$40
+  sta VERA_DATA0
+  lda #$30
+  sta VERA_DATA0
+  
+  lda PLAYER_CELL_X
+  dec PLAYER_CELL_X
   jsr vTile
   lda #$31
   sta VERA_DATA0
   lda #$20
   sta VERA_DATA0
-  dec PLAYER_CELL_X
-  lda PLAYER_CELL_X
-  jsr vTile
-  lda #$40
-  sta VERA_DATA0
-  lda #$30
-  sta VERA_DATA0
-
+++
   pla
 .testRight:
   bit #JOY_RIGHT
@@ -159,20 +170,25 @@ doInput:
   pha
   lda PLAYER_CELL_X
   ldy PLAYER_CELL_Y
-
+  inc
+  jsr vTile
+  beq +
+  cmp #$31
+  bne ++
++
+  lda #$40
+  sta VERA_DATA0
+  lda #$30
+  sta VERA_DATA0
+  
+  lda PLAYER_CELL_X
+  inc PLAYER_CELL_X
   jsr vTile
   lda #$31
   sta VERA_DATA0
   lda #$20
   sta VERA_DATA0
-  inc PLAYER_CELL_X
-  lda PLAYER_CELL_X
-  jsr vTile
-  lda #$40
-  sta VERA_DATA0
-  lda #$30
-  sta VERA_DATA0
-
+++
   pla
 .testUp:
   bit #JOY_UP
@@ -180,43 +196,54 @@ doInput:
   pha
   lda PLAYER_CELL_X
   ldy PLAYER_CELL_Y
-
+  dey
+  jsr vTile
+  beq +
+  cmp #$31
+  bne ++
++
+  lda #$40
+  sta VERA_DATA0
+  lda #$30
+  sta VERA_DATA0
+  
+  lda PLAYER_CELL_X
+  ldy PLAYER_CELL_Y
+  dec PLAYER_CELL_Y
   jsr vTile
   lda #$31
   sta VERA_DATA0
   lda #$20
   sta VERA_DATA0
-  lda PLAYER_CELL_X
-  dec PLAYER_CELL_Y
-  ldy PLAYER_CELL_Y
-  jsr vTile
-  lda #$40
-  sta VERA_DATA0
-  lda #$30
-  sta VERA_DATA0
-
+++
   pla
+
 .testDown:
   bit #JOY_DOWN
   bne .doneTests
   pha
   lda PLAYER_CELL_X
   ldy PLAYER_CELL_Y
-
+  iny
+  jsr vTile
+  beq +
+  cmp #$31
+  bne ++
++
+  lda #$40
+  sta VERA_DATA0
+  lda #$30
+  sta VERA_DATA0
+  
+  lda PLAYER_CELL_X
+  ldy PLAYER_CELL_Y
+  inc PLAYER_CELL_Y
   jsr vTile
   lda #$31
   sta VERA_DATA0
   lda #$20
   sta VERA_DATA0
-  lda PLAYER_CELL_X
-  inc PLAYER_CELL_Y
-  ldy PLAYER_CELL_Y
-  jsr vTile
-  lda #$40
-  sta VERA_DATA0
-  lda #$30
-  sta VERA_DATA0
-
+++
   pla
 .doneTests:
   rts
@@ -274,8 +301,8 @@ tick:
   sta PLAYER_INPUT
 
   lda FRAME_INDEX
-  and #$07
-  cmp #$04
+  and #$03
+  cmp #$02
   bne .afterInput
   
   jsr doInput
