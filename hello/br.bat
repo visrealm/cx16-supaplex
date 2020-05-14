@@ -1,5 +1,0 @@
-call build
-
-
-
-call run
