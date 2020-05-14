@@ -35,6 +35,28 @@ VERA_AUDIO_DATA=$9F3D
 VERA_SPI_DATA=$9F3E
 VERA_SPI_CTRL=$9F3F
 
+; ADDRx_H increments
+; -----------------------------------------------------------------------------
+VERA_INCR_0   = $00
+VERA_INCR_1   = $10
+VERA_INCR_2   = $20
+VERA_INCR_4   = $30
+VERA_INCR_8   = $40
+VERA_INCR_16  = $50
+VERA_INCR_32  = $60
+VERA_INCR_64  = $70
+VERA_INCR_128 = $80
+VERA_INCR_256 = $90
+VERA_INCR_512 = $A0
+VERA_INCR_40  = $B0
+VERA_INCR_80  = $C0
+VERA_INCR_160 = $D0
+VERA_INCR_320 = $E0
+VERA_INCR_640 = $F0
+
+VERA_DECR     = $08
+
+
 ; DC_VIDEO
 ; -----------------------------------------------------------------------------
 VERA_VIDEO_SPRITES_ENABLED  = $40

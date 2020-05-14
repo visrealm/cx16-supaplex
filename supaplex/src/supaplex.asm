@@ -2,8 +2,6 @@
 !source "../common/vera/constants.asm"
 !source "../common/bootstrap.asm"
 
-jmp entry
-
 SCROLL_X      = $70
 SCROLL_X_L    = SCROLL_X
 SCROLL_X_H    = SCROLL_X + 1
@@ -13,6 +11,19 @@ SCROLL_Y_H    = SCROLL_Y + 1
 
 PLAYER_CELL_X = $80
 PLAYER_CELL_Y = $81
+PLAYER_INPUT  = $82
+
+FRAME_INDEX   = $93
+
+SPRITE_TYPE_TABLE = $90 ; - $91 ; lookup to spriteTypes in gameobj.asm
+
+; set up sprite types table
+lda #<spriteTypes
+sta SPRITE_TYPE_TABLE
+lda #>spriteTypes
+sta SPRITE_TYPE_TABLE + 1
+
+jmp entry
 
 
 ; VERA memory map:
@@ -27,6 +38,7 @@ PLAYER_CELL_Y = $81
 TILE_SIZE   = 16
 MAP_TILES_X = 60
 MAP_TILES_Y = 24
+MAP_TILES   = MAP_TILES_X * MAP_TILES_Y
 MAP_PIXELS_X = MAP_TILES_X * TILE_SIZE
 MAP_PIXELS_Y = MAP_TILES_Y * TILE_SIZE
 
@@ -48,6 +60,178 @@ TILE_BASE_ADDRESS = $4000
 !source "../common/string.asm"
 !source "../common/vera/vsync.asm"
 !source "../common/vera/macros.asm"
+
+; a: = Cell X index
+; y: = Cell y index
+vTile:
+  sty R0
+  asl
+  asl
+  lsr R0
+  ror
+  sta VERA_ADDRx_L
+  lda R0
+  adc #>MAP_BASE_ADDRESS_ODD
+  sta VERA_ADDRx_M
+  rts
+
+
+centreMap:
+
+; set starting scroll position 
+; based on player location
+  ldx #0
+  lda PLAYER_CELL_X
+
+  ; times player position by 16 
+  ; (1-59, so can safely shift twice before checking carry)
+  asl 
+  bcc+
+  inx
++
+  asl
+  bcc+
+  inx
++
+  asl
+  bcc+
+  inx
++
+  pha
+  txa
+  asl
+  tax
+  pla
+  asl
+  bcc+
+  inx
++
+  
+  clc
+  sbc #(160 - 8)
+  bcs +
+  dex  
++
+  ;ldx #$01
+  ;lda #$e8
+
+  stx SCROLL_X_H
+  sta SCROLL_X_L
+
+  ldx #0
+  lda PLAYER_CELL_Y
+  
+  ; (1-22, so can safely shift thrice before checking carry)
+  asl
+  asl
+  asl
+  asl
+  bcc+
+  inx
++ nop
+
+  sbc #(100 - 8)
+  bcs +
+  dex  
++
+  stx SCROLL_Y_H
+  sta SCROLL_Y_L
+
+  rts
+
+
+doInput:
+
+  lda PLAYER_INPUT
+.testLeft:  
+  bit #JOY_LEFT
+  bne .testRight
+  pha
+  lda PLAYER_CELL_X
+  ldy PLAYER_CELL_Y
+
+  jsr vTile
+  lda #$31
+  sta VERA_DATA0
+  lda #$20
+  sta VERA_DATA0
+  dec PLAYER_CELL_X
+  lda PLAYER_CELL_X
+  jsr vTile
+  lda #$40
+  sta VERA_DATA0
+  lda #$30
+  sta VERA_DATA0
+
+  pla
+.testRight:
+  bit #JOY_RIGHT
+  bne .testUp
+  pha
+  lda PLAYER_CELL_X
+  ldy PLAYER_CELL_Y
+
+  jsr vTile
+  lda #$31
+  sta VERA_DATA0
+  lda #$20
+  sta VERA_DATA0
+  inc PLAYER_CELL_X
+  lda PLAYER_CELL_X
+  jsr vTile
+  lda #$40
+  sta VERA_DATA0
+  lda #$30
+  sta VERA_DATA0
+
+  pla
+.testUp:
+  bit #JOY_UP
+  bne .testDown
+  pha
+  lda PLAYER_CELL_X
+  ldy PLAYER_CELL_Y
+
+  jsr vTile
+  lda #$31
+  sta VERA_DATA0
+  lda #$20
+  sta VERA_DATA0
+  lda PLAYER_CELL_X
+  dec PLAYER_CELL_Y
+  ldy PLAYER_CELL_Y
+  jsr vTile
+  lda #$40
+  sta VERA_DATA0
+  lda #$30
+  sta VERA_DATA0
+
+  pla
+.testDown:
+  bit #JOY_DOWN
+  bne .doneTests
+  pha
+  lda PLAYER_CELL_X
+  ldy PLAYER_CELL_Y
+
+  jsr vTile
+  lda #$31
+  sta VERA_DATA0
+  lda #$20
+  sta VERA_DATA0
+  lda PLAYER_CELL_X
+  inc PLAYER_CELL_Y
+  ldy PLAYER_CELL_Y
+  jsr vTile
+  lda #$40
+  sta VERA_DATA0
+  lda #$30
+  sta VERA_DATA0
+
+  pla
+.doneTests:
+  rts
+
 
 ; program entry
 ; --------------------------------
@@ -81,80 +265,39 @@ entry:
   
   jsr loadMap
 
-; set starting scroll position 
-; based on player location
-  ldx #0
-  lda PLAYER_CELL_X
-
-  ; times player position by 16 
-  ; (1-59, so can safely shift twice before checking carry)
-  asl 
-  asl
-!for i, 0, 1 {
-  asl
-  bcc+
-  inx
-+ nop 
-}
-  eor #$08 ; minor adjustment to centre
-  stx SCROLL_X_H
-  sta SCROLL_X_L
-
-  ldx #0
-  lda PLAYER_CELL_Y
-  
-  ; (1-22, so can safely shift thrice before checking carry)
-  asl
-  asl
-  asl
-  asl
-  bcc+
-  inx
-+ nop
-
-  eor #$0b ; minor adjustment to centre
-
-  stx SCROLL_Y_H
-  sta SCROLL_Y_L
+  jsr centreMap
 
   jsr configDisplay
   
   jsr registerVsyncIrq
 
+  stz FRAME_INDEX
+
 loop:
   lda VSYNC_FLAG
-  beq tick  
+  beq tick
   jmp loop
 
 
 tick:
-  jsr JOYSTICK_GET
-.testLeft:  
-  bit #JOY_LEFT
-  bne .testRight
-  +dec16 SCROLL_X
-  +dec16 SCROLL_X
-.testRight:
-  bit #JOY_RIGHT
-  bne .testUp
-  +inc16 SCROLL_X
-  +inc16 SCROLL_X
-.testUp:
-  bit #JOY_UP
-  bne .testDown
-  +dec16 SCROLL_Y
-  +dec16 SCROLL_Y
-.testDown:
-  bit #JOY_DOWN
-  bne .doneTests
-  +inc16 SCROLL_Y
-  +inc16 SCROLL_Y
 
-.doneTests
+  jsr JOYSTICK_GET
+  sta PLAYER_INPUT
+
+  lda FRAME_INDEX
+  and #$07
+  cmp #$04
+  bne .afterInput
+  
+  jsr doInput
+
+  jsr centreMap
+
+.afterInput
   ldy SCROLL_X_L
   lda SCROLL_X_H
-
   
+  ;bra .skipXLim
   ; check X scroll limits
   bit #$80
   beq +
@@ -165,21 +308,25 @@ tick:
 +
 
   cmp #>MAX_SCROLL_X
-  bcc +
+  bcc ++
+  bne +
   cpy #<MAX_SCROLL_X
-  bcc +
+  bcc ++
++
   lda #>MAX_SCROLL_X
   sta SCROLL_X_L
   ldy #<MAX_SCROLL_X
   sty SCROLL_X_L
-+
-
+++
+.skipXLim
   ; update horz scroll
   sty VERA_L0_HSCROLL_L
   sta VERA_L0_HSCROLL_H
 
   ldy SCROLL_Y_L
   lda SCROLL_Y_H
+
+  ;bra .skipYLim
 
   ; check Y scroll limits
   bit #$80
@@ -191,22 +338,28 @@ tick:
 +
 
   cmp #>MAX_SCROLL_Y
-  bcc +
+  bcc ++
+  bne +
   cpy #<MAX_SCROLL_Y
-  bcc +
+  bcc ++
++
   lda #>MAX_SCROLL_Y
   sta SCROLL_Y_L
   ldy #<MAX_SCROLL_Y
   sty SCROLL_Y_L
-+
+++
 
+.skipYLim
   ; update vert scroll
   sty VERA_L0_VSCROLL_L
   sta VERA_L0_VSCROLL_H
 
-
+  
   lda #1
   sta VSYNC_FLAG
+
+  inc FRAME_INDEX
+
 	jmp loop
 
 
@@ -278,10 +431,13 @@ loadMap:
   bne .nextMapRow
 
 .doneLoad
-  lda #51
+
+  ; adjust the player offset
+  sec
+  lda #60
   sbc PLAYER_CELL_X
   sta PLAYER_CELL_X
-  lda #17
+  lda #24
   sbc PLAYER_CELL_Y
   sta PLAYER_CELL_Y
 
@@ -317,9 +473,16 @@ configDisplay:
 !source "../common/vera/pcx.asm"
 
 
-;!align 255, 0
+!align 255, 0
 tileMap:
 !binary "src/tilemap.bin"
 
 levelDat:
 !binary "bin/level1.dat"
+
+!source "src/gameobj.asm"
+
+levelRows:
+!for i, 0, MAP_TILES_Y - 1 {
+  !word levelDat + (i * MAP_TILES_X)
+}

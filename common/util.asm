@@ -1,14 +1,11 @@
 
 
 !macro dec16 addr {
-  pha
-  lda #0
-  cmp addr
+  lda addr
   bne +
   dec addr + 1
 +
   dec addr
-  pla
 }
 
 !macro inc16 addr {

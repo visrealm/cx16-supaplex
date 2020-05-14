@@ -1,10 +1,14 @@
-!macro vset .addr {
-	lda #<(.addr >> 16) | $10
+!macro vset .addr, increment {
+	lda #<(.addr >> 16) | increment
 	sta VERA_ADDRx_H
 	lda #<(.addr >> 8)
 	sta VERA_ADDRx_M
 	lda #<(.addr)
 	sta VERA_ADDRx_L
+}
+
+!macro vset .addr {
+  +vset .addr, VERA_INCR_1
 }
 
 !macro vchannel .channel {
