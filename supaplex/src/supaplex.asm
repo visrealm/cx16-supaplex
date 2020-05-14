@@ -86,34 +86,23 @@ centreMap:
   ; times player position by 16 
   ; (1-59, so can safely shift twice before checking carry)
   asl 
-  bcc+
-  inx
-+
+  asl
   asl
   bcc+
   inx
 +
   asl
-  bcc+
-  inx
-+
   pha
   txa
-  asl
+  rol
   tax
   pla
-  asl
-  bcc+
-  inx
-+
   
   clc
   sbc #(160 - 8)
   bcs +
   dex  
 +
-  ;ldx #$01
-  ;lda #$e8
 
   stx SCROLL_X_H
   sta SCROLL_X_L
