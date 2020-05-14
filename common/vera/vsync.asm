@@ -1,3 +1,14 @@
+; Commander X16
+;
+; VERA Vsync helpers
+;
+; Copyright (c) 2020 Troy Schrapel
+;
+; This code is licensed under the MIT license
+;
+; https://github.com/visrealm/supaplex-x16
+;
+;
 
 defaultIrqHandler: !le16 $0000
 

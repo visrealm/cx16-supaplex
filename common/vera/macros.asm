@@ -1,3 +1,14 @@
+; Commander X16
+;
+; Vera macros
+;
+; Copyright (c) 2020 Troy Schrapel
+;
+; This code is licensed under the MIT license
+;
+; https://github.com/visrealm/supaplex-x16
+;
+
 !macro vset .addr, increment {
 	lda #<(.addr >> 16) | increment
 	sta VERA_ADDRx_H

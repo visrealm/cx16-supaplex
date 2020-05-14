@@ -1,4 +1,14 @@
-
+; Commander X16
+;
+; String subroutines
+;
+; Copyright (c) 2020 Troy Schrapel
+;
+; This code is licensed under the MIT license
+;
+; https://github.com/visrealm/supaplex-x16
+;
+;
 
 ; Length of a null-terminated string
 ; Inputs:

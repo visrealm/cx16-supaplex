@@ -1,3 +1,15 @@
+; Commander X16
+;
+; ACME assembler bootstrap for 6502
+;
+; Copyright (c) 2020 Troy Schrapel
+;
+; This code is licensed under the MIT license
+;
+; https://github.com/visrealm/supaplex-x16
+;
+;
+
 ; standard bootstrap
 ; generate SYS 2064 ($810)
 

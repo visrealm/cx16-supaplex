@@ -1,4 +1,14 @@
-
+; Supaplex - Commander X16
+;
+; Game objects
+;
+; Copyright (c) 2020 Troy Schrapel
+;
+; This code is licensed under the MIT license
+;
+; https://github.com/visrealm/supaplex-x16
+;
+;
 
 
 ; structure of a game object

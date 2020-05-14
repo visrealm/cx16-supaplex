@@ -1,3 +1,14 @@
+; Commander X16
+;
+; Vera constants
+;
+; Copyright (c) 2020 Troy Schrapel
+;
+; This code is licensed under the MIT license
+;
+; https://github.com/visrealm/supaplex-x16
+;
+
 VERA_ADDRx_L=$9F20
 VERA_ADDRx_M=$9F21
 VERA_ADDRx_H=$9F22

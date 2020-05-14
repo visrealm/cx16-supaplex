@@ -1,3 +1,13 @@
+; Supaplex - Commander X16
+;
+; Copyright (c) 2020 Troy Schrapel
+;
+; This code is licensed under the MIT license
+;
+; https://github.com/visrealm/supaplex-x16
+;
+;
+
 !source "../common/kernal/constants.asm"
 !source "../common/vera/constants.asm"
 !source "../common/bootstrap.asm"
@@ -494,7 +504,7 @@ tileMap:
 !binary "src/tilemap.bin"
 
 levelDat:
-!binary "bin/level2.dat"
+!binary "bin/level1.dat"
 
 !source "src/gameobj.asm"
 

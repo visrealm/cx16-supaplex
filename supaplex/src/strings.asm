@@ -1,3 +1,14 @@
+; Supaplex - Commander X16
+;
+; Various strings
+;
+; Copyright (c) 2020 Troy Schrapel
+;
+; This code is licensed under the MIT license
+;
+; https://github.com/visrealm/supaplex-x16
+;
+;
 
 !zone
 staticPcx:  !pet "static.pcx",0
