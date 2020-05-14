@@ -494,7 +494,7 @@ tileMap:
 !binary "src/tilemap.bin"
 
 levelDat:
-!binary "bin/level1.dat"
+!binary "bin/level2.dat"
 
 !source "src/gameobj.asm"
 
