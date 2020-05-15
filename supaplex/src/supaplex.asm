@@ -36,6 +36,8 @@ PLAYER_OFFSET_X = $15
 PLAYER_SPEED_Y  = $16
 PLAYER_OFFSET_Y = $17
 
+PLAYER_FACING = $18
+
 FRAME_INDEX   = $93
 
 SPRITE_TYPE_TABLE = $90 ; - $91 ; lookup to spriteTypes in gameobj.asm
@@ -50,6 +52,7 @@ stz PLAYER_SPEED_X
 stz PLAYER_OFFSET_X
 stz PLAYER_SPEED_Y
 stz PLAYER_OFFSET_Y
+stz PLAYER_FACING
 
 jmp entry
 
@@ -485,11 +488,33 @@ tick:
   ; update vert scroll
   sty VERA_L0_VSCROLL_L
   sta VERA_L0_VSCROLL_H
+ 
   
   clc
   lda PLAYER_OFFSET_X
   adc PLAYER_SPEED_X
   sta PLAYER_OFFSET_X
+
+  lda PLAYER_SPEED_X
+  beq .notMovingX
+  
+  +vset VERA_SPRITES
+  +vWriteByte0 ((MURPHY_ADDR + 128) >> 5) & $ff
+  +vWriteByte0 ((MURPHY_ADDR  + 128) >> 13) & $ff
+  +vset VERA_SPRITES + 6
+  +vWriteByte0 $08  
+  +vset VERA_SPRITES + 6
+  lda PLAYER_SPEED_X
+  and #$80
+  bne .afterMovingX
+  +vWriteByte0 $09  
+  bra .afterMovingX
+
+.notMovingX:
+  +vset VERA_SPRITES
+  +vWriteByte0 ((MURPHY_ADDR) >> 5) & $ff
+  +vWriteByte0 ((MURPHY_ADDR) >> 13) & $ff
+.afterMovingX:
 
   clc
   lda PLAYER_OFFSET_Y
@@ -632,7 +657,7 @@ tileMap:
 !binary "src/tilemap.bin"
 
 levelDat:
-!binary "bin/level2.dat"
+!binary "bin/level1.dat"
 
 !source "src/gameobj.asm"
 
