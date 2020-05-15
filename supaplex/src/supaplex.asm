@@ -31,6 +31,11 @@ PLAYER_CELL_X = $80
 PLAYER_CELL_Y = $81
 PLAYER_INPUT  = $82
 
+PLAYER_SPEED_X  = $14
+PLAYER_OFFSET_X = $15
+PLAYER_SPEED_Y  = $16
+PLAYER_OFFSET_Y = $17
+
 FRAME_INDEX   = $93
 
 SPRITE_TYPE_TABLE = $90 ; - $91 ; lookup to spriteTypes in gameobj.asm
@@ -40,6 +45,11 @@ lda #<spriteTypes
 sta SPRITE_TYPE_TABLE
 lda #>spriteTypes
 sta SPRITE_TYPE_TABLE + 1
+
+stz PLAYER_SPEED_X
+stz PLAYER_OFFSET_X
+stz PLAYER_SPEED_Y
+stz PLAYER_OFFSET_Y
 
 jmp entry
 
@@ -175,6 +185,27 @@ centreMap:
   jsr tileToWorldX
 
   sta PLAYER_X_L
+
+  lda PLAYER_OFFSET_X
+  beq .afterOffset
+  bpl .posOffset
+  ; neg offset
+  clc
+  adc PLAYER_X_L
+  sta PLAYER_X_L
+  bcs .afterOffset
+  dex
+  bra  .afterOffset
+.posOffset:
+  clc
+  adc PLAYER_X_L
+  sta PLAYER_X_L
+  bcc .afterOffset
+  inx
+  bra  .afterOffset
+
+.afterOffset:
+  lda PLAYER_X_L
   stx PLAYER_X_H
 
 ; adjust to screen centre
@@ -205,8 +236,28 @@ centreMap:
   jsr tileToWorldY
 
   sta PLAYER_Y_L
-  stx PLAYER_Y_H
 
+  lda PLAYER_OFFSET_Y
+  beq .afterOffsetY
+  bpl .posOffsetY
+  ; neg offset
+  clc
+  adc PLAYER_Y_L
+  sta PLAYER_Y_L
+  bcs .afterOffsetY
+  dex
+  bra  .afterOffsetY
+.posOffsetY:
+  clc
+  adc PLAYER_Y_L
+  sta PLAYER_Y_L
+  bcc .afterOffsetY
+  inx
+  bra  .afterOffsetY
+
+.afterOffsetY:
+  lda PLAYER_Y_L
+  stx PLAYER_Y_H
   ; adjust to screen centre
   sec
   sbc #(VISIBLE_AREA_CY - HALF_TILE_SIZE)
@@ -234,6 +285,11 @@ centreMap:
 
 
 doInput:
+  stz PLAYER_SPEED_X
+  stz PLAYER_OFFSET_X
+  stz PLAYER_SPEED_Y
+  stz PLAYER_OFFSET_Y
+
 
   lda PLAYER_INPUT
 .testLeft:  
@@ -248,10 +304,17 @@ doInput:
   cmp #$31
   bne ++
 +
-  
+
+  lda #-4
+  sta PLAYER_SPEED_X
+  lda #16
+  sta PLAYER_OFFSET_X
+
   lda PLAYER_CELL_X
   jsr clearTile
   dec PLAYER_CELL_X
+  pla
+  rts
 ++
   pla
 .testRight:
@@ -266,10 +329,17 @@ doInput:
   cmp #$31
   bne ++
 +
+
+  lda #4
+  sta PLAYER_SPEED_X
+  lda #-16
+  sta PLAYER_OFFSET_X
   
   lda PLAYER_CELL_X
   jsr clearTile
   inc PLAYER_CELL_X
+  pla
+  rts
 ++
   pla
 .testUp:
@@ -285,14 +355,19 @@ doInput:
   bne ++
 +
   
+  lda #-4
+  sta PLAYER_SPEED_Y
+  lda #16
+  sta PLAYER_OFFSET_Y
+
   lda PLAYER_CELL_X
   ldy PLAYER_CELL_Y
   jsr clearTile
   dec PLAYER_CELL_Y
-
+  pla
+  rts
 ++
   pla
-
 .testDown:
   bit #JOY_DOWN
   bne .doneTests
@@ -305,12 +380,18 @@ doInput:
   cmp #$31
   bne ++
 +
-  
+
+  lda #4
+  sta PLAYER_SPEED_Y
+  lda #-16
+  sta PLAYER_OFFSET_Y
+
   lda PLAYER_CELL_X
   ldy PLAYER_CELL_Y
   jsr clearTile
   inc PLAYER_CELL_Y
-
+  pla
+  rts
 ++
   pla
 .doneTests:
@@ -353,12 +434,18 @@ entry:
 
   jsr configDisplay
   
-  jsr registerVsyncIrq
+  jsr JOYSTICK_SCAN
 
   stz FRAME_INDEX
+  lda #$ff
+  sta PLAYER_INPUT
+
+  jsr registerVsyncIrq
+  
 
 loop:
   lda VSYNC_FLAG
+
   beq tick
   jmp loop
 
@@ -375,8 +462,8 @@ tick:
   
   jsr doInput
 
+.afterInput
   jsr centreMap
-
 
   +vset VERA_SPRITES + 2
 
@@ -386,12 +473,10 @@ tick:
   +sub16 PLAYER_Y, SCROLL_Y
   stx VERA_DATA0
 
-.afterInput
-  ldy SCROLL_X_L
+  lda SCROLL_X_L
+  sta VERA_L0_HSCROLL_L
+
   lda SCROLL_X_H
-  
-  ; update horz scroll
-  sty VERA_L0_HSCROLL_L
   sta VERA_L0_HSCROLL_H
 
   ldy SCROLL_Y_L
@@ -401,6 +486,17 @@ tick:
   sty VERA_L0_VSCROLL_L
   sta VERA_L0_VSCROLL_H
   
+  clc
+  lda PLAYER_OFFSET_X
+  adc PLAYER_SPEED_X
+  sta PLAYER_OFFSET_X
+
+  clc
+  lda PLAYER_OFFSET_Y
+  adc PLAYER_SPEED_Y
+  sta PLAYER_OFFSET_Y
+
+
   lda #1
   sta VSYNC_FLAG
 
@@ -536,7 +632,7 @@ tileMap:
 !binary "src/tilemap.bin"
 
 levelDat:
-!binary "bin/level1.dat"
+!binary "bin/level2.dat"
 
 !source "src/gameobj.asm"
 
