@@ -12,35 +12,37 @@
 !source "../common/vera/constants.asm"
 !source "../common/bootstrap.asm"
 
-SCROLL_X      = $70
+SCROLL_X      = $a0
 SCROLL_X_L    = SCROLL_X
 SCROLL_X_H    = SCROLL_X + 1
-SCROLL_Y      = $72
+SCROLL_Y      = $a2
 SCROLL_Y_L    = SCROLL_Y
 SCROLL_Y_H    = SCROLL_Y + 1
 
-PLAYER_X      = $74
+PLAYER_X      = $a4
 PLAYER_X_L    = PLAYER_X
 PLAYER_X_H    = PLAYER_X + 1
-PLAYER_Y      = $76
+PLAYER_Y      = $a6
 PLAYER_Y_L    = PLAYER_Y
 PLAYER_Y_H    = PLAYER_Y + 1
 
+PLAYER_SPEED = 2
 
-PLAYER_CELL_X = $80
-PLAYER_CELL_Y = $81
-PLAYER_INPUT  = $82
 
-PLAYER_SPEED_X  = $14
-PLAYER_OFFSET_X = $15
-PLAYER_SPEED_Y  = $16
-PLAYER_OFFSET_Y = $17
+PLAYER_CELL_X = $b0
+PLAYER_CELL_Y = $b1
+PLAYER_INPUT  = $b4
 
-PLAYER_FACING = $18
+PLAYER_SPEED_X  = $c4
+PLAYER_OFFSET_X = $c5
+PLAYER_SPEED_Y  = $c6
+PLAYER_OFFSET_Y = $c7
 
-FRAME_INDEX   = $93
+PLAYER_FACING = $c8
 
-SPRITE_TYPE_TABLE = $90 ; - $91 ; lookup to spriteTypes in gameobj.asm
+FRAME_INDEX   = $d3
+
+SPRITE_TYPE_TABLE = $d0 ; - $91 ; lookup to spriteTypes in gameobj.asm
 
 ; set up sprite types table
 lda #<spriteTypes
@@ -48,11 +50,11 @@ sta SPRITE_TYPE_TABLE
 lda #>spriteTypes
 sta SPRITE_TYPE_TABLE + 1
 
-stz PLAYER_SPEED_X
-stz PLAYER_OFFSET_X
-stz PLAYER_SPEED_Y
-stz PLAYER_OFFSET_Y
-stz PLAYER_FACING
+;stz PLAYER_SPEED_X
+;stz PLAYER_OFFSET_X
+;stz PLAYER_SPEED_Y
+;stz PLAYER_OFFSET_Y
+;stz PLAYER_FACING
 
 jmp entry
 
@@ -100,13 +102,13 @@ TILE_BASE_ADDRESS = $4000
 ; returns:
 ; x: contents of cell
 vTile:
-  sty R0
+  sty R4
   asl
   asl
-  lsr R0
+  lsr R4
   ror
   sta VERA_ADDRx_L
-  lda R0
+  lda R4
   adc #>MAP_BASE_ADDRESS_ODD
   sta VERA_ADDRx_M
   stz VERA_ADDRx_H
@@ -284,6 +286,12 @@ centreMap:
   sta SCROLL_Y_L
 .afterSetScrollY:
 
+
+
+  ;lda PLAYER_INPUT
+  ;sta PLAYER_X_L
+
+
   rts
 
 
@@ -294,21 +302,22 @@ doInput:
   stz PLAYER_OFFSET_Y
 
 
-  lda PLAYER_INPUT
 .testLeft:  
+  lda PLAYER_INPUT
   bit #JOY_LEFT
   bne .testRight
-  pha
   lda PLAYER_CELL_X
   ldy PLAYER_CELL_Y
   dec
   jsr vTile
   beq +
   cmp #$31
+  beq +
+  cmp #$50
   bne ++
 +
 
-  lda #-4
+  lda #-PLAYER_SPEED
   sta PLAYER_SPEED_X
   lda #16
   sta PLAYER_OFFSET_X
@@ -316,24 +325,24 @@ doInput:
   lda PLAYER_CELL_X
   jsr clearTile
   dec PLAYER_CELL_X
-  pla
   rts
 ++
-  pla
 .testRight:
+  lda PLAYER_INPUT
   bit #JOY_RIGHT
   bne .testUp
-  pha
   lda PLAYER_CELL_X
   ldy PLAYER_CELL_Y
   inc
   jsr vTile
   beq +
   cmp #$31
+  beq +
+  cmp #$50
   bne ++
 +
 
-  lda #4
+  lda #PLAYER_SPEED
   sta PLAYER_SPEED_X
   lda #-16
   sta PLAYER_OFFSET_X
@@ -341,24 +350,24 @@ doInput:
   lda PLAYER_CELL_X
   jsr clearTile
   inc PLAYER_CELL_X
-  pla
   rts
 ++
-  pla
 .testUp:
+  lda PLAYER_INPUT
   bit #JOY_UP
   bne .testDown
-  pha
   lda PLAYER_CELL_X
   ldy PLAYER_CELL_Y
   dey
   jsr vTile
   beq +
   cmp #$31
+  beq +
+  cmp #$50
   bne ++
 +
   
-  lda #-4
+  lda #-PLAYER_SPEED
   sta PLAYER_SPEED_Y
   lda #16
   sta PLAYER_OFFSET_Y
@@ -367,24 +376,24 @@ doInput:
   ldy PLAYER_CELL_Y
   jsr clearTile
   dec PLAYER_CELL_Y
-  pla
   rts
 ++
-  pla
 .testDown:
+  lda PLAYER_INPUT
   bit #JOY_DOWN
   bne .doneTests
-  pha
   lda PLAYER_CELL_X
   ldy PLAYER_CELL_Y
   iny
   jsr vTile
   beq +
   cmp #$31
+  beq +
+  cmp #$50
   bne ++
 +
 
-  lda #4
+  lda #PLAYER_SPEED
   sta PLAYER_SPEED_Y
   lda #-16
   sta PLAYER_OFFSET_Y
@@ -393,10 +402,8 @@ doInput:
   ldy PLAYER_CELL_Y
   jsr clearTile
   inc PLAYER_CELL_Y
-  pla
   rts
 ++
-  pla
 .doneTests:
   rts
 
@@ -437,11 +444,7 @@ entry:
 
   jsr configDisplay
   
-  jsr JOYSTICK_SCAN
-
   stz FRAME_INDEX
-  lda #$ff
-  sta PLAYER_INPUT
 
   jsr registerVsyncIrq
   
@@ -458,9 +461,10 @@ tick:
   jsr JOYSTICK_GET
   sta PLAYER_INPUT
 
+.afterTest
   lda FRAME_INDEX
-  and #$03
-  cmp #$02
+  and #$07
+  cmp #$04
   bne .afterInput
   
   jsr doInput
@@ -499,8 +503,25 @@ tick:
   beq .notMovingX
   
   +vset VERA_SPRITES
+
+  lda FRAME_INDEX
+  bit #$04
+  beq .sprOne
+  bit #$02
+  beq .sprTwo
+  +vWriteByte0 ((MURPHY_ADDR + 256) >> 5) & $ff
+  +vWriteByte0 ((MURPHY_ADDR  + 256) >> 13) & $ff
+  bra .doneSpr
+.sprOne
+  +vWriteByte0 ((MURPHY_ADDR + 384) >> 5) & $ff
+  +vWriteByte0 ((MURPHY_ADDR  + 384) >> 13) & $ff
+  bra .doneSpr
+.sprTwo
   +vWriteByte0 ((MURPHY_ADDR + 128) >> 5) & $ff
   +vWriteByte0 ((MURPHY_ADDR  + 128) >> 13) & $ff
+
+.doneSpr
+
   +vset VERA_SPRITES + 6
   +vWriteByte0 $08  
   +vset VERA_SPRITES + 6
@@ -522,10 +543,37 @@ tick:
   sta PLAYER_OFFSET_Y
 
 
-  lda #1
-  sta VSYNC_FLAG
+  lda PLAYER_SPEED_Y
+  beq .afterMovingY
+  
+  +vset VERA_SPRITES
+
+  lda FRAME_INDEX
+  bit #$04
+  beq .sprOneY
+  bit #$02
+  beq .sprTwoY
+  +vWriteByte0 ((MURPHY_ADDR + 256) >> 5) & $ff
+  +vWriteByte0 ((MURPHY_ADDR  + 256) >> 13) & $ff
+  bra .doneSprY
+.sprOneY
+  +vWriteByte0 ((MURPHY_ADDR + 384) >> 5) & $ff
+  +vWriteByte0 ((MURPHY_ADDR  + 384) >> 13) & $ff
+  bra .doneSprY
+.sprTwoY
+  +vWriteByte0 ((MURPHY_ADDR + 128) >> 5) & $ff
+  +vWriteByte0 ((MURPHY_ADDR  + 128) >> 13) & $ff
+
+.doneSprY
+
+
+.afterMovingY:
 
   inc FRAME_INDEX
+
+
+  lda #1
+  sta VSYNC_FLAG
 
 	jmp loop
 
