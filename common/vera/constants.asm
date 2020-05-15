@@ -112,4 +112,5 @@ VERA_TILE_HEIGHT_16 = $02
 
 ; Other Vera addresses
 ; -----------------------------------------------------------------------------
-VERA_PALETTE=$1FA00
+VERA_PALETTE = $1FA00
+VERA_SPRITES = $1FC00

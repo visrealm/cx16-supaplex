@@ -19,6 +19,14 @@ SCROLL_Y      = $72
 SCROLL_Y_L    = SCROLL_Y
 SCROLL_Y_H    = SCROLL_Y + 1
 
+PLAYER_X      = $74
+PLAYER_X_L    = PLAYER_X
+PLAYER_X_H    = PLAYER_X + 1
+PLAYER_Y      = $76
+PLAYER_Y_L    = PLAYER_Y
+PLAYER_Y_H    = PLAYER_Y + 1
+
+
 PLAYER_CELL_X = $80
 PLAYER_CELL_Y = $81
 PLAYER_INPUT  = $82
@@ -45,7 +53,8 @@ jmp entry
 ;  $C000 (49152) - $155FF (87551) - (320 x 240 / 2 = 38400 bytes): L1 overlay
 ; $15600 (87552) - $1F9BF (129471) - (41920 bytes): UNUSED
 
-TILE_SIZE   = 16
+TILE_SIZE         = 16
+HALF_TILE_SIZE    = TILE_SIZE / 2
 MAP_TILES_X = 60
 MAP_TILES_Y = 24
 MAP_TILES   = MAP_TILES_X * MAP_TILES_Y
@@ -57,6 +66,8 @@ DISPLAY_SIZE_Y  = 240
 BOTTOM_PANEL_SIZE_Y  = 24
 VISIBLE_AREA_X  = DISPLAY_SIZE_X
 VISIBLE_AREA_Y  = DISPLAY_SIZE_Y - BOTTOM_PANEL_SIZE_Y
+VISIBLE_AREA_CX = VISIBLE_AREA_X / 2
+VISIBLE_AREA_CY = VISIBLE_AREA_Y / 2
 
 MAX_SCROLL_X = MAP_PIXELS_X - VISIBLE_AREA_X
 MAX_SCROLL_Y = MAP_PIXELS_Y - VISIBLE_AREA_Y
@@ -92,12 +103,12 @@ vTile:
   rts
 
 
-centreMap:
-
-; set starting scroll position 
-; based on player location
+; tileToWorldX: convert horizontal cell index to map pixel
+; inputs:   a - Cell index
+; outputs:  a - Low byte
+;           x - High byte
+tileToWorldX:
   ldx #0
-  lda PLAYER_CELL_X
 
   ; times player position by 16 
   ; (1-59, so can safely shift twice before checking carry)
@@ -105,26 +116,23 @@ centreMap:
   asl
   asl
   bcc+
-  inx
+  ldx #$02  ; set x to 2, because we're 
+            ; going to shift one more time
+            ; this way we can ignore x in that
 +
   asl
-  pha
-  txa
-  rol
-  tax
-  pla
-  
-  clc
-  sbc #(160 - 8)
-  bcs +
-  dex  
+  bcc+
+  inx
 +
+  rts
+; end tileToWorldX
 
-  stx SCROLL_X_H
-  sta SCROLL_X_L
-
+; tileToWorldY: convert horizontal cell index to map pixel
+; inputs:   a - Cell index
+; outputs:  a - Low byte
+;           x - High byte
+tileToWorldY:
   ldx #0
-  lda PLAYER_CELL_Y
   
   ; (1-22, so can safely shift thrice before checking carry)
   asl
@@ -133,14 +141,83 @@ centreMap:
   asl
   bcc+
   inx
-+ nop
++
+  rts
+; end tileToWorldY
 
-  sbc #(100 - 8)
+
+
+
+
+; vcell2px: convert vertical   cell index to map pixel
+; map
+
+
+
+
+
+centreMap:
+
+; set starting scroll position 
+; based on player location
+  lda PLAYER_CELL_X
+  jsr tileToWorldX
+
+  sta PLAYER_X_L
+  stx PLAYER_X_H
+
+; adjust to screen centre
+  sec
+  sbc #(VISIBLE_AREA_CX - HALF_TILE_SIZE)
   bcs +
   dex  
 +
+
+  cpx #$00
+  bpl +
+  stz SCROLL_X_H
+  stz SCROLL_X_L
+  bra .afterSetScrollX
++
+  +cmp16xa MAX_SCROLL_X
+  bcc +
+  ldx #>MAX_SCROLL_X
+  lda #<MAX_SCROLL_X
++
+
+  stx SCROLL_X_H
+  sta SCROLL_X_L
+.afterSetScrollX:
+
+
+  lda PLAYER_CELL_Y
+  jsr tileToWorldY
+
+  sta PLAYER_Y_L
+  stx PLAYER_Y_H
+
+  ; adjust to screen centre
+  sec
+  sbc #(VISIBLE_AREA_CY - HALF_TILE_SIZE)
+  bcs +
+  dex
++
+
+  cpx #$00
+  bpl +
+  stz SCROLL_Y_H
+  stz SCROLL_Y_L
+  bra .afterSetScrollY
++
+  +cmp16xa MAX_SCROLL_Y
+  bcc +
+  ldx #>MAX_SCROLL_Y
+  lda #<MAX_SCROLL_Y
++
+
   stx SCROLL_Y_H
   sta SCROLL_Y_L
+.afterSetScrollY:
 
   rts
 
@@ -160,10 +237,10 @@ doInput:
   cmp #$31
   bne ++
 +
-  lda #$40
-  sta VERA_DATA0
-  lda #$30
-  sta VERA_DATA0
+  ;lda #$40
+  ;sta VERA_DATA0
+  ;lda #$30
+  ;sta VERA_DATA0
   
   lda PLAYER_CELL_X
   dec PLAYER_CELL_X
@@ -186,10 +263,10 @@ doInput:
   cmp #$31
   bne ++
 +
-  lda #$40
-  sta VERA_DATA0
-  lda #$30
-  sta VERA_DATA0
+ ; lda #$40
+ ; sta VERA_DATA0
+ ; lda #$30
+ ; sta VERA_DATA0
   
   lda PLAYER_CELL_X
   inc PLAYER_CELL_X
@@ -212,10 +289,10 @@ doInput:
   cmp #$31
   bne ++
 +
-  lda #$40
-  sta VERA_DATA0
-  lda #$30
-  sta VERA_DATA0
+;  lda #$40
+;  sta VERA_DATA0
+;  lda #$30
+;  sta VERA_DATA0
   
   lda PLAYER_CELL_X
   ldy PLAYER_CELL_Y
@@ -240,10 +317,10 @@ doInput:
   cmp #$31
   bne ++
 +
-  lda #$40
-  sta VERA_DATA0
-  lda #$30
-  sta VERA_DATA0
+ ; lda #$40
+ ; sta VERA_DATA0
+ ; lda #$30
+ ; sta VERA_DATA0
   
   lda PLAYER_CELL_X
   ldy PLAYER_CELL_Y
@@ -319,32 +396,19 @@ tick:
 
   jsr centreMap
 
+
+  +vset VERA_SPRITES + 2
+
+  +sub16 PLAYER_X, SCROLL_X
+  stx VERA_DATA0
+  sta VERA_DATA0
+  +sub16 PLAYER_Y, SCROLL_Y
+  stx VERA_DATA0
+
 .afterInput
   ldy SCROLL_X_L
   lda SCROLL_X_H
   
-  ;bra .skipXLim
-  ; check X scroll limits
-  bit #$80
-  beq +
-  lda #0
-  tay
-  sta SCROLL_X_H
-  sty SCROLL_X_L
-+
-
-  cmp #>MAX_SCROLL_X
-  bcc ++
-  bne +
-  cpy #<MAX_SCROLL_X
-  bcc ++
-+
-  lda #>MAX_SCROLL_X
-  sta SCROLL_X_L
-  ldy #<MAX_SCROLL_X
-  sty SCROLL_X_L
-++
-.skipXLim
   ; update horz scroll
   sty VERA_L0_HSCROLL_L
   sta VERA_L0_HSCROLL_H
@@ -352,34 +416,9 @@ tick:
   ldy SCROLL_Y_L
   lda SCROLL_Y_H
 
-  ;bra .skipYLim
-
-  ; check Y scroll limits
-  bit #$80
-  beq +
-  lda #0
-  tay
-  sta SCROLL_Y_H
-  sty SCROLL_Y_L
-+
-
-  cmp #>MAX_SCROLL_Y
-  bcc ++
-  bne +
-  cpy #<MAX_SCROLL_Y
-  bcc ++
-+
-  lda #>MAX_SCROLL_Y
-  sta SCROLL_Y_L
-  ldy #<MAX_SCROLL_Y
-  sty SCROLL_Y_L
-++
-
-.skipYLim
   ; update vert scroll
   sty VERA_L0_VSCROLL_L
   sta VERA_L0_VSCROLL_H
-
   
   lda #1
   sta VSYNC_FLAG
@@ -486,11 +525,23 @@ configDisplay:
   +vreg VERA_L1_CONFIG, VERA_CONFIG_BITMAP_MODE | VERA_CONFIG_4BPP
   +vreg VERA_L1_HSCROLL_H, 10
 
-  +vreg VERA_DC_VIDEO, VERA_VIDEO_LAYER0_ENABLED | VERA_VIDEO_LAYER1_ENABLED | VERA_VIDEO_OUTPUT_VGA
+  +vreg VERA_DC_VIDEO, VERA_VIDEO_LAYER0_ENABLED | VERA_VIDEO_LAYER1_ENABLED | VERA_VIDEO_SPRITES_ENABLED | VERA_VIDEO_OUTPUT_VGA
   +vreg VERA_DC_HSCALE, VERA_SCALE_2x
   +vreg VERA_DC_VSCALE, VERA_SCALE_2x
   +vreg VERA_IEN, 1
   +vreg VERA_ISR, 1
+
+  +vset VERA_SPRITES
+  +vWriteByte0 (MURPHY_ADDR >> 5) & $ff
+  +vWriteByte0 (MURPHY_ADDR >> 13) & $ff
+  +vWriteByte0 VISIBLE_AREA_CX - HALF_TILE_SIZE
+  +vWriteByte0 0
+  +vWriteByte0 VISIBLE_AREA_CY - HALF_TILE_SIZE
+  +vWriteByte0 0
+  +vWriteByte0 $08
+  +vWriteByte0 $53
+
+
   rts
 
 
