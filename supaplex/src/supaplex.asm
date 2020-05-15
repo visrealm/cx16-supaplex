@@ -102,6 +102,17 @@ vTile:
   stx VERA_ADDRx_H
   rts
 
+; a: = Cell X index
+; y: = Cell y index
+clearTile:
+  jsr vTile
+  lda #$31
+  sta VERA_DATA0
+  lda #$20
+  sta VERA_DATA0
+  rts  
+
+
 
 ; tileToWorldX: convert horizontal cell index to map pixel
 ; inputs:   a - Cell index
@@ -237,18 +248,10 @@ doInput:
   cmp #$31
   bne ++
 +
-  ;lda #$40
-  ;sta VERA_DATA0
-  ;lda #$30
-  ;sta VERA_DATA0
   
   lda PLAYER_CELL_X
+  jsr clearTile
   dec PLAYER_CELL_X
-  jsr vTile
-  lda #$31
-  sta VERA_DATA0
-  lda #$20
-  sta VERA_DATA0
 ++
   pla
 .testRight:
@@ -263,18 +266,10 @@ doInput:
   cmp #$31
   bne ++
 +
- ; lda #$40
- ; sta VERA_DATA0
- ; lda #$30
- ; sta VERA_DATA0
   
   lda PLAYER_CELL_X
+  jsr clearTile
   inc PLAYER_CELL_X
-  jsr vTile
-  lda #$31
-  sta VERA_DATA0
-  lda #$20
-  sta VERA_DATA0
 ++
   pla
 .testUp:
@@ -289,19 +284,12 @@ doInput:
   cmp #$31
   bne ++
 +
-;  lda #$40
-;  sta VERA_DATA0
-;  lda #$30
-;  sta VERA_DATA0
   
   lda PLAYER_CELL_X
   ldy PLAYER_CELL_Y
+  jsr clearTile
   dec PLAYER_CELL_Y
-  jsr vTile
-  lda #$31
-  sta VERA_DATA0
-  lda #$20
-  sta VERA_DATA0
+
 ++
   pla
 
@@ -317,19 +305,12 @@ doInput:
   cmp #$31
   bne ++
 +
- ; lda #$40
- ; sta VERA_DATA0
- ; lda #$30
- ; sta VERA_DATA0
   
   lda PLAYER_CELL_X
   ldy PLAYER_CELL_Y
+  jsr clearTile
   inc PLAYER_CELL_Y
-  jsr vTile
-  lda #$31
-  sta VERA_DATA0
-  lda #$20
-  sta VERA_DATA0
+
 ++
   pla
 .doneTests:
