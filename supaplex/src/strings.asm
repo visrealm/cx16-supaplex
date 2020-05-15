@@ -21,3 +21,4 @@ bugbasPcx:  !pet "bugbas.pcx",0
 explodPcx:  !pet "explod.pcx",0
 electrPcx:  !pet "electr.pcx",0
 overlayPcx: !pet "overlay.pcx",0
+fontPcx:    !pet "font.pcx",0

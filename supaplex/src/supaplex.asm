@@ -422,6 +422,7 @@ entry:
   BUGBAS_ADDR = (TERMIN_ADDR + (128*16))
   EXPLOD_ADDR = (BUGBAS_ADDR + (128*16))
   ELECTR_ADDR = (EXPLOD_ADDR + (128*16))
+  FONT_ADDR =   (ELECTR_ADDR + (128*16)) 
   OVERLAY_ADDR = $C000
   OVERLAY_BOTTOM_ADDR = (OVERLAY_ADDR + (160*(240 - 24)))
 
@@ -437,6 +438,7 @@ entry:
   +vLoadPcx explodPcx, EXPLOD_ADDR, 8
   +vLoadPcx electrPcx, ELECTR_ADDR, 9
   +vLoadPcx overlayPcx, OVERLAY_BOTTOM_ADDR, 10
+  +vLoadPcx fontPcx,    FONT_ADDR, 10
   
   jsr loadMap
 
@@ -691,11 +693,34 @@ configDisplay:
   +vWriteByte0 $08
   +vWriteByte0 $53
 
+  +vchannel1
+  +vset FONT_ADDR
+
+  +vchannel0
+  +vset OVERLAY_BOTTOM_ADDR + (160 * 3) + 44
+
+  ldx #<playerName
+  ldy #>playerName
+
+  jsr outputText
+
+
+  +vchannel1
+  +vset FONT_ADDR
+
+  +vchannel0
+  +vset OVERLAY_BOTTOM_ADDR + (160 * 13) + 32
+
+  ldx #<levelName
+  ldy #>levelName
+
+  jsr outputText
 
   rts
 
 
 !source "src/strings.asm"
+!source "src/text.asm"
 !source "../common/vera/vera.asm"
 !source "../common/vera/pcx.asm"
 
@@ -708,6 +733,11 @@ levelDat:
 !binary "bin/level1.dat"
 
 !source "src/gameobj.asm"
+
+playerName:
+!text "TROY",0
+levelName:
+!text "------- WARM UP -------",0
 
 levelRows:
 !for i, 0, MAP_TILES_Y - 1 {
