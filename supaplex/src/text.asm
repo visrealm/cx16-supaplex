@@ -1,9 +1,26 @@
+; Supaplex - Commander X16
+;
+; Raster text subroutines
+;
+; Copyright (c) 2020 Troy Schrapel
+;
+; This code is licensed under the MIT license
+;
+; https://github.com/visrealm/supaplex-x16
+;
+;
 
-; vera addr0 set to output location
-; vera addr1 set to font location
-; Inputs:
-;  X: address LSB
-;  Y: address MSB
+
+; -----------------------------------------------------------------------------
+; outputText: output a raster string to a vera bitmap
+; -----------------------------------------------------------------------------
+; vera:
+;   addr0 set to output location
+;   addr1 set to font location
+; inputs:
+;   X: string address LSB
+;   Y: string address MSB
+; -----------------------------------------------------------------------------
 outputText:
   stx .getChar + 1
   sty .getChar + 2
@@ -71,10 +88,16 @@ outputText:
   rts
 
 
-; vera addr0 set to output location
-; vera addr1 set to font location
-; x: first bcd digit
-; a: 2x bcd digits
+; -----------------------------------------------------------------------------
+; output3BcdDigits: output 3 bcd digits in raster text
+; -----------------------------------------------------------------------------
+; vera:
+;   addr0 set to output location
+;   addr1 set to font location
+; inputs:
+;   x: first bcd digit
+;   a: 2x bcd digits
+; -----------------------------------------------------------------------------
 output3BcdDigits:
   sta R0
   +vchannel0
@@ -91,9 +114,17 @@ output3BcdDigits:
   lda R0
   bra .output2BcdDigitsLateEntry
 
-; vera addr0 set to output location
-; vera addr1 set to font location
-; a: 2x bcd digits
+; WARNING! FLOWS ON THROUGH HERE
+
+; -----------------------------------------------------------------------------
+; output2BcdDigits: output 2 bcd digits in raster text
+; -----------------------------------------------------------------------------
+; vera:
+;   addr0 set to output location
+;   addr1 set to font location
+; inputs:
+;   a: 2x bcd digits
+; -----------------------------------------------------------------------------
 output2BcdDigits:
   sta R0
   +vchannel0 ; save output location
@@ -112,12 +143,19 @@ output2BcdDigits:
   lda VERA_DATA0
   lda VERA_DATA0
   lda R0
-  ; flow on through
 
 
-; vera addr0 set to output location
-; vera addr1 set to font location
-; bcd character in low nibble of A
+; WARNING! FLOWS ON THROUGH HERE
+
+; -----------------------------------------------------------------------------
+; outputBcdChar: output a bcd digit in raster text
+; -----------------------------------------------------------------------------
+; vera:
+;   addr0 set to output location
+;   addr1 set to font location
+; inputs:
+;   a: 1x bcd digit in low nibble
+; -----------------------------------------------------------------------------
 outputBcdChar:
   and #$0f
   sta R1L
@@ -156,19 +194,30 @@ outputBcdChar:
 
   rts
 
+; -----------------------------------------------------------------------------
+; setPixelOperationNone: updates instruction in outputCharacter to nop
+; -----------------------------------------------------------------------------
 setPixelOperationNone:
   lda #$ea ; nop
   sta textPixelOperation
   rts
 
+; -----------------------------------------------------------------------------
+; setPixelOperationNone: updates instruction in outputCharacter to lsr
+; -----------------------------------------------------------------------------
 setPixelOperationLSR:
-  lda #$0a ; $0A
+  lda #$0a ; lsr
   sta textPixelOperation
   rts
 
 
-; vera addr0 set to output location
-; vera addr1 set to character location
+; -----------------------------------------------------------------------------
+; outputCharacter: output a raster character
+; -----------------------------------------------------------------------------
+; vera:
+;   addr0 set to output location
+;   addr1 set to character tile location
+; -----------------------------------------------------------------------------
 outputCharacter:
   phy
   phx

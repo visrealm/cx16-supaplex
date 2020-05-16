@@ -15,18 +15,20 @@
 ; name
 ; gravity
 
-	
-	LEVEL_TILES_BYTES          = 1440
-  LEVEL_HAS_GRAVITY_OFFSET   = LEVEL_TILES_BYTES + 4
-  LEVEL_NAME_OFFSET          = LEVEL_TILES_BYTES + 6
-	LEVEL_FREEZE_ZONKS_OFFSET  = LEVEL_TILES_BYTES + 29
-	LEVEL_NUM_INFOTRONS_OFFSET = LEVEL_TILES_BYTES + 30
-	LEVEL_NUM_SPECIAL_OFFSET   = LEVEL_TILES_BYTES + 31
-	LEVEL_SPECIAL_OFFSET 	     = LEVEL_TILES_BYTES + 32
-	LEVEL_NUM_SPECIAL 		     = 10
-	LEVEL_SPECIAL_BYTES 		   = 6
-
+; -----------------------------------------------------------------------------
+; constants
+; -----------------------------------------------------------------------------
+LEVEL_TILES_BYTES          = 1440
+LEVEL_HAS_GRAVITY_OFFSET   = LEVEL_TILES_BYTES + 4
+LEVEL_NAME_OFFSET          = LEVEL_TILES_BYTES + 6
+LEVEL_FREEZE_ZONKS_OFFSET  = LEVEL_TILES_BYTES + 29
+LEVEL_NUM_INFOTRONS_OFFSET = LEVEL_TILES_BYTES + 30
+LEVEL_NUM_SPECIAL_OFFSET   = LEVEL_TILES_BYTES + 31
+LEVEL_SPECIAL_OFFSET 	     = LEVEL_TILES_BYTES + 32
+LEVEL_NUM_SPECIAL 		     = 10
+LEVEL_SPECIAL_BYTES 		   = 6
   
+; -----------------------------------------------------------------------------
 ; load the map
 ; -----------------------------------------------------------------------------
 loadMap:
@@ -43,10 +45,10 @@ loadMap:
   lda #>levelDat
   sta .loadLevelValue + 2
 
-  ldy #24
+  ldy #MAP_TILES_Y
 
 .nextMapRow:
-  ldx #60
+  ldx #MAP_TILES_X
 
 .nextMapCell:
   phy
@@ -96,16 +98,34 @@ loadMap:
 
 .doneLoad
 
-  ; adjust the player offset
+  ; adjust the player offset (it's currently reversed)
   sec
-  lda #60
+  lda #MAP_TILES_X
   sbc PLAYER_CELL_X
   sta PLAYER_CELL_X
-  lda #24
+  lda #MAP_TILES_Y
   sbc PLAYER_CELL_Y
   sta PLAYER_CELL_Y
 
-  ; update borders
+  jsr updateMapBorder
+  rts
+; -----------------------------------------------------------------------------
+
+
+
+; -----------------------------------------------------------------------------
+; load the map
+; -----------------------------------------------------------------------------
+updateMapBorder:
+
+  TILE_BORDER_BR = 16
+  TILE_BORDER_BL = 17
+  TILE_BORDER_TR = 18
+  TILE_BORDER_TL = 19
+  TILE_BORDER_R  = 20
+  TILE_BORDER_L  = 21
+  TILE_BORDER_B  = 22
+  TILE_BORDER_T  = 23
 
   ; load to both odd and even locations
   +vchannel1
@@ -114,12 +134,12 @@ loadMap:
   +vchannel0
   +vset MAP_BASE_ADDRESS_ODD, VERA_INCR_2
 
-  lda #19 ; top left
+  lda #TILE_BORDER_TL
   sta VERA_DATA0
   sta VERA_DATA1
 
-  lda #23
-  ldx #58
+  lda #TILE_BORDER_T
+  ldx #MAP_TILES_X - 2
 
 .topCell:
   sta VERA_DATA0
@@ -127,7 +147,7 @@ loadMap:
   dex
   bne .topCell
 
-  lda #18 ; top right
+  lda #TILE_BORDER_TR
   sta VERA_DATA0
   sta VERA_DATA1
 
@@ -137,8 +157,8 @@ loadMap:
   +vchannel0
   +vset MAP_BASE_ADDRESS_ODD + 128, VERA_INCR_128
 
-  lda #21
-  ldx #22
+  lda #TILE_BORDER_L
+  ldx #MAP_TILES_Y - 2
 
 .leftCell:
   sta VERA_DATA0
@@ -152,8 +172,8 @@ loadMap:
   +vchannel0
   +vset MAP_BASE_ADDRESS_ODD + 246, VERA_INCR_128
 
-  lda #20
-  ldx #22
+  lda #TILE_BORDER_R
+  ldx #MAP_TILES_Y - 2
 
 .rightCell:
   sta VERA_DATA0
@@ -169,12 +189,12 @@ loadMap:
   +vchannel0
   +vset MAP_BASE_ADDRESS_ODD + (128 * 23), VERA_INCR_2
 
-  lda #17 ; bottom left
+  lda #TILE_BORDER_BL
   sta VERA_DATA0
   sta VERA_DATA1
 
-  lda #22
-  ldx #58
+  lda #TILE_BORDER_B
+  ldx #MAP_TILES_X - 2
 
 .bottomCell:
   sta VERA_DATA0
@@ -182,13 +202,54 @@ loadMap:
   dex
   bne .bottomCell
 
-  lda #16 ; bottom right
+  lda #TILE_BORDER_BR
   sta VERA_DATA0
   sta VERA_DATA1
 
-
-
   rts
+; -----------------------------------------------------------------------------
 
-; end loadMap
+
+
+; -----------------------------------------------------------------------------
+; vTile: get the contents of a cell using its x/y coordinates
+; -----------------------------------------------------------------------------
+; inputs:
+;  a: Cell X index
+;  y: Cell y index
+; returns:
+;  x: contents of cell
+; -----------------------------------------------------------------------------
+vTile:
+  sty R4
+  asl
+  asl
+  lsr R4
+  ror
+  sta VERA_ADDRx_L
+  lda R4
+  adc #>MAP_BASE_ADDRESS_ODD
+  sta VERA_ADDRx_M
+  stz VERA_ADDRx_H
+  ldx #$10
+  lda VERA_DATA0
+  stx VERA_ADDRx_H
+  rts
+; -----------------------------------------------------------------------------
+
+; -----------------------------------------------------------------------------
+; clearTile: clear a tile by coordinates
+; -----------------------------------------------------------------------------
+; inputs:
+;  a: Cell X index
+;  y: Cell y index
+; -----------------------------------------------------------------------------
+clearTile:
+  jsr vTile
+  lda #$31
+  sta VERA_DATA0
+  lda #$20
+  sta VERA_DATA0
+  rts  
+; -----------------------------------------------------------------------------
 

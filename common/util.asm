@@ -10,6 +10,12 @@
 ;
 ;
 
+; -----------------------------------------------------------------------------
+; +dec16: decement a 16-bit value
+; -----------------------------------------------------------------------------
+; Inputs:
+;  addr: address containing LSB of value to decrement
+; -----------------------------------------------------------------------------
 !macro dec16 addr {
   lda addr
   bne +
@@ -18,6 +24,12 @@
   dec addr
 }
 
+; -----------------------------------------------------------------------------
+; +inc16: increment a 16-bit value
+; -----------------------------------------------------------------------------
+; Inputs:
+;  addr: address containing LSB of value to increment
+; -----------------------------------------------------------------------------
 !macro inc16 addr {
   inc addr
   bne +
@@ -25,6 +37,13 @@
 +
 }
 
+; -----------------------------------------------------------------------------
+; +cmp16: compare two 16-bit values in memory
+; -----------------------------------------------------------------------------
+; Inputs:
+;  left:  address containing LSB of left value to comapre
+;  right: address containing LSB of right value to comapre
+; -----------------------------------------------------------------------------
 !macro cmp16 left, right {
   lda left + 1
   cmp right + 1
@@ -34,6 +53,14 @@
 +
 }
 
+; -----------------------------------------------------------------------------
+; +cmp16: compare two 16-bit values in memory
+; -----------------------------------------------------------------------------
+; Inputs:
+;  value: immediate value to compare
+;  x:     msb
+;  a:     lsb
+; -----------------------------------------------------------------------------
 !macro cmp16xa value {
   cpx #>value
 	bne +
@@ -41,9 +68,15 @@
 +
 }
 
-
-; subtract 16 bit numbers. 
-; result in zb location
+; -----------------------------------------------------------------------------
+; +sub16: subtract 16 bit numbers
+; -----------------------------------------------------------------------------
+; Inputs:
+;  left:  address containing LSB of left value
+;  right: address containing LSB of right value
+; Outputs:
+;  res:   address containing LSB of result
+; -----------------------------------------------------------------------------
 !macro sub16 left, right, res {
   sec
   lda left
@@ -54,8 +87,16 @@
   sta res + 1
 }
 
-; subtract 16 bit numbers. 
-; result high in a, low in x
+; -----------------------------------------------------------------------------
+; +sub16: subtract 16 bit numbers - result in ax registers
+; -----------------------------------------------------------------------------
+; Inputs:
+;  left:  address containing LSB of left value
+;  right: address containing LSB of right value
+; Outputs:
+;  a:     result msb
+;  x:     result lsb
+; -----------------------------------------------------------------------------
 !macro sub16 left, right {
   sec
   lda left
@@ -65,94 +106,30 @@
   sbc right + 1
 }
 
-div8by10:
-  lsr
-  sta R10L
-  lsr
-  adc R10L
-  ror
-  lsr
-  lsr
-  adc R10L
-  ror
-  adc R10L
-  ror
-  lsr
-  lsr
-  sta R10H
-  brk
-  rts
 
-; convert binary unsigned byte to bcd
-; inputs: A: value
-; outputs: BCD value in R8
+; -----------------------------------------------------------------------------
+; bin2bcd8: convert an unsigned byte to a 2-digit bcd value
+; -----------------------------------------------------------------------------
+; Inputs:
+;   A: value
+; Outputs:
+;   BCD value in R8
+; -----------------------------------------------------------------------------
 bin2bcd8:
   sta R7L
   stz R8L
   stz R8H
-  ldx #8        ;setup the bit counter
-  sed           ;enter decimal mode
+  ldx #8 
+  sed    
 .loop:
-  asl R7L       ;shift a bit out of the binary
-  lda R8L       ;and add it into the result, doubling
-  adc R8L       ;... it at the same time
+  asl R7L
+  lda R8L
+  adc R8L
   sta R8L
   lda R8H
   adc R8H
   sta R8H
-  dex           ;more bits to process?
+  dex
   bne .loop
   cld   
-  rts
-
-
-  ;bra .two
-  jsr div8by10
-  ldx R10L
-  stx R8L
-  jsr div8by10
-  sta R8H
-  lda R10L
-  asl
-  asl
-  asl
-  asl
-  ora R8L
-  sta R8L
-  rts
-
-.two:
-  ;asl R8L
-  ;asl R8L
-  ;asl R8L
-
-  stz R8H
-  stz R8L
-  sec
-  cmp #100
-  bmi +
-  inc R8H
-  sbc #100
-+
-  cmp #100
-  bmi +
-  inc R8H
-  sbc #100
-+
--
-  sec
-  sbc #10
-  bcs +
-  inc R8L
-  bra -
-+
-  asl R8L
-  asl R8L
-  asl R8L
-  asl R8L
-  clc
-  adc #10
-  ora R8L
-  sta R8L
-
   rts

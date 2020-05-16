@@ -12,21 +12,26 @@
 
 !zone pcxFile {
 
-; load and decode a PCX file into VRAM
+; -----------------------------------------------------------------------------
+; pcx constants
+; -----------------------------------------------------------------------------
 
-; filename:   zero-terminated string
-; vramArress: address to load the pixel data
-; palOffset:  0-15 - high nibble of palette address offset
+PCX_NUM_COLORS      = 16
+PCX_PALETTE_OFFSET  = $10
+PCX_PIXELS_OFFSET   = $80
+PCX_REPEAT_FLAG     = $c0
+PCX_REPEAT_CNT_MASK = $3f
 
-
-
-; XY contains address of filename
+; -----------------------------------------------------------------------------
+; loadPcxFile: load and decode a PCX file into VRAM
+; -----------------------------------------------------------------------------
+; xy contains address of filename
 ; vera already configured:
 ;   channel 0 for pixel data
 ;   channel 1 for palette
+; -----------------------------------------------------------------------------
 loadPcxFile:
-!zone
-!addr TMP_ADDR = $8000
+TMP_ADDR = $8000
   jsr SETNAM
 
   lda #$01
@@ -54,8 +59,9 @@ loadPcxFile:
   stx R2L
   sty R2H
 
-  ldy #$10   ; palette offset
-  ldx #$10   ; 16 colors
+  ldy #PCX_PALETTE_OFFSET
+  ldx #PCX_NUM_COLORS
+
 .nextColor:
   lda TMP_ADDR, Y   ; load red, reduce to 4 bits and store in R0L
   lsr
@@ -85,7 +91,7 @@ loadPcxFile:
   sta R1L
   lda #>TMP_ADDR
   sta R1H
-  ldy #$80
+  ldy #PCX_PIXELS_OFFSET
   
 .checkNextPixel:
   lda R1H
@@ -97,17 +103,17 @@ loadPcxFile:
 
 + ldx #1
   lda (R1),Y
-  cmp #$c0
+  cmp #PCX_REPEAT_FLAG
   bcc .noSequence  ; if is >= c0 (high 2 bits are set), then we're a sequence
 
   ; is a sequence, so get the value and count
-  and #$3f
+  and #PCX_REPEAT_CNT_MASK
   tax         ; store count in X
   iny
   bne +
   inc R1H
-
-+ lda (R1),Y
++
+  lda (R1),Y
  
   ; not a sequence
 .noSequence:
@@ -121,4 +127,6 @@ loadPcxFile:
 
 .done
   rts
+; -----------------------------------------------------------------------------
+
 }

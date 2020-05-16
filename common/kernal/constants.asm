@@ -1,6 +1,6 @@
 ; Commander X16
 ;
-; Constants
+; CX16 Kernal Constants
 ;
 ; Copyright (c) 2020 Troy Schrapel
 ;

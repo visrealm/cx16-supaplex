@@ -9,6 +9,10 @@
 ; https://github.com/visrealm/supaplex-x16
 ;
 
+
+; -----------------------------------------------------------------------------
+; vset: set the address and incrment
+; -----------------------------------------------------------------------------
 !macro vset .addr, increment {
 	lda #<(.addr >> 16) | increment
 	sta VERA_ADDRx_H
@@ -22,6 +26,9 @@
   +vset .addr, VERA_INCR_1
 }
 
+; -----------------------------------------------------------------------------
+; vpush: push vera address from stack
+; -----------------------------------------------------------------------------
 !macro vpush {
   lda VERA_ADDRx_M
   pha
@@ -29,6 +36,9 @@
   pha
 }
 
+; -----------------------------------------------------------------------------
+; vpop: pop vera address from stack
+; -----------------------------------------------------------------------------
 !macro vpop {
   pla
   sta VERA_ADDRx_L
@@ -36,6 +46,9 @@
   sta VERA_ADDRx_M
 }
 
+; -----------------------------------------------------------------------------
+; vpeek: set vera ddress to that on stack without popping it
+; -----------------------------------------------------------------------------
 !macro vpeek {
   tsx
   lda $0100, x
@@ -44,7 +57,9 @@
   sta VERA_ADDRx_M
 }
 
-
+; -----------------------------------------------------------------------------
+; vchannel: set the current vera channel
+; -----------------------------------------------------------------------------
 !macro vchannel .channel {
   +vreg VERA_CTRL, .channel 
 }
@@ -57,13 +72,10 @@
   +vchannel $01 
 }
 
-!macro vstore .addr {
-	pha
-	+vset .addr
-	pla
-	sta VERA_DATA0
-}
 
+; -----------------------------------------------------------------------------
+; vReadByte: read a byte from vram
+; -----------------------------------------------------------------------------
 !macro vReadByte0 .addr {
 	+vset .addr
 	lda VERA_DATA0
@@ -74,6 +86,9 @@
 	lda VERA_DATA1
 }
 
+; -----------------------------------------------------------------------------
+; vreg16: write an 8-bit value to vram
+; -----------------------------------------------------------------------------
 !macro vreg register, value {
   lda #value
   sta register
@@ -87,6 +102,9 @@
   +vreg VERA_DATA1, value
 }
 
+; -----------------------------------------------------------------------------
+; vreg16: write a 16-bit value to vram
+; -----------------------------------------------------------------------------
 !macro vreg16 register, value {
   lda #>value
   sta register
@@ -102,6 +120,12 @@
   +vreg16 VERA_DATA1, value
 }
 
+; -----------------------------------------------------------------------------
+; vClear: clear a range of vram (set to zeros)
+; -----------------------------------------------------------------------------
+; start:  start address
+; length: length in bytes to clear
+; -----------------------------------------------------------------------------
 !macro vClear start, length {
   +vset start
 
@@ -117,6 +141,12 @@
   bne -
 }
 
+; -----------------------------------------------------------------------------
+; vLoadRaw:   helper to load a file into vram
+; -----------------------------------------------------------------------------
+; filename:   zero-terminated string
+; vramArress: address to load the raw data
+; -----------------------------------------------------------------------------
 !macro vLoadRaw filename, vramAddress {
   +vset vramAddress
 
@@ -127,7 +157,11 @@
   jsr loadRaw
 }
 
-
+; -----------------------------------------------------------------------------
+; filename:   zero-terminated string
+; vramArress: address to load the pixel data
+; palIndex:  0-15 - high nibble of palette address offset
+; -----------------------------------------------------------------------------
 !macro vLoadPcx filename, vramAddress, palIndex {
 
   !if palIndex > 15 {
@@ -146,3 +180,4 @@
   
   jsr loadPcxFile
 }
+; -----------------------------------------------------------------------------

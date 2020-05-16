@@ -13,9 +13,15 @@
 
 !zone vera {
 
-
+; -----------------------------------------------------------------------------
+; loadRaw: load raw data file into VRAM
+; -----------------------------------------------------------------------------
+; xy contains address of filename
+; vera already configured:
+;   channel 0 for data
+; -----------------------------------------------------------------------------
 loadRaw:
-tempLoadAddress = $8000
+TMP_ADDR = $8000
   jsr SETNAM
 
   lda #$01
@@ -26,8 +32,8 @@ tempLoadAddress = $8000
   ldy #$00      ; $00 means: load to new address
   jsr SETLFS
 
-  ldx #<tempLoadAddress
-  ldy #>tempLoadAddress
+  ldx #<TMP_ADDR
+  ldy #>TMP_ADDR
   lda #$00      ; $00 means: load to memory (not verify)
   jsr LOAD
   bcs .error    ; if carry set, a load error has happened
@@ -35,7 +41,7 @@ tempLoadAddress = $8000
   ldy #0
 
 .nextByte:        
-  lda tempLoadAddress, Y
+  lda TMP_ADDR, Y
   sta VERA_DATA0
   iny
   dex
@@ -44,14 +50,6 @@ tempLoadAddress = $8000
   rts
 .error
 
-  ; Accumulator contains BASIC error code
-
-  ; most likely errors:
-  ; A = $05 (DEVICE NOT PRESENT)
-  ; A = $04 (FILE NOT FOUND)
-  ; A = $1D (LOAD ERROR)
-  ; A = $00 (BREAK, RUN/STOP has been pressed during loading)
-
-  ;... error handling ...
   rts
+
 }
