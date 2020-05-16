@@ -11,7 +11,7 @@ Not really fit for public consumption, but making public anyway. This project is
 
 #### Run instructions
 
-If you don't want to set up my build environment (I don't blame you). You can run this be dumping the files from:
+If you don't want to set up my build environment (I don't blame you). You can run the latest build by copying the files from:
 
 ```
 supaplex/bin
