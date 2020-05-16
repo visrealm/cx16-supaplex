@@ -25,13 +25,13 @@ CLOSE       = $FFC3
 ; ----------------------------------------------------------------------------
 ; subroutines
 
-JOYSTICK_SCAN = $FF53
+JOYSTICK_SCAN = $ff53
 
 ; Get joystick state
 ; A = buttons
 ; X = xtended buttons (SNES)
 ; Y = device present ($00) or not ($FF)
-JOYSTICK_GET  = $FF56
+JOYSTICK_GET  = $ff56
 
 ; constants
 JOY_RIGHT  = %00000001
@@ -46,6 +46,7 @@ JOY_A      = %10000000
 JOYSTICK_PRESENT     = $00
 JOYSTICK_NOT_PRESENT = $ff
 
+CLOCK_GET_DATE_TIME = $ff50
 
 ; Virtual registers
 ; ----------------------------------------------------------------------------

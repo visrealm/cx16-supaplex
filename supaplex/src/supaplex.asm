@@ -28,6 +28,11 @@ PLAYER_Y_H    = PLAYER_Y + 1
 
 PLAYER_SPEED = 2
 
+LAST_SECOND = $70
+CURRENT_SECOND = $71
+TIME_SECONDS = $72
+TIME_MINUTES = $73
+TIME_HOURS   = $74
 
 PLAYER_CELL_X = $b0
 PLAYER_CELL_Y = $b1
@@ -481,6 +486,11 @@ loop:
   lda VSYNC_FLAG
 
   beq tick
+
+  ;jsr CLOCK_GET_DATE_TIME
+  ;lda R2H
+  ;sta CURRENT_SECOND
+
   jmp loop
 
 
@@ -497,7 +507,29 @@ tick:
   
   jsr doInput
 
+    
 .afterInput
+  lda FRAME_INDEX
+  cmp #60
+  bne ++
+  stz FRAME_INDEX
+  inc TIME_SECONDS
+  lda TIME_SECONDS
+  cmp #60
+  bne +
+  stz TIME_SECONDS
+  inc TIME_MINUTES
+  jsr updateMinutes
+  lda TIME_MINUTES
+  cmp #60
+  bne +
+  stz TIME_MINUTES
+  jsr updateMinutes
+  inc TIME_HOURS
+  jsr updateHours
++ 
+  jsr updateSeconds
+++
   jsr centreMap
 
   +vset VERA_SPRITES + 2
@@ -644,8 +676,11 @@ configDisplay:
   ldx #<playerName
   ldy #>playerName
 
+  jsr setPixelOperationLSR
+
   jsr outputText
 
+  jsr setPixelOperationNone
 
   +vchannel1
   +vset FONT_ADDR
@@ -658,14 +693,94 @@ configDisplay:
 
   jsr outputText
 
+  lda levelNumber
+  jsr bin2bcd8
+
+  +vchannel0
+  +vset OVERLAY_BOTTOM_ADDR + (160 * 14) + 8
+
+  ldx R8H
+  lda R8L
+  jsr output3BcdDigits
+
+  +vchannel0
+
+
   lda levelDat + LEVEL_NUM_INFOTRONS_OFFSET
   sta NUM_INFOTRONS
 
   jsr updateNumInfotrons
 
+  stz TIME_SECONDS
+  stz TIME_MINUTES
+  stz TIME_HOURS
+
+  jsr updateHours
+  jsr updateMinutes
+  jsr updateSeconds
+
   rts
 
+updateSeconds:
+  jsr setPixelOperationLSR
+
+  lda TIME_SECONDS
+  jsr bin2bcd8
+
+  +vchannel1
+  +vset FONT_ADDR
+
+  +vchannel0
+  +vset OVERLAY_BOTTOM_ADDR + (160 * 3) + 104
+
+  lda R8L
+  jsr output2BcdDigits
+
+  +vchannel0
+  rts
+
+
+updateMinutes:
+  jsr setPixelOperationLSR
+
+  lda TIME_MINUTES
+  jsr bin2bcd8
+  
+  +vchannel1
+  +vset FONT_ADDR
+
+  +vchannel0
+  +vset OVERLAY_BOTTOM_ADDR + (160 * 3) + 92
+
+  lda R8L
+  jsr output2BcdDigits
+
+  +vchannel0
+  rts
+
+
+updateHours:
+  jsr setPixelOperationLSR
+
+  lda TIME_HOURS
+  jsr bin2bcd8
+
+  +vchannel1
+  +vset FONT_ADDR
+
+  +vchannel0
+  +vset OVERLAY_BOTTOM_ADDR + (160 * 3) + 80
+
+  lda R8L
+  jsr output2BcdDigits
+
+  +vchannel0
+  rts
+
+
 updateNumInfotrons:
+  jsr setPixelOperationNone
+
   lda NUM_INFOTRONS
   jsr bin2bcd8
 
@@ -694,8 +809,10 @@ updateNumInfotrons:
 tileMap:
 !binary "src/tilemap.bin"
 
+levelNumber:
+!byte 1
 levelDat:
-!binary "bin/level2.dat"
+!binary "bin/level1.dat"
 
 !source "src/gameobj.asm"
 

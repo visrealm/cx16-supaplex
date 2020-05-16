@@ -156,6 +156,16 @@ outputBcdChar:
 
   rts
 
+setPixelOperationNone:
+  lda #$ea ; nop
+  sta textPixelOperation
+  rts
+
+setPixelOperationLSR:
+  lda #$0a ; $0A
+  sta textPixelOperation
+  rts
+
 
 ; vera addr0 set to output location
 ; vera addr1 set to character location
@@ -171,6 +181,8 @@ outputCharacter:
 
 .nextCol:
   lda VERA_DATA1
+textPixelOperation:
+  nop  ; operation which can be substituted
   sta VERA_DATA0
 
   dex
@@ -178,7 +190,7 @@ outputCharacter:
 
   clc
   lda VERA_ADDRx_L
-  adc #160 - 4
+  adc #160 - 4 ; bytes per row, less our current offset
   sta VERA_ADDRx_L
   bcc +
   inc VERA_ADDRx_M
