@@ -71,6 +71,91 @@ outputText:
   rts
 
 
+; vera addr0 set to output location
+; vera addr1 set to font location
+; x: first bcd digit
+; a: 2x bcd digits
+output3BcdDigits:
+  sta R0
+  +vchannel0
+  +vpush
+  txa
+  jsr outputBcdChar
+  +vchannel0 ; save output location
+  +vpop
+  lda VERA_DATA0
+  lda VERA_DATA0
+  lda VERA_DATA0
+  lda VERA_DATA0
+  +vpush
+  lda R0
+  bra .output2BcdDigitsLateEntry
+
+; vera addr0 set to output location
+; vera addr1 set to font location
+; a: 2x bcd digits
+output2BcdDigits:
+  sta R0
+  +vchannel0 ; save output location
+  +vpush
+  lda R0
+.output2BcdDigitsLateEntry:
+  lsr
+  lsr
+  lsr
+  lsr
+  jsr outputBcdChar
+  +vchannel0
+  +vpop
+  lda VERA_DATA0
+  lda VERA_DATA0
+  lda VERA_DATA0
+  lda VERA_DATA0
+  lda R0
+  ; flow on through
+
+
+; vera addr0 set to output location
+; vera addr1 set to font location
+; bcd character in low nibble of A
+outputBcdChar:
+  and #$0f
+  sta R1L
+  +vchannel1
+  
+  +vpush
+  
+  lda R1L
+  clc
+  adc #'0' - ' '
+  clc
+  rol
+  rol
+  rol
+  rol
+  rol
+  sta R1L
+  rol
+  and #$1f
+  tay
+  lda #$e0
+  and R1L
+  sta VERA_ADDRx_L
+  tya
+  clc
+  adc R1H
+  sta VERA_ADDRx_M
+
+  +vchannel0
+
+  jsr outputCharacter
+
+  +vchannel1
+
+  +vpop
+
+  rts
+
 
 ; vera addr0 set to output location
 ; vera addr1 set to character location
