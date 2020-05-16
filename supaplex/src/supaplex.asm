@@ -85,8 +85,9 @@ VISIBLE_AREA_Y  = DISPLAY_SIZE_Y - BOTTOM_PANEL_SIZE_Y
 VISIBLE_AREA_CX = VISIBLE_AREA_X / 2
 VISIBLE_AREA_CY = VISIBLE_AREA_Y / 2
 
-MAX_SCROLL_X = MAP_PIXELS_X - VISIBLE_AREA_X
-MAX_SCROLL_Y = MAP_PIXELS_Y - VISIBLE_AREA_Y
+BORDER_SIZE = 8
+MAX_SCROLL_X = MAP_PIXELS_X - VISIBLE_AREA_X - BORDER_SIZE
+MAX_SCROLL_Y = MAP_PIXELS_Y - VISIBLE_AREA_Y - BORDER_SIZE
 
 MAP_BASE_ADDRESS_EVEN  =  $A00
 MAP_BASE_ADDRESS_ODD   = $1A00
@@ -223,9 +224,16 @@ centreMap:
 
   cpx #$00
   bpl +
+-
+  lda #BORDER_SIZE
   stz SCROLL_X_H
-  stz SCROLL_X_L
+  sta SCROLL_X_L
   bra .afterSetScrollX
++
+  bne +
+  cmp #BORDER_SIZE
+  bcs +
+  bra -
 +
   +cmp16xa MAX_SCROLL_X
   bcc +
@@ -273,9 +281,16 @@ centreMap:
 
   cpx #$00
   bpl +
+-
+  lda #BORDER_SIZE
   stz SCROLL_Y_H
-  stz SCROLL_Y_L
+  sta SCROLL_Y_L
   bra .afterSetScrollY
++
+  bne +
+  cmp #BORDER_SIZE
+  bcs +
+  bra -
 +
   +cmp16xa MAX_SCROLL_Y
   bcc +
@@ -591,90 +606,6 @@ tick:
 	jmp loop
 
 
-; load the map
-; -----------------------------------------------------------------------------
-loadMap:
- 
-  ; load to both odd and even locations
-  +vchannel1
-  +vset MAP_BASE_ADDRESS_EVEN
-
-  +vchannel0
-  +vset MAP_BASE_ADDRESS_ODD
-
-  lda #<levelDat
-  sta .loadLevelValue + 1
-  lda #>levelDat
-  sta .loadLevelValue + 2
-
-  ldy #24
-
-.nextMapRow:
-  ldx #60
-
-.nextMapCell:
-  phy
-
-.loadLevelValue
-  lda levelDat
-  
-  ; check for player cell
-  cmp #3
-  bne +
-  stx PLAYER_CELL_X
-  sty PLAYER_CELL_Y
-+
-  ; double the index since our map lookup has 
-  ; 2 bytes per tile type and store in y
-  asl
-  tay
-
-  ; increment the lda address above
-  +inc16 .loadLevelValue + 1
-
-  ; load the two tile bytes for vera
-  lda tileMap,y
-  sta VERA_DATA0
-  sta VERA_DATA1
-  iny
-  lda tileMap,y
-  sta VERA_DATA0
-  sta VERA_DATA1
-
-  ; restore y
-  ply
-  dex
-
-  ; pad to 64 tiles wide
-  bne .nextMapCell
-  !for i, 0, 3 {
-    lda tileMap
-    sta VERA_DATA0
-    sta VERA_DATA1
-    lda tileMap + 1
-    sta VERA_DATA0
-    sta VERA_DATA1
-  }
-  dey
-  bne .nextMapRow
-
-.doneLoad
-
-  ; adjust the player offset
-  sec
-  lda #60
-  sbc PLAYER_CELL_X
-  sta PLAYER_CELL_X
-  lda #24
-  sbc PLAYER_CELL_Y
-  sta PLAYER_CELL_Y
-
-
-  rts
-
-; end loadMap
-
-
 
 ; configure the display
 ; -----------------------------------------------------------------------------
@@ -764,14 +695,13 @@ tileMap:
 !binary "src/tilemap.bin"
 
 levelDat:
-!binary "bin/level1.dat"
+!binary "bin/level2.dat"
 
 !source "src/gameobj.asm"
 
 playerName:
 !text "TROY",0
-levelName:
-!text "------ WARM UP ! ------",0
+
 
 levelRows:
 !for i, 0, MAP_TILES_Y - 1 {
