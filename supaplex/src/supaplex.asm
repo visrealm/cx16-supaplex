@@ -33,6 +33,7 @@ PLAYER_CELL_X = $b0
 PLAYER_CELL_Y = $b1
 PLAYER_INPUT  = $b4
 
+NUM_INFOTRONS   = $c3
 PLAYER_SPEED_X  = $c4
 PLAYER_OFFSET_X = $c5
 PLAYER_SPEED_Y  = $c6
@@ -315,6 +316,8 @@ doInput:
   beq +
   cmp #$50
   bne ++
+  dec NUM_INFOTRONS
+  jsr updateNumInfotrons
 +
 
   lda #-PLAYER_SPEED
@@ -322,6 +325,7 @@ doInput:
   lda #16
   sta PLAYER_OFFSET_X
 
+  ldy PLAYER_CELL_Y
   lda PLAYER_CELL_X
   jsr clearTile
   dec PLAYER_CELL_X
@@ -340,6 +344,8 @@ doInput:
   beq +
   cmp #$50
   bne ++
+  dec NUM_INFOTRONS
+  jsr updateNumInfotrons
 +
 
   lda #PLAYER_SPEED
@@ -347,6 +353,7 @@ doInput:
   lda #-16
   sta PLAYER_OFFSET_X
   
+  ldy PLAYER_CELL_Y
   lda PLAYER_CELL_X
   jsr clearTile
   inc PLAYER_CELL_X
@@ -365,6 +372,8 @@ doInput:
   beq +
   cmp #$50
   bne ++
+  dec NUM_INFOTRONS
+  jsr updateNumInfotrons
 +
   
   lda #-PLAYER_SPEED
@@ -391,6 +400,8 @@ doInput:
   beq +
   cmp #$50
   bne ++
+  dec NUM_INFOTRONS
+  jsr updateNumInfotrons
 +
 
   lda #PLAYER_SPEED
@@ -711,16 +722,39 @@ configDisplay:
   +vchannel0
   +vset OVERLAY_BOTTOM_ADDR + (160 * 13) + 32
 
-  ldx #<levelName
-  ldy #>levelName
+  ldx #<levelDat + LEVEL_NAME_OFFSET
+  ldy #>levelDat + LEVEL_NAME_OFFSET
 
   jsr outputText
 
+  lda levelDat + LEVEL_NUM_INFOTRONS_OFFSET
+  sta NUM_INFOTRONS
+
+  jsr updateNumInfotrons
+
+  rts
+
+updateNumInfotrons:
+  lda NUM_INFOTRONS
+  jsr bin2bcd8
+
+  +vchannel1
+  +vset FONT_ADDR
+
+  +vchannel0
+  +vset OVERLAY_BOTTOM_ADDR + (160 * 14) + 136
+
+  ldx R8H
+  lda R8L
+  jsr output3BcdDigits
+
+  +vchannel0
   rts
 
 
 !source "src/strings.asm"
 !source "src/text.asm"
+!source "src/level.asm"
 !source "../common/vera/vera.asm"
 !source "../common/vera/pcx.asm"
 
@@ -737,7 +771,7 @@ levelDat:
 playerName:
 !text "TROY",0
 levelName:
-!text "------- WARM UP -------",0
+!text "------ WARM UP ! ------",0
 
 levelRows:
 !for i, 0, MAP_TILES_Y - 1 {

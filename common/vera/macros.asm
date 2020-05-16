@@ -22,6 +22,29 @@
   +vset .addr, VERA_INCR_1
 }
 
+!macro vpush {
+  lda VERA_ADDRx_M
+  pha
+  lda VERA_ADDRx_L
+  pha
+}
+
+!macro vpop {
+  pla
+  sta VERA_ADDRx_L
+  pla
+  sta VERA_ADDRx_M
+}
+
+!macro vpeek {
+  tsx
+  lda $0100, x
+  sta VERA_ADDRx_L
+  lda $0101, x
+  sta VERA_ADDRx_M
+}
+
+
 !macro vchannel .channel {
   +vreg VERA_CTRL, .channel 
 }
