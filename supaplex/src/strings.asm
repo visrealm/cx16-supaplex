@@ -22,3 +22,4 @@ explodPcx:  !pet "explod.pcx",0
 electrPcx:  !pet "electr.pcx",0
 overlayPcx: !pet "overlay.pcx",0
 fontPcx:    !pet "font.pcx",0
+infotronRaw: !pet "infotron.raw",0

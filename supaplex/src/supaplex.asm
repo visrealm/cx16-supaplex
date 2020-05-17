@@ -136,7 +136,9 @@ entry:
   +vLoadPcx electrPcx, ELECTR_ADDR, 9
   +vLoadPcx overlayPcx, OVERLAY_BOTTOM_ADDR, 10
   +vLoadPcx fontPcx,    FONT_ADDR, 10
-  
+
+  jsr qInit
+
   jsr loadMap
 
   jsr centreMap
@@ -163,6 +165,7 @@ entry:
 !source "src/hud.asm"
 !source "src/transform.asm"
 !source "src/gameloop.asm"
+!source "src/queue.asm"
 !source "../common/vera/vera.asm"
 !source "../common/vera/pcx.asm"
 

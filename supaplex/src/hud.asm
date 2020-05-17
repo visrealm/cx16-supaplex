@@ -110,10 +110,12 @@ hudSetLevelNumber:
 ; -----------------------------------------------------------------------------
 ; set number of infotrons remaining
 ; -----------------------------------------------------------------------------
-; inputs:
-;  a:  level number (binary)
-; -----------------------------------------------------------------------------
 hudSetInfotrons:
+;  +vreg VERA_AUDIO_CTRL, $1f
+;  +vreg VERA_AUDIO_RATE, $0
+;  +vLoadAudio infotronRaw
+;  +vreg VERA_AUDIO_RATE, $10
+
   jsr setPixelOperationNone
 
   lda NUM_INFOTRONS

@@ -158,6 +158,22 @@
 }
 
 ; -----------------------------------------------------------------------------
+; vLoadRaw:   helper to load an audio file into vram
+; -----------------------------------------------------------------------------
+; filename:   zero-terminated string
+; vramArress: address to load the raw data
+; -----------------------------------------------------------------------------
+!macro vLoadAudio filename {
+
+  ldx #<filename
+  ldy #>filename
+  jsr strLen
+
+  jsr loadRawPCM
+}
+
+
+; -----------------------------------------------------------------------------
 ; filename:   zero-terminated string
 ; vramArress: address to load the pixel data
 ; palIndex:  0-15 - high nibble of palette address offset
