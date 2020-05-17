@@ -10,6 +10,107 @@
 ;
 ;
 
+; by object type?   zonk, infotron, snik, electron, bug?
+; by characteristic?  fallers, enemies
+; components: animation, movement
+;  each object contains a list of its component ids
+; sniksnak1: animId, moveId, etc.
+
+; animation system
+;  list of animation components
+;   each containing: cell index, tile queue
+
+; on level load, object factory (jump table?)
+; 
+; gameObject logic:
+; most objects are "sleeping"
+; objects can be woken by adjacent movement
+
+; sniksnak logic:
+; states:
+;   - moving
+;   - searching
+;   
+
+objectFactory:
+!word createEmpty
+!word createZonk
+!word createBase
+!word createPlayer
+!word createInfotron
+!word createRamchip
+!word createHardware
+!word createExit
+!word createDisk
+!word createPort
+!word createPort
+!word createPort
+!word createPort
+!word createPort
+!word createPort
+!word createPort
+!word createPort
+!word createSnikSnak
+!word createDisk
+!word createTerminal
+!word createDisk
+!word createPort
+!word createPort
+!word createPort
+!word createElectron
+!word createBug
+!word createRamchip
+!word createRamchip
+!word createHardware
+!word createHardware
+!word createHardware
+!word createHardware
+!word createHardware
+!word createHardware
+!word createHardware
+!word createHardware
+!word createHardware
+!word createHardware
+!word createRamchip
+!word createRamchip
+
+; -----------------------------------------------------------------------------
+; Factory functions
+; -----------------------------------------------------------------------------
+; inputs:
+;   A: Object type id
+;   A: Object type id
+; returns
+;   A: MSB byte of queue
+;   Y: starting offset (head index)
+; -----------------------------------------------------------------------------
+
+createEmpty:
+createZonk:
+createBase:
+createPlayer:
+createInfotron:
+createRamchip:
+createHardware:
+createSwitch:
+createExit:
+createTerminal:
+createDisk:
+createPort:
+createBug:
+  rts
+
+createEnemy:
+  rts
+
+createSnikSnak:
+  jsr createEnemy
+  rts
+
+createElectron:
+  jsr createEnemy
+  rts
+
 
 ; structure of a game object
 ; x cell

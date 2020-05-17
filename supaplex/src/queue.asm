@@ -55,13 +55,14 @@ qCreate:
   rts
 
 ; -----------------------------------------------------------------------------
-; qPush: push a value onto a queue
+; qPushBack: push a value onto the back of a queue
 ; -----------------------------------------------------------------------------
 ; inputs:
 ;   A: value to push
 ;   X: queue index
 ; -----------------------------------------------------------------------------
 qPush:
+qPushBack:
   pha
   phx
   ; get queue tail
@@ -82,7 +83,7 @@ qPush:
   rts
 
 ; -----------------------------------------------------------------------------
-; qPop: pop a value from the from of the queue
+; qPopFront: pop a value from the from of the front of the queue
 ; -----------------------------------------------------------------------------
 ; inputs:
 ;   X: queue index
@@ -90,6 +91,7 @@ qPush:
 ;   A: value
 ; -----------------------------------------------------------------------------
 qPop:
+qPopFront:
   phx
   txa
   clc

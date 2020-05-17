@@ -179,7 +179,6 @@ levelNumber:
 levelDat:
 !binary "bin/level1.dat"
 
-!source "src/gameobj.asm"
 
 playerName:
 !text "TROY",0
@@ -189,3 +188,6 @@ levelRows:
 !for i, 0, MAP_TILES_Y - 1 {
   !word levelDat + (i * MAP_TILES_X)
 }
+
+
+!source "src/gameobj.asm"
