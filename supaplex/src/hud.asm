@@ -10,6 +10,7 @@
 ;
 ;
 
+!zone hud {
 
 ; -----------------------------------------------------------------------------
 ; initial hud setup
@@ -31,9 +32,9 @@ hudSetup:
 
   jsr hudSetInfotrons
 
-  stz TIME_SECONDS
-  stz TIME_MINUTES
-  stz TIME_HOURS
+  stz TIME_SECONDS_BCD
+  stz TIME_MINUTES_BCD
+  stz TIME_HOURS_BCD
 
   jsr updateHours
   jsr updateMinutes
@@ -97,6 +98,9 @@ hudSetLevelNumber:
 
   jsr bin2bcd8
 
+  +vchannel1
+  +vset FONT_ADDR
+
   +vchannel0
   +vset OVERLAY_BOTTOM_ADDR + (160 * 14) + 8
 
@@ -111,10 +115,26 @@ hudSetLevelNumber:
 ; set number of infotrons remaining
 ; -----------------------------------------------------------------------------
 hudSetInfotrons:
-;  +vreg VERA_AUDIO_CTRL, $1f
-;  +vreg VERA_AUDIO_RATE, $0
-;  +vLoadAudio infotronRaw
-;  +vreg VERA_AUDIO_RATE, $10
+
+  +vreg VERA_AUDIO_CTRL, $1f
+  +vreg VERA_AUDIO_RATE, $0
+
+  +vchannel0
+  +vset $2a00
+
+  ldx #$75
+  ldy #$0f
+
+.loop:
+  lda VERA_DATA0
+  sta $9F3D
+  dex
+  bne +
+  dey
++
+  bne .loop
+
+  +vreg VERA_AUDIO_RATE, $10
 
   jsr setPixelOperationNone
 
@@ -134,3 +154,5 @@ hudSetInfotrons:
   +vchannel0
   rts
 ; -----------------------------------------------------------------------------
+
+}

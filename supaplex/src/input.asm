@@ -10,6 +10,53 @@
 ;
 ;
 
+!zone input {
+
+playBaseSound:
+  phx
+  pha
+  +vreg VERA_AUDIO_CTRL, $1f
+  +vreg VERA_AUDIO_RATE, $0
+
+  +vchannel0
+  +vset $3f00
+
+  ldx #91
+
+.loop:
+  lda VERA_DATA0
+  sta $9F3D
+  dex
+  bne .loop
+
+  +vreg VERA_AUDIO_RATE, $10
+
+  pla
+  plx
+  rts
+
+; A = X
+; Y = Y
+testCell:
+  jsr vTile
+  bne +
+  jsr playBaseSound
+  bra .cellPassable
++
+  cmp #$31
+  beq .cellPassable
+  cmp #$50
+  bne .cellNotPassable
+  dec NUM_INFOTRONS
+  jsr hudSetInfotrons
+
+.cellPassable
+  sec
+  rts
+
+.cellNotPassable:
+  clc
+  rts
 
 
 ; -----------------------------------------------------------------------------
@@ -24,15 +71,8 @@ doInput:
   lda PLAYER_CELL_X
   ldy PLAYER_CELL_Y
   dec
-  jsr vTile
-  beq +
-  cmp #$31
-  beq +
-  cmp #$50
-  bne ++
-  dec NUM_INFOTRONS
-  jsr hudSetInfotrons
-+
+  jsr testCell
+  bcc +
 
   lda #-PLAYER_SPEED
   sta PLAYER_SPEED_X
@@ -44,7 +84,7 @@ doInput:
   jsr clearTile
   dec PLAYER_CELL_X
   jmp .doneTests
-++
++
 .testRight:
   lda PLAYER_INPUT
   bit #JOY_RIGHT
@@ -52,15 +92,9 @@ doInput:
   lda PLAYER_CELL_X
   ldy PLAYER_CELL_Y
   inc
-  jsr vTile
-  beq +
-  cmp #$31
-  beq +
-  cmp #$50
-  bne ++
-  dec NUM_INFOTRONS
-  jsr hudSetInfotrons
-+
+
+  jsr testCell
+  bcc +
 
   lda #PLAYER_SPEED
   sta PLAYER_SPEED_X
@@ -72,7 +106,7 @@ doInput:
   jsr clearTile
   inc PLAYER_CELL_X
   jmp .doneTests
-++
++
 .testUp:
   lda PLAYER_INPUT
   bit #JOY_UP
@@ -80,15 +114,8 @@ doInput:
   lda PLAYER_CELL_X
   ldy PLAYER_CELL_Y
   dey
-  jsr vTile
-  beq +
-  cmp #$31
-  beq +
-  cmp #$50
-  bne ++
-  dec NUM_INFOTRONS
-  jsr hudSetInfotrons
-+
+  jsr testCell
+  bcc +
   
   lda #-PLAYER_SPEED
   sta PLAYER_SPEED_Y
@@ -100,7 +127,7 @@ doInput:
   jsr clearTile
   dec PLAYER_CELL_Y
   jmp .doneTests
-++
++
 .testDown:
   lda PLAYER_INPUT
   bit #JOY_DOWN
@@ -108,15 +135,9 @@ doInput:
   lda PLAYER_CELL_X
   ldy PLAYER_CELL_Y
   iny
-  jsr vTile
-  beq +
-  cmp #$31
-  beq +
-  cmp #$50
-  bne ++
-  dec NUM_INFOTRONS
-  jsr hudSetInfotrons
-+
+
+  jsr testCell
+  bcc +
 
   lda #PLAYER_SPEED
   sta PLAYER_SPEED_Y
@@ -127,9 +148,10 @@ doInput:
   ldy PLAYER_CELL_Y
   jsr clearTile
   inc PLAYER_CELL_Y
-++
++
 .doneTests:
   rts
 
 ; -----------------------------------------------------------------------------
 
+}

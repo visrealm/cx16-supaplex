@@ -104,7 +104,6 @@ output3BcdDigits:
   +vpush
   txa
   jsr outputBcdChar
-  +vchannel0 ; save output location
   +vpop
   lda VERA_DATA0
   lda VERA_DATA0
@@ -136,7 +135,6 @@ output2BcdDigits:
   lsr
   lsr
   jsr outputBcdChar
-  +vchannel0
   +vpop
   lda VERA_DATA0
   lda VERA_DATA0
@@ -160,7 +158,6 @@ outputBcdChar:
   and #$0f
   sta R1L
   +vchannel1
-  
   +vpush
   
   lda R1L
@@ -187,8 +184,6 @@ outputBcdChar:
   +vchannel0
 
   jsr outputCharacter
-
-  +vchannel1
 
   +vpop
 

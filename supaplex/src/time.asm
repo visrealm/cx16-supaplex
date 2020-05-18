@@ -6,20 +6,20 @@ checkTime:
   cmp #60
   bne +
   stz FRAME_INDEX
-  inc TIME_SECONDS
+  +incBcd TIME_SECONDS_BCD
   jsr updateSeconds
-  lda TIME_SECONDS
-  cmp #60
+  lda TIME_SECONDS_BCD
+  cmp #$60
   bne +
-  stz TIME_SECONDS
-  inc TIME_MINUTES
+  stz TIME_SECONDS_BCD
+  +incBcd TIME_MINUTES_BCD
   jsr updateMinutes
-  lda TIME_MINUTES
-  cmp #60
+  lda TIME_MINUTES_BCD
+  cmp #$60
   bne +
-  stz TIME_MINUTES
+  stz TIME_MINUTES_BCD
   jsr updateMinutes
-  inc TIME_HOURS
+  +incBcd TIME_HOURS_BCD
   jsr updateHours
 + 
 
@@ -28,16 +28,13 @@ checkTime:
 updateSeconds:
   jsr setPixelOperationLSR
 
-  lda TIME_SECONDS
-  jsr bin2bcd8
-
   +vchannel1
   +vset FONT_ADDR
 
   +vchannel0
   +vset OVERLAY_BOTTOM_ADDR + (160 * 3) + 104
 
-  lda R8L
+  lda TIME_SECONDS_BCD
   jsr output2BcdDigits
 
   +vchannel0
@@ -47,16 +44,13 @@ updateSeconds:
 updateMinutes:
   jsr setPixelOperationLSR
 
-  lda TIME_MINUTES
-  jsr bin2bcd8
-  
   +vchannel1
   +vset FONT_ADDR
 
   +vchannel0
   +vset OVERLAY_BOTTOM_ADDR + (160 * 3) + 92
 
-  lda R8L
+  lda TIME_MINUTES_BCD
   jsr output2BcdDigits
 
   +vchannel0
@@ -66,16 +60,13 @@ updateMinutes:
 updateHours:
   jsr setPixelOperationLSR
 
-  lda TIME_HOURS
-  jsr bin2bcd8
-
   +vchannel1
   +vset FONT_ADDR
 
   +vchannel0
   +vset OVERLAY_BOTTOM_ADDR + (160 * 3) + 80
 
-  lda R8L
+  lda TIME_HOURS_BCD
   jsr output2BcdDigits
 
   +vchannel0

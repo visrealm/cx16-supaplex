@@ -28,11 +28,18 @@ PLAYER_Y_H    = PLAYER_Y + 1
 
 PLAYER_SPEED = 2
 
+; Available ZP addresses
+; $00-$7F  (128 bytes)
+; $A9-$FF  (87 bytes)
+
+; Not available: $80-$A8 (41 bytes)
+
+
 LAST_SECOND = $70
 CURRENT_SECOND = $71
-TIME_SECONDS = $72
-TIME_MINUTES = $73
-TIME_HOURS   = $74
+TIME_SECONDS_BCD = $72
+TIME_MINUTES_BCD = $73
+TIME_HOURS_BCD   = $74
 
 PLAYER_CELL_X = $b0
 PLAYER_CELL_Y = $b1
@@ -101,6 +108,7 @@ TILE_BASE_ADDRESS = $4000
 
 !source "../common/util.asm"
 !source "../common/string.asm"
+!source "../common/file.asm"
 !source "../common/vera/vsync.asm"
 !source "../common/vera/macros.asm"
 
@@ -109,6 +117,8 @@ TILE_BASE_ADDRESS = $4000
 ; --------------------------------
 entry:
   +vreg VERA_DC_VIDEO, $00
+  +vreg VERA_AUDIO_CTRL, $1f
+  +vreg VERA_AUDIO_RATE, $0
 
   STATIC_ADDR = TILE_BASE_ADDRESS
   PODIZO_ADDR = (STATIC_ADDR + (128*32))
@@ -119,12 +129,14 @@ entry:
   BUGBAS_ADDR = (TERMIN_ADDR + (128*16))
   EXPLOD_ADDR = (BUGBAS_ADDR + (128*16))
   ELECTR_ADDR = (EXPLOD_ADDR + (128*16))
-  FONT_ADDR =   (ELECTR_ADDR + (128*16)) 
+  FONT_ADDR =   (ELECTR_ADDR + (128*16))
   OVERLAY_ADDR = $C000
   OVERLAY_BOTTOM_ADDR = (OVERLAY_ADDR + (160*(240 - 24)))
 
   +vClear OVERLAY_ADDR, OVERLAY_BOTTOM_ADDR - OVERLAY_ADDR
 
+  +vLoadRaw infotronRaw, $2a00
+  +vLoadRaw baseRaw, $3f00
   +vLoadPcx staticPcx, STATIC_ADDR, 1
   +vLoadPcx podizoPcx, PODIZO_ADDR, 2
   +vLoadPcx murphyPcx, MURPHY_ADDR, 3
@@ -136,7 +148,7 @@ entry:
   +vLoadPcx electrPcx, ELECTR_ADDR, 9
   +vLoadPcx overlayPcx, OVERLAY_BOTTOM_ADDR, 10
   +vLoadPcx fontPcx,    FONT_ADDR, 10
-
+  
   jsr qInit
 
   jsr loadMap
