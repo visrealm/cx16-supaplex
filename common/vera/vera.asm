@@ -21,34 +21,54 @@
 ;   channel 0 for data
 ; -----------------------------------------------------------------------------
 loadRaw:
-TMP_ADDR = $8000
+TMP_ADDR = $A000
   jsr SETNAM
 
   lda #$01
   ldx $BA       ; last used device number
-  bne .skip
+  bne +
   ldx #$08      ; default to device 8
-.skip
-  ldy #$00      ; $00 means: load to new address
++
+  ldy #$01      ; $00 means: load to new address
   jsr SETLFS
 
-  ldx #<TMP_ADDR
-  ldy #>TMP_ADDR
+  ldx #<(TMP_ADDR + 2)
+  ldy #>(TMP_ADDR + 2)
   lda #$00      ; $00 means: load to memory (not verify)
   jsr LOAD
-  bcs .error    ; if carry set, a load error has happened
+  bcs .errorRaw    ; if carry set, a load error has happened
+
+  stx R2L
+  sty R2H
+
+  lda #<TMP_ADDR
+  sta R1L
+  lda #>TMP_ADDR
+  sta R1H
 
   ldy #0
 
-.nextByte:        
-  lda TMP_ADDR, Y
+.checkNextByteRaw:
+  lda R1H
+  cmp R2H
+  bne +
+  tya
+  cmp R2L
+  beq .doneRaw
++
+  lda (R1),y
   sta VERA_DATA0
   iny
-  dex
-  bne .nextByte
+  bne +
+  inc R1H
++
+  bra .checkNextByteRaw
+.doneRaw
+  lda #$01
+  jsr CLOSE
 
   rts
-.error
+.errorRaw
 
   rts
 
@@ -60,7 +80,7 @@ TMP_ADDR = $8000
 ;   channel 0 for data
 ; -----------------------------------------------------------------------------
 loadRawPCM:
-TMP_ADDR = $8000
+TMP_ADDR = $A000
   jsr SETNAM
 
   lda #$01
@@ -68,7 +88,7 @@ TMP_ADDR = $8000
   bne +
   ldx #$08      ; default to device 8
 +
-  ldy #$00      ; $00 means: load to new address
+  ldy #$01      ; $00 means: load to new address
   jsr SETLFS
 
   ldx #<(TMP_ADDR + 2)
@@ -93,7 +113,7 @@ TMP_ADDR = $8000
   bne +
   tya
   cmp R2L
-  beq .done
+  beq .donePcm
 +
   lda (R1),y
   sta $9F3D
@@ -102,7 +122,10 @@ TMP_ADDR = $8000
   inc R1H
 +
   bra .checkNextByte
-.done
+.donePcm
+  lda #$01
+  jsr CLOSE
+
   rts
 .errorPcm
 

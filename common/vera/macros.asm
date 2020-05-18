@@ -30,9 +30,13 @@
 ; vpush: push vera address from stack
 ; -----------------------------------------------------------------------------
 !macro vpush {
+  lda VERA_ADDRx_H
+  pha
   lda VERA_ADDRx_M
   pha
   lda VERA_ADDRx_L
+  pha
+  lda VERA_CTRL
   pha
 }
 
@@ -41,21 +45,15 @@
 ; -----------------------------------------------------------------------------
 !macro vpop {
   pla
+  sta VERA_CTRL
+  pla
   sta VERA_ADDRx_L
   pla
   sta VERA_ADDRx_M
+  pla
+  sta VERA_ADDRx_H
 }
 
-; -----------------------------------------------------------------------------
-; vpeek: set vera ddress to that on stack without popping it
-; -----------------------------------------------------------------------------
-!macro vpeek {
-  tsx
-  lda $0100, x
-  sta VERA_ADDRx_L
-  lda $0101, x
-  sta VERA_ADDRx_M
-}
 
 ; -----------------------------------------------------------------------------
 ; vchannel: set the current vera channel

@@ -106,6 +106,35 @@
   sbc right + 1
 }
 
+; -----------------------------------------------------------------------------
+; +incBcd: increment a BCD byte (inc instruction doesn't work in bcd mode)
+; -----------------------------------------------------------------------------
+; Inputs:
+;  addr:  address containing BCD value
+; -----------------------------------------------------------------------------
+!macro incBcd addr {
+  lda addr
+  sed
+  clc
+  adc #1
+  cld
+  sta addr
+}
+
+; -----------------------------------------------------------------------------
+; +decBcd: decrement a BCD byte (inc instruction doesn't work in bcd mode)
+; -----------------------------------------------------------------------------
+; Inputs:
+;  addr:  address containing BCD value
+; -----------------------------------------------------------------------------
+!macro decBcd addr {
+  lda addr
+  sed
+  sec
+  sbc #1
+  cld
+  sta addr
+}
 
 ; -----------------------------------------------------------------------------
 ; bin2bcd8: convert an unsigned byte to a 2-digit bcd value
@@ -133,3 +162,4 @@ bin2bcd8:
   bne .loop
   cld   
   rts
+

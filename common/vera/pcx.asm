@@ -31,7 +31,7 @@ PCX_REPEAT_CNT_MASK = $3f
 ;   channel 1 for palette
 ; -----------------------------------------------------------------------------
 loadPcxFile:
-TMP_ADDR = $8000
+TMP_ADDR = $A000
   jsr SETNAM
 
   lda #$01
@@ -126,6 +126,10 @@ TMP_ADDR = $8000
   bra .checkNextPixel
 
 .done
+
+  lda #$01
+  jsr CLOSE
+
   rts
 ; -----------------------------------------------------------------------------
 
