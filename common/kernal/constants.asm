@@ -27,14 +27,14 @@ RAM_BANK            = $9F61
 
 !macro setRamBank bank {
   pha
-  lda bank
+  lda #bank
   sta RAM_BANK
   pla
 }
 
 !macro setRomBank bank {
   pha
-  lda bank
+  lda #bank
   sta ROM_BANK
   pla
 }
