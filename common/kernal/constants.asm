@@ -9,6 +9,8 @@
 ; https://github.com/visrealm/supaplex-x16
 ;
 
+CMN_KERNAL_CONSTANTS_ASM_ = 1
+
 !cpu 65c02
 
 CHROUT      = $FFD2	; CHROUT outputs a character (C64 Kernal API)

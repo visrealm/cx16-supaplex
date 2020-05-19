@@ -10,17 +10,20 @@
 ;
 ;
 
+
+SP_STRINGS_ASM_ = 1
+
 !zone
-staticPcx:   !pet "static.pcx",0
-podizoPcx:   !pet "podizo.pcx",0
-murphyPcx:   !pet "murphy.pcx",0
-infotrPcx:   !pet "infotr.pcx",0
-sniksnPcx:   !pet "sniksn.pcx",0
-terminPcx:   !pet "termin.pcx",0
-bugbasPcx:   !pet "bugbas.pcx",0
-explodPcx:   !pet "explod.pcx",0
-electrPcx:   !pet "electr.pcx",0
-overlayPcx:  !pet "overlay.pcx",0
-fontPcx:     !pet "font.pcx",0
-baseRaw:     !pet "base.raw",0
-infotronRaw: !pet "infotron.raw",0
+staticPcx:   !text "static.pcx",0
+podizoPcx:   !text "podizo.pcx",0
+murphyPcx:   !text "murphy.pcx",0
+infotrPcx:   !text "infotr.pcx",0
+sniksnPcx:   !text "sniksn.pcx",0
+terminPcx:   !text "termin.pcx",0
+bugbasPcx:   !text "bugbas.pcx",0
+explodPcx:   !text "explod.pcx",0
+electrPcx:   !text "electr.pcx",0
+overlayPcx:  !text "overlay.pcx",0
+fontPcx:     !text "font.pcx",0
+baseRaw:     !text "base.raw",0
+infotronRaw: !text "infotron.raw",0

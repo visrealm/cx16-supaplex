@@ -1,5 +1,16 @@
+; Supaplex - Commander X16
+;
+; Time
+;
+; Copyright (c) 2020 Troy Schrapel
+;
+; This code is licensed under the MIT license
+;
+; https://github.com/visrealm/supaplex-x16
+;
+;
 
-
+SP_TIME_ASM_ = 1
 
 checkTime:
   lda FRAME_INDEX
@@ -22,7 +33,6 @@ checkTime:
   +incBcd TIME_HOURS_BCD
   jsr updateHours
 + 
-
 
 
 updateSeconds:

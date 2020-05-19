@@ -1,4 +1,4 @@
-; Supaplex - Commander X16
+; Commander X16
 ;
 ; Raster text subroutines
 ;
@@ -10,6 +10,7 @@
 ;
 ;
 
+CMN_VERA_TEXT_ASM_ = 1
 
 ; -----------------------------------------------------------------------------
 ; outputText: output a raster string to a vera bitmap
@@ -76,10 +77,8 @@ outputText:
   sta R0H
   sta VERA_ADDRx_M
 
-  inc .getChar + 1
-  bcc +
-  inc .getChar + 2
-+
+  +inc16 .getChar + 1
+  
   +vchannel1
   bra .getChar
 

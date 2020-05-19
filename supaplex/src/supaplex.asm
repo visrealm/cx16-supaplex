@@ -149,12 +149,13 @@ entry:
   +vLoadPcx bugbasPcx, BUGBAS_ADDR, 7
   +vLoadPcx explodPcx, EXPLOD_ADDR, 8
   +vLoadPcx electrPcx, ELECTR_ADDR, 9
-  +vLoadPcx overlayPcx, OVERLAY_BOTTOM_ADDR, 10
   +vLoadPcx fontPcx,    FONT_ADDR, 10
+  +vLoadPcx overlayPcx, OVERLAY_BOTTOM_ADDR, 10
 
   +setRamBank 2
   +loadFile baseRaw, BANKED_RAM_START
   +loadFile infotronRaw, BANKED_RAM_START + $100
+  +setRamBank 1
 
   jsr qInit
 
@@ -165,7 +166,7 @@ entry:
   jsr configDisplay
   
   jsr hudSetup
-  
+
   stz FRAME_INDEX
 
   jsr registerVsyncIrq
@@ -176,14 +177,18 @@ entry:
 
   +vreg VERA_AUDIO_CTRL, $18
   stz PLAYER_INPUT
+  +vreg VERA_AUDIO_RATE, $10
 
   jmp gameLoop
 
   rts  
 
+!source "../common/queue.asm"
+!source "../common/vera/text.asm"
+!source "../common/vera/vera.asm"
+!source "../common/vera/pcx.asm"
 
 !source "src/strings.asm"
-!source "src/text.asm"
 !source "src/time.asm"
 !source "src/level.asm"
 !source "src/display.asm"
@@ -191,10 +196,7 @@ entry:
 !source "src/hud.asm"
 !source "src/transform.asm"
 !source "src/gameloop.asm"
-!source "src/queue.asm"
-!source "../common/vera/vera.asm"
-!source "../common/vera/pcx.asm"
-
+!source "src/ecs/sys/anim_s.asm"
 
 !align 255, 0
 tileMap:

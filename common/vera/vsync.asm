@@ -10,7 +10,11 @@
 ;
 ;
 
-defaultIrqHandler: !le16 $0000
+
+CMN_VERA_VSYNC_ASM_ = 1
+
+defaultIrqHandler:
+!word $0000
 
 VSYNC_FLAG = $30
 
@@ -28,7 +32,6 @@ registerVsyncIrq:
     cli
     rts
 
-
 vSyncIrqhandler:
     lda $9F27
     and #$01
@@ -37,11 +40,6 @@ vSyncIrqhandler:
     ; Whatever code your program
     ; wanted to execute...
     stz VSYNC_FLAG
-
-
-    ;lda #$01
-    
-    ;sta $9F27
 
     ; Return to whatever had been interrupted:
 .irqDone:

@@ -10,6 +10,8 @@
 ;
 ;
 
+CMN_MEMORY_ASM_ = 1
+
 !zone memcpy {
 
 ; -----------------------------------------------------------------------------
@@ -121,7 +123,7 @@ memcpyMultiPage:
 
 
 ; -----------------------------------------------------------------------------
-; memcpy: Copy a fixed number of bytes from src to dest
+; mem2reg: Copy a fixed number of bytes from src to dest
 ; -----------------------------------------------------------------------------
 ; Inputs:
 ;  src: source address

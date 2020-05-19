@@ -10,6 +10,9 @@
 ;
 ;
 
+
+SP_LEVEL_ASM_ = 1
+
 ; level structure:
 ; infotrons required
 ; name

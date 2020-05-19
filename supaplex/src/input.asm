@@ -10,30 +10,17 @@
 ;
 ;
 
+
+SP_INPUT_ASM_ = 1
+
 !zone input {
 
 playBaseSound:
   phx
   pha
-  +vreg VERA_AUDIO_RATE, $0
-  sei
-  ;+setRamBank 2
+  +setRamBank 2
   +mem2reg BANKED_RAM_START, VERA_AUDIO_DATA, 137
-  cli
-
-;  +vchannel0
-;  +vset $2a00
-
-  ;ldx #255
-
-;.loop:
-;  lda VERA_DATA0
-;  sta $9F3D
-;  dex
-;  bne .loop
-
-  +vreg VERA_AUDIO_RATE, $10
-
+  +setRamBank 1
   pla
   plx
   rts
@@ -52,8 +39,9 @@ testCell:
   bne .cellNotPassable
   dec NUM_INFOTRONS
 
-  +mem2reg BANKED_RAM_START + $100, VERA_AUDIO_DATA, 3957
-  +vreg VERA_AUDIO_RATE, $10
+  +setRamBank 2
+  +mem2reg BANKED_RAM_START + $100, VERA_AUDIO_DATA, 6035
+  +setRamBank 1
 
   jsr hudSetInfotrons
 

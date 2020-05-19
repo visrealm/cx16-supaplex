@@ -1,5 +1,3 @@
 call build
 
-
-
-call run
+IF NOT ERRORLEVEL 1 call run

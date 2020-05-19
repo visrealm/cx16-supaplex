@@ -11,6 +11,8 @@
 ;
 
 
+SP_GAMELOOP_ASM_ = 1
+
 
 gameLoop:
   !byte $CB  ; WAI instruction

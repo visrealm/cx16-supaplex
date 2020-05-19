@@ -1,4 +1,4 @@
-; Supaplex - Commander X16
+; Commander X16
 ;
 ; Queue management
 ;
@@ -9,6 +9,7 @@
 ; https://github.com/visrealm/supaplex-x16
 ;
 
+CMN_QUEUE_ASM_ = 1
 
 QUEUE_HEADERS     = $6000
 QUEUE_HEADER_SIZE = 4

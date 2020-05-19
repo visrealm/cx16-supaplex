@@ -9,6 +9,8 @@
 ; https://github.com/visrealm/supaplex-x16
 ;
 
+CMN_VERA_CONSTANTS_ = 1
+
 VERA_ADDRx_L      = $9F20
 VERA_ADDRx_M      = $9F21
 VERA_ADDRx_H      = $9F22

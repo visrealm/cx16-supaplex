@@ -10,6 +10,21 @@
 ;
 ;
 
+
+CMN_FILE_ASM_ = 1
+
+; -----------------------------------------------------------------------------
+; setFile:   set the current file to work with
+; -----------------------------------------------------------------------------
+; filename:  address of zero-terminated string
+; -----------------------------------------------------------------------------
+!macro setFile filename {
+  ldx #<filename
+  ldy #>filename
+  jsr strLen
+  jsr SETNAM
+}
+
 ; -----------------------------------------------------------------------------
 ; loadFile:   helper to load a file into ram
 ; -----------------------------------------------------------------------------
@@ -17,11 +32,12 @@
 ; ramArress: address to load the raw data
 ; -----------------------------------------------------------------------------
 !macro loadFile filename, address {
-  ldx #<filename
-  ldy #>filename
-  jsr strLen
 
-  jsr SETNAM
+  !if <address != $00 {
+    !error "output address must be aligned to a page boundry"
+  }
+
+  +setFile filename
 
   lda #>address
 
@@ -31,8 +47,10 @@
 ; -----------------------------------------------------------------------------
 ; loadFile: load raw data file into ram
 ; -----------------------------------------------------------------------------
-; xy contains address of filename
-; a  contains MSB of output address
+; Prerequisites:
+;   SETNAME called 
+; Inputs:
+;   A: MSB of output address
 ; -----------------------------------------------------------------------------
 loadFile:
   pha

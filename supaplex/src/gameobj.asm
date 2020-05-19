@@ -10,6 +10,10 @@
 ;
 ;
 
+
+SP_GAMEOBJ_ASM_ = 1
+
+
 ; by object type?   zonk, infotron, snik, electron, bug?
 ; by characteristic?  fallers, enemies
 ; components: animation, movement
