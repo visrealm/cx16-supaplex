@@ -30,6 +30,9 @@ LEVEL_NUM_SPECIAL_OFFSET   = LEVEL_TILES_BYTES + 31
 LEVEL_SPECIAL_OFFSET 	     = LEVEL_TILES_BYTES + 32
 LEVEL_NUM_SPECIAL 		     = 10
 LEVEL_SPECIAL_BYTES 		   = 6
+
+ENTITY_MAP_ADDR            = $7000
+
   
 ; -----------------------------------------------------------------------------
 ; load the map
@@ -54,7 +57,7 @@ loadMap:
   ldx #MAP_TILES_X
 
 .nextMapCell:
-  phy
+  phx
 
 .loadLevelValue
   lda levelDat
@@ -65,25 +68,28 @@ loadMap:
   stx PLAYER_CELL_X
   sty PLAYER_CELL_Y
 +
+
+  jsr createGameObject
+
   ; double the index since our map lookup has 
   ; 2 bytes per tile type and store in y
   asl
-  tay
+  tax
 
   ; increment the lda address above
   +inc16 .loadLevelValue + 1
 
   ; load the two tile bytes for vera
-  lda tileMap,y
+  lda tileMap,x
   sta VERA_DATA0
   sta VERA_DATA1
-  iny
-  lda tileMap,y
+  inx
+  lda tileMap,x
   sta VERA_DATA0
   sta VERA_DATA1
 
   ; restore y
-  ply
+  plx
   dex
 
   ; pad to 64 tiles wide
