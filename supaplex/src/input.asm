@@ -15,19 +15,22 @@
 playBaseSound:
   phx
   pha
-  +vreg VERA_AUDIO_CTRL, $1f
   +vreg VERA_AUDIO_RATE, $0
+  sei
+  ;+setRamBank 2
+  +mem2reg BANKED_RAM_START, VERA_AUDIO_DATA, 137
+  cli
 
-  +vchannel0
-  +vset $3f00
+;  +vchannel0
+;  +vset $2a00
 
-  ldx #91
+  ;ldx #255
 
-.loop:
-  lda VERA_DATA0
-  sta $9F3D
-  dex
-  bne .loop
+;.loop:
+;  lda VERA_DATA0
+;  sta $9F3D
+;  dex
+;  bne .loop
 
   +vreg VERA_AUDIO_RATE, $10
 
@@ -48,6 +51,10 @@ testCell:
   cmp #$50
   bne .cellNotPassable
   dec NUM_INFOTRONS
+
+  +mem2reg BANKED_RAM_START + $100, VERA_AUDIO_DATA, 3957
+  +vreg VERA_AUDIO_RATE, $10
+
   jsr hudSetInfotrons
 
 .cellPassable
@@ -64,7 +71,44 @@ testCell:
 ; -----------------------------------------------------------------------------
 doInput:
 
-.testLeft:  
+  stz PLAYER_INPUT
+  jsr JOYSTICK_GET
+  eor #$ff
+  ora PLAYER_INPUT
+  sta PLAYER_INPUT
+
+.afterTest
+  clc
+  lda PLAYER_OFFSET_X
+  adc PLAYER_SPEED_X
+  sta PLAYER_OFFSET_X
+  bne +
+  stz PLAYER_SPEED_X
++
+
+  clc
+  lda PLAYER_OFFSET_Y
+  adc PLAYER_SPEED_Y
+  sta PLAYER_OFFSET_Y
+  bne +
+  stz PLAYER_SPEED_Y
++
+
+  ; no input if player moving
+  lda PLAYER_OFFSET_X
+  bne .playerMoving
+
+  lda PLAYER_OFFSET_Y
+  bne .playerMoving
+
+  bra .allowInput
+
+.playerMoving:
+
+  rts
+
+
+.allowInput:  
   lda PLAYER_INPUT
   bit #JOY_LEFT
   beq .testRight

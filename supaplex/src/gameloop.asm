@@ -13,6 +13,7 @@
 
 
 gameLoop:
+  !byte $CB  ; WAI instruction
   lda VSYNC_FLAG
 
   beq tick
@@ -22,43 +23,29 @@ gameLoop:
 
 tick:
 
-  stz PLAYER_INPUT
-  jsr JOYSTICK_GET
-  eor #$ff
-  ora PLAYER_INPUT
-  sta PLAYER_INPUT
-
-.afterTest
-  clc
-  lda PLAYER_OFFSET_X
-  adc PLAYER_SPEED_X
-  sta PLAYER_OFFSET_X
-  bne +
-  stz PLAYER_SPEED_X
-+
-
-  clc
-  lda PLAYER_OFFSET_Y
-  adc PLAYER_SPEED_Y
-  sta PLAYER_OFFSET_Y
-  bne +
-  stz PLAYER_SPEED_Y
-+
-
-  lda PLAYER_OFFSET_X
-  bne .afterInput
-
-  lda PLAYER_OFFSET_Y
-  bne .afterInput
-
   jsr doInput
 
-.afterInput
+  jsr updateFrame
 
   jsr checkTime
 
   jsr centreMap
 
+  inc FRAME_INDEX
+
+  lda #1
+  sta VSYNC_FLAG
+
+	jmp gameLoop
+
+
+
+
+
+
+
+
+updateFrame:
   +vset VERA_SPRITES + 2
 
   +sub16 PLAYER_X, SCROLL_X
@@ -120,7 +107,7 @@ tick:
 
 
   lda PLAYER_SPEED_Y
-  beq .afterMovingY
+  beq .doneSprY
   
   +vset VERA_SPRITES
 
@@ -141,15 +128,4 @@ tick:
   +vWriteByte0 ((MURPHY_ADDR  + 128) >> 13) & $ff
 
 .doneSprY
-
-
-.afterMovingY:
-
-  inc FRAME_INDEX
-
-
-  lda #1
-  sta VSYNC_FLAG
-
-	jmp gameLoop
-
+  rts

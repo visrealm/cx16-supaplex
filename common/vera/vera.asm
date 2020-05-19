@@ -25,10 +25,7 @@ TMP_ADDR = $A000
   jsr SETNAM
 
   lda #$01
-  ldx $BA       ; last used device number
-  bne +
   ldx #$08      ; default to device 8
-+
   ldy #$01      ; $00 means: load to new address
   jsr SETLFS
 
@@ -64,8 +61,6 @@ TMP_ADDR = $A000
 +
   bra .checkNextByteRaw
 .doneRaw
-  lda #$01
-  jsr CLOSE
 
   rts
 .errorRaw
@@ -84,10 +79,7 @@ TMP_ADDR = $A000
   jsr SETNAM
 
   lda #$01
-  ldx $BA       ; last used device number
-  bne +
   ldx #$08      ; default to device 8
-+
   ldy #$01      ; $00 means: load to new address
   jsr SETLFS
 
@@ -123,8 +115,6 @@ TMP_ADDR = $A000
 +
   bra .checkNextByte
 .donePcm
-  lda #$01
-  jsr CLOSE
 
   rts
 .errorPcm

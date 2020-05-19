@@ -20,7 +20,24 @@ LOAD			  = $FFD5
 OPEN        = $FFC0
 CLOSE       = $FFC3
 
+BANKED_RAM_START    = $A000
+BANKED_RAM_END      = $BFFF
+ROM_BANK            = $9F60
+RAM_BANK            = $9F61
 
+!macro setRamBank bank {
+  pha
+  lda bank
+  sta RAM_BANK
+  pla
+}
+
+!macro setRomBank bank {
+  pha
+  lda bank
+  sta ROM_BANK
+  pla
+}
 ; Joystick constants
 ; ----------------------------------------------------------------------------
 ; subroutines

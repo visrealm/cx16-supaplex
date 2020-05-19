@@ -115,27 +115,6 @@ hudSetLevelNumber:
 ; set number of infotrons remaining
 ; -----------------------------------------------------------------------------
 hudSetInfotrons:
-
-  +vreg VERA_AUDIO_CTRL, $1f
-  +vreg VERA_AUDIO_RATE, $0
-
-  +vchannel0
-  +vset $2a00
-
-  ldx #$75
-  ldy #$0f
-
-.loop:
-  lda VERA_DATA0
-  sta $9F3D
-  dex
-  bne +
-  dey
-+
-  bne .loop
-
-  +vreg VERA_AUDIO_RATE, $10
-
   jsr setPixelOperationNone
 
   lda NUM_INFOTRONS

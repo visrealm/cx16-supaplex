@@ -16,7 +16,7 @@
 ; filename:  zero-terminated string
 ; ramArress: address to load the raw data
 ; -----------------------------------------------------------------------------
-!macro loadFile name, address {
+!macro loadFile filename, address {
   ldx #<filename
   ldy #>filename
   jsr strLen
@@ -37,14 +37,11 @@
 loadFile:
   pha
   lda #$01
-  ldx $BA       ; last used device number
-  bne +
   ldx #$08      ; default to device 8
-+
   ldy #$00      ; $00 means: load to new address
   jsr SETLFS
 
-  ldx #2        ; account for address header 
+  ldx #$04        ; account for address header 
   ply
   lda #$00      ; $00 means: load to memory (not verify)
   jsr LOAD
@@ -55,4 +52,5 @@ loadFile:
 
   rts
 .errorLoad
+  brk
   rts

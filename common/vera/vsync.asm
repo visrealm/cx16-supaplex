@@ -15,6 +15,7 @@ defaultIrqHandler: !le16 $0000
 VSYNC_FLAG = $30
 
 registerVsyncIrq:
+    sei
     lda $0314
     sta defaultIrqHandler
     lda $0315
@@ -24,6 +25,7 @@ registerVsyncIrq:
     sta $0314
     lda #>vSyncIrqhandler + 1
     sta $0315
+    cli
     rts
 
 
@@ -37,9 +39,9 @@ vSyncIrqhandler:
     stz VSYNC_FLAG
 
 
-    lda #$01
+    ;lda #$01
     
-    sta $9F27
+    ;sta $9F27
 
     ; Return to whatever had been interrupted:
 .irqDone:

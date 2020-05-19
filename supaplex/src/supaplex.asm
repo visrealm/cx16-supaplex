@@ -101,12 +101,13 @@ BORDER_SIZE = 8
 MAX_SCROLL_X = MAP_PIXELS_X - VISIBLE_AREA_X - BORDER_SIZE
 MAX_SCROLL_Y = MAP_PIXELS_Y - VISIBLE_AREA_Y - BORDER_SIZE
 
-MAP_BASE_ADDRESS_EVEN  =  $A00
-MAP_BASE_ADDRESS_ODD   = $1A00
-TILE_BASE_ADDRESS = $4000
+MAP_BASE_ADDRESS_EVEN  =  $00
+MAP_BASE_ADDRESS_ODD   = $1000
+TILE_BASE_ADDRESS = $2000
 
 
 !source "../common/util.asm"
+!source "../common/memory.asm"
 !source "../common/string.asm"
 !source "../common/file.asm"
 !source "../common/vera/vsync.asm"
@@ -116,9 +117,12 @@ TILE_BASE_ADDRESS = $4000
 ; program entry
 ; --------------------------------
 entry:
+  sei
+  +setRomBank 0
+
   +vreg VERA_DC_VIDEO, $00
-  +vreg VERA_AUDIO_CTRL, $1f
-  +vreg VERA_AUDIO_RATE, $0
+  +vreg VERA_AUDIO_CTRL, $00
+  +vreg VERA_AUDIO_RATE, $00
 
   STATIC_ADDR = TILE_BASE_ADDRESS
   PODIZO_ADDR = (STATIC_ADDR + (128*32))
@@ -135,8 +139,7 @@ entry:
 
   +vClear OVERLAY_ADDR, OVERLAY_BOTTOM_ADDR - OVERLAY_ADDR
 
-  +vLoadRaw infotronRaw, $2a00
-  +vLoadRaw baseRaw, $3f00
+  +setRamBank 63
   +vLoadPcx staticPcx, STATIC_ADDR, 1
   +vLoadPcx podizoPcx, PODIZO_ADDR, 2
   +vLoadPcx murphyPcx, MURPHY_ADDR, 3
@@ -148,7 +151,11 @@ entry:
   +vLoadPcx electrPcx, ELECTR_ADDR, 9
   +vLoadPcx overlayPcx, OVERLAY_BOTTOM_ADDR, 10
   +vLoadPcx fontPcx,    FONT_ADDR, 10
-  
+
+  +setRamBank 2
+  +loadFile baseRaw, BANKED_RAM_START
+  +loadFile infotronRaw, BANKED_RAM_START + $100
+
   jsr qInit
 
   jsr loadMap
@@ -162,6 +169,13 @@ entry:
   stz FRAME_INDEX
 
   jsr registerVsyncIrq
+
+  jsr JOYSTICK_SCAN
+
+  cli
+
+  +vreg VERA_AUDIO_CTRL, $18
+  stz PLAYER_INPUT
 
   jmp gameLoop
 
