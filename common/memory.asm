@@ -166,6 +166,8 @@ mem2regMultiPage:
   lda R0H
   sta .loadIns + 2
 
+  iny
+  
   txa
   bne +
   dey

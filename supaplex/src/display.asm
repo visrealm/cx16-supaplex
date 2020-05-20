@@ -41,3 +41,4 @@ configDisplay:
   +vWriteByte0 0
   +vWriteByte0 $08
   +vWriteByte0 $53
+  rts

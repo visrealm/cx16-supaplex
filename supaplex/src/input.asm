@@ -15,22 +15,12 @@ SP_INPUT_ASM_ = 1
 
 !zone input {
 
-playBaseSound:
-  phx
-  pha
-  +setRamBank 2
-  +mem2reg BANKED_RAM_START, VERA_AUDIO_DATA, 137
-  +setRamBank 1
-  pla
-  plx
-  rts
-
 ; A = X
 ; Y = Y
 testCell:
   jsr vTile
   bne +
-  jsr playBaseSound
+  +sfxPlay SFX_BASE_ID
   bra .cellPassable
 +
   cmp #$31
@@ -39,9 +29,7 @@ testCell:
   bne .cellNotPassable
   dec NUM_INFOTRONS
 
-  +setRamBank 2
-  +mem2reg BANKED_RAM_START + $100, VERA_AUDIO_DATA, 6035
-  +setRamBank 1
+  +sfxPlay SFX_INFOTRON_ID
 
   jsr hudSetInfotrons
 
@@ -108,7 +96,7 @@ doInput:
 
   lda #-PLAYER_SPEED
   sta PLAYER_SPEED_X
-  lda #16
+  lda #(16 - PLAYER_SPEED)
   sta PLAYER_OFFSET_X
 
   ldy PLAYER_CELL_Y
@@ -130,7 +118,7 @@ doInput:
 
   lda #PLAYER_SPEED
   sta PLAYER_SPEED_X
-  lda #-16
+  lda #-(16 - PLAYER_SPEED)
   sta PLAYER_OFFSET_X
   
   ldy PLAYER_CELL_Y
@@ -151,7 +139,7 @@ doInput:
   
   lda #-PLAYER_SPEED
   sta PLAYER_SPEED_Y
-  lda #16
+  lda #(16 - PLAYER_SPEED)
   sta PLAYER_OFFSET_Y
 
   lda PLAYER_CELL_X
@@ -173,7 +161,7 @@ doInput:
 
   lda #PLAYER_SPEED
   sta PLAYER_SPEED_Y
-  lda #-16
+  lda #-(16 - PLAYER_SPEED)
   sta PLAYER_OFFSET_Y
 
   lda PLAYER_CELL_X

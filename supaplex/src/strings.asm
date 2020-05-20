@@ -25,5 +25,3 @@ explodPcx:   !text "explod.pcx",0
 electrPcx:   !text "electr.pcx",0
 overlayPcx:  !text "overlay.pcx",0
 fontPcx:     !text "font.pcx",0
-baseRaw:     !text "base.raw",0
-infotronRaw: !text "infotron.raw",0

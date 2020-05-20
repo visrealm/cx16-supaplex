@@ -152,10 +152,7 @@ entry:
   +vLoadPcx fontPcx,    FONT_ADDR, 10
   +vLoadPcx overlayPcx, OVERLAY_BOTTOM_ADDR, 10
 
-  +setRamBank 2
-  +loadFile baseRaw, BANKED_RAM_START
-  +loadFile infotronRaw, BANKED_RAM_START + $100
-  +setRamBank 1
+  jsr initialiseSfx
 
   jsr qInit
 
@@ -192,6 +189,7 @@ entry:
 !source "src/time.asm"
 !source "src/level.asm"
 !source "src/display.asm"
+!source "src/sfx.asm"
 !source "src/input.asm"
 !source "src/hud.asm"
 !source "src/transform.asm"

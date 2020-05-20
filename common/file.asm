@@ -59,7 +59,7 @@ loadFile:
   ldy #$00      ; $00 means: load to new address
   jsr SETLFS
 
-  ldx #$04        ; account for address header 
+  ldx #$02        ; account for address header 
   ply
   lda #$00      ; $00 means: load to memory (not verify)
   jsr LOAD
