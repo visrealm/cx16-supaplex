@@ -7,7 +7,7 @@ Currently using [ACME Assembler](https://github.com/commanderx16).
 This project is very new and subject to significant changes.
 
 #### Latest video of the game running on the emulator
-[![Adventures in Assembly 3 - Supaplex for the Commander X16.](https://img.visualrealmsoftware.com/youtube/thumb/6pXfGgCJt8A)](http://www.youtube.com/watch?v=6pXfGgCJt8A "Adventures in Assembly [3] - Supaplex for the Commander X16.")
+[![Adventures in Assembly 4 - Supaplex for the Commander X16.](https://img.visualrealmsoftware.com/youtube/thumb/PzgwPKfz9BQ)](http://www.youtube.com/watch?v=PzgwPKfz9BQ "Adventures in Assembly [3] - Supaplex for the Commander X16.")
 
 #### Run instructions
 
