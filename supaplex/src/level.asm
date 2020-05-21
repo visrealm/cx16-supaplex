@@ -224,7 +224,7 @@ updateMapBorder:
 ;  a: Cell X index
 ;  y: Cell y index
 ; returns:
-;  x: contents of cell
+;  a: contents of cell
 ; -----------------------------------------------------------------------------
 vTile:
   sty R4
@@ -236,7 +236,7 @@ vTile:
   lda R4
   adc #>VRADDR_MAP_BASE_ODD
   sta VERA_ADDRx_M
-  stz VERA_ADDRx_H
+  stz VERA_ADDRx_H ; disable auto-increment
   ldx #$10
   lda VERA_DATA0
   stx VERA_ADDRx_H
@@ -252,9 +252,9 @@ vTile:
 ; -----------------------------------------------------------------------------
 clearTile:
   jsr vTile
-  lda #$31
+  lda tileBlank
   sta VERA_DATA0
-  lda #$20
+  lda tileBlank + 1
   sta VERA_DATA0
   rts  
 ; -----------------------------------------------------------------------------

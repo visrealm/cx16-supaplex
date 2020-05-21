@@ -61,6 +61,8 @@ testCell:
 
 ; -----------------------------------------------------------------------------
 ; handle input
+;
+; HACK: this code is very temporary. just a hack to get some input handling
 ; -----------------------------------------------------------------------------
 doInput:
 
@@ -70,18 +72,21 @@ doInput:
   ora ZP_PLAYER_INPUT
   sta ZP_PLAYER_INPUT
 
-.afterTest
+  ; adjust murphy X location based on speed
   clc
-  lda ZP_PLAYER_OFFSET_X
-  adc ZP_PLAYER_SPEED_X
+  lda ZP_PLAYER_SPEED_X
+  beq +
+  adc ZP_PLAYER_OFFSET_X
   sta ZP_PLAYER_OFFSET_X
   bne +
   stz ZP_PLAYER_SPEED_X
 +
 
+  ; adjust murphy Y location based on speed
   clc
-  lda ZP_PLAYER_OFFSET_Y
-  adc ZP_PLAYER_SPEED_Y
+  lda ZP_PLAYER_SPEED_Y
+  beq +
+  adc ZP_PLAYER_OFFSET_Y
   sta ZP_PLAYER_OFFSET_Y
   bne +
   stz ZP_PLAYER_SPEED_Y
@@ -94,99 +99,77 @@ doInput:
   lda ZP_PLAYER_OFFSET_Y
   bne .playerMoving
 
+  ; if we get here, we can check for input
   bra .allowInput
 
 .playerMoving:
-
   rts
 
+!macro checkDirection joystickFlag, incOrDec, xOrY {
+
+  ; check joystick flags
+  lda ZP_PLAYER_INPUT
+  bit #joystickFlag
+
+  ; no match?, move on
+  beq .endCheck
+
+  ; get player location
+  lda ZP_PLAYER_CELL_X
+  ldy ZP_PLAYER_CELL_Y
+  
+  ; adjust x or y
+  !if incOrDec > 0 {
+    !if xOrY = "x" { inc }
+    !if xOrY = "y" { iny }
+  } else {
+    !if xOrY = "x" { dec }
+    !if xOrY = "y" { dey }
+  }
+
+  ; test the cell. can we go there?
+  jsr testCell
+  bcc .endCheck
+
+  ; we can. let's do it
+  lda #PLAYER_SPEED * incOrDec
+
+  !if xOrY = "x" { sta ZP_PLAYER_SPEED_X }
+  !if xOrY = "y" { sta ZP_PLAYER_SPEED_Y }
+
+  lda #(TILE_SIZE - PLAYER_SPEED) * -incOrDec
+
+  !if xOrY = "x" { sta ZP_PLAYER_OFFSET_X }
+  !if xOrY = "y" { sta ZP_PLAYER_OFFSET_Y }
+
+  ; clear old cell
+  ldy ZP_PLAYER_CELL_Y
+  lda ZP_PLAYER_CELL_X
+  jsr clearTile
+
+  ; adjust player location
+  !if incOrDec = 1 {
+    !if xOrY = "x" { inc ZP_PLAYER_CELL_X }
+    !if xOrY = "y" { inc ZP_PLAYER_CELL_Y }
+  } else {
+    !if xOrY = "x" { dec ZP_PLAYER_CELL_X }
+    !if xOrY = "y" { dec ZP_PLAYER_CELL_Y }
+  }
+  
+  ; no further checks (one direction only)
+  jmp doneTests
+
+.endCheck:
+
+}
 
 .allowInput:  
-  lda ZP_PLAYER_INPUT
-  bit #JOY_LEFT
-  beq .testRight
-  lda ZP_PLAYER_CELL_X
-  ldy ZP_PLAYER_CELL_Y
-  dec
-  jsr testCell
-  bcc +
+  +checkDirection JOY_LEFT,  -1, "x"
+  +checkDirection JOY_RIGHT,  1, "x"
+  +checkDirection JOY_UP,    -1, "y"
+  +checkDirection JOY_DOWN,   1, "y"
 
-  lda #-PLAYER_SPEED
-  sta ZP_PLAYER_SPEED_X
-  lda #(TILE_SIZE - PLAYER_SPEED)
-  sta ZP_PLAYER_OFFSET_X
-
-  ldy ZP_PLAYER_CELL_Y
-  lda ZP_PLAYER_CELL_X
-  jsr clearTile
-  dec ZP_PLAYER_CELL_X
-  jmp .doneTests
-+
-.testRight:
-  lda ZP_PLAYER_INPUT
-  bit #JOY_RIGHT
-  beq .testUp
-  lda ZP_PLAYER_CELL_X
-  ldy ZP_PLAYER_CELL_Y
-  inc
-
-  jsr testCell
-  bcc +
-
-  lda #PLAYER_SPEED
-  sta ZP_PLAYER_SPEED_X
-  lda #-(TILE_SIZE - PLAYER_SPEED)
-  sta ZP_PLAYER_OFFSET_X
-  
-  ldy ZP_PLAYER_CELL_Y
-  lda ZP_PLAYER_CELL_X
-  jsr clearTile
-  inc ZP_PLAYER_CELL_X
-  jmp .doneTests
-+
-.testUp:
-  lda ZP_PLAYER_INPUT
-  bit #JOY_UP
-  beq .testDown
-  lda ZP_PLAYER_CELL_X
-  ldy ZP_PLAYER_CELL_Y
-  dey
-  jsr testCell
-  bcc +
-  
-  lda #-PLAYER_SPEED
-  sta ZP_PLAYER_SPEED_Y
-  lda #(TILE_SIZE - PLAYER_SPEED)
-  sta ZP_PLAYER_OFFSET_Y
-
-  lda ZP_PLAYER_CELL_X
-  ldy ZP_PLAYER_CELL_Y
-  jsr clearTile
-  dec ZP_PLAYER_CELL_Y
-  jmp .doneTests
-+
-.testDown:
-  lda ZP_PLAYER_INPUT
-  bit #JOY_DOWN
-  beq .doneTests
-  lda ZP_PLAYER_CELL_X
-  ldy ZP_PLAYER_CELL_Y
-  iny
-
-  jsr testCell
-  bcc +
-
-  lda #PLAYER_SPEED
-  sta ZP_PLAYER_SPEED_Y
-  lda #-(TILE_SIZE - PLAYER_SPEED)
-  sta ZP_PLAYER_OFFSET_Y
-
-  lda ZP_PLAYER_CELL_X
-  ldy ZP_PLAYER_CELL_Y
-  jsr clearTile
-  inc ZP_PLAYER_CELL_Y
-+
-.doneTests:
+doneTests:
   rts
 
 ; -----------------------------------------------------------------------------

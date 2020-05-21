@@ -24,7 +24,7 @@ VISIBLE_AREA_Y       = DISPLAY_SIZE_Y - BOTTOM_PANEL_SIZE_Y
 VISIBLE_AREA_CX      = VISIBLE_AREA_X / 2
 VISIBLE_AREA_CY      = VISIBLE_AREA_Y / 2
 
-BORDER_SIZE  = 8
+BORDER_SIZE  = 8 ; edge tiles are only 8px
 MAX_SCROLL_X = MAP_PIXELS_X - VISIBLE_AREA_X - BORDER_SIZE
 MAX_SCROLL_Y = MAP_PIXELS_Y - VISIBLE_AREA_Y - BORDER_SIZE
 
@@ -67,3 +67,32 @@ configDisplay:
   +vWriteByte0 VERA_SPRITE_WIDTH_16 | VERA_SPRITE_HEIGHT_16 | MURPHY_PAL
 
   rts
+
+; -----------------------------------------------------------------------------
+; adjust the display scroll offset
+; -----------------------------------------------------------------------------
+displaySetScroll:
+  +vset VERA_SPRITES + 2
+
+  +sub16 ZP_PLAYER_X, ZP_SCROLL_X
+  stx VERA_DATA0
+  sta VERA_DATA0
+  +sub16 ZP_PLAYER_Y, ZP_SCROLL_Y
+  stx VERA_DATA0
+
+  lda ZP_SCROLL_X_L
+  sta VERA_L0_HSCROLL_L
+
+  lda ZP_SCROLL_X_H
+  sta VERA_L0_HSCROLL_H
+
+  ldy ZP_SCROLL_Y_L
+  lda ZP_SCROLL_Y_H
+
+  ; update vert scroll
+  sty VERA_L0_VSCROLL_L
+  sta VERA_L0_VSCROLL_H
+
+  rts  
+  
+  ; -----------------------------------------------------------------------------

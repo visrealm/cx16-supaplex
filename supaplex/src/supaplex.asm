@@ -97,6 +97,7 @@ ADDR_QUEUE_HEADERS = $6000
 !source "src/input.asm"
 !source "src/hud.asm"
 !source "src/transform.asm"
+!source "src/murphy.asm"
 !source "src/gameloop.asm"
 !source "src/ecs/entity.asm"
 !source "src/ecs/sys/anim_s.asm"
