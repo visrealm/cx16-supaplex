@@ -34,7 +34,7 @@ strLen:
   lda $1000, y         ; get a character
   beq .end             ; end of string
   iny                  ; next
-  jmp .loop
+  bra .loop
 
 .end:
   tya
@@ -62,7 +62,7 @@ printStr:
 
   jsr CHROUT           ; print character
   iny                  ; next
-  jmp .loop
+  bra .loop
 
 .end:
   rts

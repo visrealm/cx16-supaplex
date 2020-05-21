@@ -124,3 +124,20 @@ VERA_TILE_HEIGHT_16 = $02
 ; -----------------------------------------------------------------------------
 VERA_PALETTE = $1FA00
 VERA_SPRITES = $1FC00
+
+; Sprites
+; -----------------------------------------------------------------------------
+VERA_SPRITE_DISABLED  = $00 << 2
+VERA_SPRITE_BELOW_L0  = $01 << 2
+VERA_SPRITE_BELOW_L1  = $02 << 2
+VERA_SPRITE_ABOVE_L1  = $03 << 2
+VERA_SPRITE_HFLIP     = $01
+VERA_SPRITE_VFLIP     = $02
+VERA_SPRITE_WIDTH_8   = $00 << 4
+VERA_SPRITE_WIDTH_16  = $01 << 4
+VERA_SPRITE_WIDTH_32  = $02 << 4
+VERA_SPRITE_WIDTH_64  = $03 << 4
+VERA_SPRITE_HEIGHT_8  = $00 << 6
+VERA_SPRITE_HEIGHT_16 = $01 << 6
+VERA_SPRITE_HEIGHT_32 = $02 << 6
+VERA_SPRITE_HEIGHT_64 = $03 << 6

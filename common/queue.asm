@@ -11,13 +11,14 @@
 
 CMN_QUEUE_ASM_ = 1
 
-QUEUE_HEADERS     = $6000
+!ifndef ADDR_QUEUE_HEADERS  { !error "Must set address for queue system to use: ADDR_QUEUE_HEADERS" }
+
 QUEUE_HEADER_SIZE = 4
 
-; queue data structure (QUEUE_HEADERS)
+; queue data structure (ADDR_QUEUE_HEADERS)
 ; 0:  count of queues created
 ; 1: unused
-;   (below repeated for each queue created). page is >QUEUE_HEADERS + queue index
+;   (below repeated for each queue created). page is >ADDR_QUEUE_HEADERS + queue index
 ; 2: head (page offset)
 ; 3: tail (page offset)
 
@@ -28,7 +29,7 @@ QUEUE_OFFSET_TAIL = 1
 ; qInit: Initialise queue manager
 ; -----------------------------------------------------------------------------
 qInit:
-  stz QUEUE_HEADERS
+  stz ADDR_QUEUE_HEADERS
   rts
 
 ; -----------------------------------------------------------------------------
@@ -41,18 +42,18 @@ qInit:
 qCreate:
   ; get the current number of queues
   ; increment it and store it
-  ldy QUEUE_HEADERS
+  ldy ADDR_QUEUE_HEADERS
   iny
-  sty QUEUE_HEADERS
+  sty ADDR_QUEUE_HEADERS
 
   ; now write the queue header (head and tail will be zero)
   tya
   asl ; double it since there are 2 bytes per queue header
   tay
   lda #0
-  sta QUEUE_HEADERS + QUEUE_OFFSET_HEAD,y
-  sta QUEUE_HEADERS + QUEUE_OFFSET_TAIL,y
-  ldx QUEUE_HEADERS
+  sta ADDR_QUEUE_HEADERS + QUEUE_OFFSET_HEAD,y
+  sta ADDR_QUEUE_HEADERS + QUEUE_OFFSET_TAIL,y
+  ldx ADDR_QUEUE_HEADERS
   rts
 
 ; -----------------------------------------------------------------------------
@@ -70,13 +71,13 @@ qPushBack:
   
   txa
   clc
-  adc #>QUEUE_HEADERS ; update code below to correct queue
+  adc #>ADDR_QUEUE_HEADERS ; update code below to correct queue
   sta .ldaOffsetPush + 2
   txa   ; find the tail, place in y
   asl
   tax
-  ldy QUEUE_HEADERS + QUEUE_OFFSET_TAIL, x
-  inc QUEUE_HEADERS + QUEUE_OFFSET_TAIL, x
+  ldy ADDR_QUEUE_HEADERS + QUEUE_OFFSET_TAIL, x
+  inc ADDR_QUEUE_HEADERS + QUEUE_OFFSET_TAIL, x
   plx
   pla
 .ldaOffsetPush
@@ -96,13 +97,13 @@ qPopFront:
   phx
   txa
   clc
-  adc #>QUEUE_HEADERS ; update code below to correct queue
+  adc #>ADDR_QUEUE_HEADERS ; update code below to correct queue
   sta .ldaOffsetPop + 2
   txa   ; find the head, place in y
   asl
   tax
-  ldy QUEUE_HEADERS + QUEUE_OFFSET_HEAD, x
-  inc QUEUE_HEADERS + QUEUE_OFFSET_HEAD, x
+  ldy ADDR_QUEUE_HEADERS + QUEUE_OFFSET_HEAD, x
+  inc ADDR_QUEUE_HEADERS + QUEUE_OFFSET_HEAD, x
   plx
 .ldaOffsetPop
   lda $0000, y
@@ -120,9 +121,9 @@ qSize:
   txa
   asl ; get offset
   tay
-  lda QUEUE_HEADERS + QUEUE_OFFSET_TAIL, y
+  lda ADDR_QUEUE_HEADERS + QUEUE_OFFSET_TAIL, y
   sec
-  sbc QUEUE_HEADERS + QUEUE_OFFSET_HEAD, y
+  sbc ADDR_QUEUE_HEADERS + QUEUE_OFFSET_HEAD, y
   rts
 
 ; -----------------------------------------------------------------------------
@@ -138,9 +139,9 @@ qIterate:
   txa
   asl ; get offset
   tay
-  lda QUEUE_HEADERS + QUEUE_OFFSET_HEAD, y
+  lda ADDR_QUEUE_HEADERS + QUEUE_OFFSET_HEAD, y
   tay
   txa
   clc
-  adc #>QUEUE_HEADERS
+  adc #>ADDR_QUEUE_HEADERS
   rts

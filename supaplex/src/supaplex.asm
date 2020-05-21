@@ -18,7 +18,8 @@
 ; -----------------------------------------------------------------------------
 ; constants
 ; -----------------------------------------------------------------------------
-ECS_ADDRESS  = $7000
+ADDR_ECS           = $7000
+ADDR_QUEUE_HEADERS = $6000
 
 ; -----------------------------------------------------------------------------
 ; program entry
@@ -105,8 +106,11 @@ ECS_ADDRESS  = $7000
 ; -----------------------------------------------------------------------------
 ; temporarily store the level here. TBD: load it!
 ; -----------------------------------------------------------------------------
+LEVEL_NUMBER = 4
 
-levelNumber:
-!byte 1
-levelDat:
-!binary "bin/level1.dat"
+levelNumber: !byte LEVEL_NUMBER
+levelDat: 
+!if LEVEL_NUMBER = 1 { !binary "bin/level1.dat" }
+!if LEVEL_NUMBER = 2 { !binary "bin/level2.dat" }
+!if LEVEL_NUMBER = 3 { !binary "bin/level3.dat" }
+!if LEVEL_NUMBER = 4 { !binary "bin/level4.dat" }

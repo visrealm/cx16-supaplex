@@ -34,7 +34,7 @@ FONT_ADDR =   ELECTR_ADDR + TILE_SIZE_BYTES * 16
 ; -----------------------------------------------------------------------------
 STATIC_PAL  = 1
 PODIZO_PAL  = 2
-MURPHY_PAL  = 3
+MURPHY_PAL  = 14
 INFOTR_PAL  = 4
 SNIKSN_PAL  = 5
 TERMIN_PAL  = 6
@@ -42,6 +42,9 @@ BUGBAS_PAL  = 7
 EXPLOD_PAL  = 8
 ELECTR_PAL  = 9
 
+; -----------------------------------------------------------------------------
+; tile flags
+; -----------------------------------------------------------------------------
 TILE_FLIP_H = $04
 TILE_FLIP_V = $08
 

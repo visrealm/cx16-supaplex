@@ -18,6 +18,9 @@ SP_INPUT_ASM_ = 1
 ; -----------------------------------------------------------------------------
 ; constants
 ; -----------------------------------------------------------------------------
+
+; player speed (pixels per frame).
+; NOTE: must be evenly divided into tile size (1, 2 or 4 work)
 PLAYER_SPEED = 2
 
 
@@ -32,13 +35,14 @@ PLAYER_SPEED = 2
 ; -----------------------------------------------------------------------------
 testCell:
   jsr vTile
+  cmp tileBase
   bne +
   +sfxPlay SFX_BASE_ID
   bra .cellPassable
 +
-  cmp #$31
+  cmp tileBlank
   beq .cellPassable
-  cmp #$50
+  cmp tileInfo
   bne .cellNotPassable
   dec ZP_NUM_INFOTRONS
 
@@ -109,7 +113,7 @@ doInput:
 
   lda #-PLAYER_SPEED
   sta ZP_PLAYER_SPEED_X
-  lda #(16 - PLAYER_SPEED)
+  lda #(TILE_SIZE - PLAYER_SPEED)
   sta ZP_PLAYER_OFFSET_X
 
   ldy ZP_PLAYER_CELL_Y
@@ -131,7 +135,7 @@ doInput:
 
   lda #PLAYER_SPEED
   sta ZP_PLAYER_SPEED_X
-  lda #-(16 - PLAYER_SPEED)
+  lda #-(TILE_SIZE - PLAYER_SPEED)
   sta ZP_PLAYER_OFFSET_X
   
   ldy ZP_PLAYER_CELL_Y
@@ -152,7 +156,7 @@ doInput:
   
   lda #-PLAYER_SPEED
   sta ZP_PLAYER_SPEED_Y
-  lda #(16 - PLAYER_SPEED)
+  lda #(TILE_SIZE - PLAYER_SPEED)
   sta ZP_PLAYER_OFFSET_Y
 
   lda ZP_PLAYER_CELL_X
@@ -174,7 +178,7 @@ doInput:
 
   lda #PLAYER_SPEED
   sta ZP_PLAYER_SPEED_Y
-  lda #-(16 - PLAYER_SPEED)
+  lda #-(TILE_SIZE - PLAYER_SPEED)
   sta ZP_PLAYER_OFFSET_Y
 
   lda ZP_PLAYER_CELL_X

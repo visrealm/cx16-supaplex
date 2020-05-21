@@ -11,7 +11,7 @@
 
 ECS_ENTITY_ASM_ = 1
 
-!ifndef ECS_ADDRESS  { !error "Must set address for ECS system to use: ECS_ADDRESS" }
+!ifndef ADDR_ECS  { !error "Must set address for ECS system to use: ADDR_ECS" }
 
 !zone ecsEntity {
 

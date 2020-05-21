@@ -14,7 +14,19 @@
 SP_HUD_ASM_ = 1
 
 OVERLAY_PAL = 15
-OVERLAY_BOTTOM_ADDR = (VRADDR_OVERLAY + (VISIBLE_AREA_X * VISIBLE_AREA_Y) / 2)
+OVERLAY_BOTTOM_ADDR = VRADDR_OVERLAY + (DISPLAY_BYTES_PER_ROW * VISIBLE_AREA_Y)
+
+HUD_INFOTRONS_POS_X = 136
+HUD_INFOTRONS_POS_Y = 14
+
+HUD_LEVELNUM_POS_X = 8
+HUD_LEVELNUM_POS_Y = 14
+
+HUD_LEVELNAME_POS_X = 32
+HUD_LEVELNAME_POS_Y = 13
+
+HUD_PLAYERNAME_POS_X = 44
+HUD_PLAYERNAME_POS_Y = 3
 
 !zone hud {
 
@@ -42,7 +54,7 @@ hudSetup:
   lda levelNumber
   jsr hudSetLevelNumber
 
-  lda levelDat + LEVEL_ZP_NUM_INFOTRONS_OFFSET
+  lda levelDat + LEVEL_NUM_INFOTRONS_OFFSET
   sta ZP_NUM_INFOTRONS
 
   jsr hudSetInfotrons
@@ -68,7 +80,7 @@ hudSetPlayerName:
   +vset FONT_ADDR
 
   +vchannel0
-  +vset OVERLAY_BOTTOM_ADDR + (160 * 3) + 44
+  +vset OVERLAY_BOTTOM_ADDR + (DISPLAY_BYTES_PER_ROW * HUD_PLAYERNAME_POS_Y) + HUD_PLAYERNAME_POS_X
 
   jsr setPixelOperationLSR
 
@@ -90,7 +102,13 @@ hudSetLevelName:
   +vset FONT_ADDR
 
   +vchannel0
-  +vset OVERLAY_BOTTOM_ADDR + (160 * 13) + 32
+  +vset OVERLAY_BOTTOM_ADDR + (DISPLAY_BYTES_PER_ROW * HUD_LEVELNAME_POS_Y) + HUD_LEVELNAME_POS_X
+
+  ; just ensure there is a null terminator
+  LEVEL_NAME_END = levelDat + LEVEL_NAME_OFFSET + LEVEL_NAME_LENGTH  
+  lda LEVEL_NAME_END
+  pha
+  stz LEVEL_NAME_END
 
   ldx #<levelDat + LEVEL_NAME_OFFSET
   ldy #>levelDat + LEVEL_NAME_OFFSET
@@ -98,6 +116,9 @@ hudSetLevelName:
   jsr setPixelOperationNone
 
   jsr outputText
+
+  pla
+  sta LEVEL_NAME_END
   
   rts
 ; -----------------------------------------------------------------------------
@@ -117,7 +138,7 @@ hudSetLevelNumber:
   +vset FONT_ADDR
 
   +vchannel0
-  +vset OVERLAY_BOTTOM_ADDR + (160 * 14) + 8
+  +vset OVERLAY_BOTTOM_ADDR + (DISPLAY_BYTES_PER_ROW * HUD_LEVELNUM_POS_Y) + HUD_LEVELNUM_POS_X
 
   ldx R8H
   lda R8L
@@ -139,7 +160,7 @@ hudSetInfotrons:
   +vset FONT_ADDR
 
   +vchannel0
-  +vset OVERLAY_BOTTOM_ADDR + (160 * 14) + 136
+  +vset OVERLAY_BOTTOM_ADDR + (DISPLAY_BYTES_PER_ROW * HUD_INFOTRONS_POS_Y) + HUD_INFOTRONS_POS_X
 
   ldx R8H
   lda R8L
