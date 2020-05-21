@@ -106,9 +106,9 @@ CMN_VERA_MACROS_ = 1
 ; vreg16: write a 16-bit value to vram
 ; -----------------------------------------------------------------------------
 !macro vreg16 register, value {
-  lda #>value
-  sta register
   lda #<value
+  sta register
+  lda #>value
   sta register
 }
 
@@ -135,9 +135,9 @@ CMN_VERA_MACROS_ = 1
 
 -
   sta VERA_DATA0
-  dey
-  bne -
   dex
+  bne -
+  dey
   bne -
 }
 

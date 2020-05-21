@@ -10,8 +10,6 @@
 ;
 ;
 
-ECS_ADDRESS = $7000
-
 !source "src/ecs/entity_type.asm"
 
 ; by object type?   zonk, infotron, snik, electron, bug?
@@ -39,15 +37,22 @@ ECS_ADDRESS = $7000
 ; a: tileId
 createGameObject:
   phx
+  phy
   pha
   tax ; look up entity type
   lda spriteTypes, x
-
+  tay
   asl ; double it since objectFactory contains words
   tax
+
   pla
+  jsr .doCreate
+  ply
+  plx
+  rts
+
+.doCreate  
   jmp (objectFactory, x)
-  ; rts handled in function call
 
 
 
@@ -79,8 +84,9 @@ objectFactory:
 ; Factory functions
 ; -----------------------------------------------------------------------------
 ; inputs:
-;   A: tileId
-;   X: Double object type id
+;   a: tileId
+;   x: double entity type id
+;   y: entity type id
 ; returns
 ;   A: MSB byte of queue
 ;   Y: starting offset (head index)
@@ -100,22 +106,21 @@ createDisk:
 createPort:
 createBug:
 
-  plx
   rts
 
 createEnemy:
+  ;jsr ecsEntityCreate
+
+  ;currentEntityId
+
 
   rts
 
 createSnikSnak:
-  jsr createEnemy
-  plx
-  rts
+  bra createEnemy
 
 createElectron:
-  jsr createEnemy
-  plx
-  rts
+  bra createEnemy
 
 
 ; structure of a game object

@@ -21,19 +21,23 @@ SP_LEVEL_ASM_ = 1
 ; -----------------------------------------------------------------------------
 ; constants
 ; -----------------------------------------------------------------------------
+MAP_TILES_X       = 60
+MAP_TILES_Y       = 24
+MAP_TILES         = MAP_TILES_X * MAP_TILES_Y
+MAP_PIXELS_X      = MAP_TILES_X * TILE_SIZE
+MAP_PIXELS_Y      = MAP_TILES_Y * TILE_SIZE
+
+
 LEVEL_TILES_BYTES          = 1440
 LEVEL_HAS_GRAVITY_OFFSET   = LEVEL_TILES_BYTES + 4
 LEVEL_NAME_OFFSET          = LEVEL_TILES_BYTES + 6
 LEVEL_FREEZE_ZONKS_OFFSET  = LEVEL_TILES_BYTES + 29
-LEVEL_NUM_INFOTRONS_OFFSET = LEVEL_TILES_BYTES + 30
+LEVEL_ZP_NUM_INFOTRONS_OFFSET = LEVEL_TILES_BYTES + 30
 LEVEL_NUM_SPECIAL_OFFSET   = LEVEL_TILES_BYTES + 31
 LEVEL_SPECIAL_OFFSET 	     = LEVEL_TILES_BYTES + 32
 LEVEL_NUM_SPECIAL 		     = 10
 LEVEL_SPECIAL_BYTES 		   = 6
 
-ENTITY_MAP_ADDR            = $7000
-
-  
 ; -----------------------------------------------------------------------------
 ; load the map
 ; -----------------------------------------------------------------------------
@@ -41,10 +45,10 @@ loadMap:
  
   ; load to both odd and even locations
   +vchannel1
-  +vset MAP_BASE_ADDRESS_EVEN
+  +vset VRADDR_MAP_BASE_EVEN
 
   +vchannel0
-  +vset MAP_BASE_ADDRESS_ODD
+  +vset VRADDR_MAP_BASE_ODD
 
   lda #<levelDat
   sta .loadLevelValue + 1
@@ -65,8 +69,8 @@ loadMap:
   ; check for player cell
   cmp #3
   bne +
-  stx PLAYER_CELL_X
-  sty PLAYER_CELL_Y
+  stx ZP_PLAYER_CELL_X
+  sty ZP_PLAYER_CELL_Y
 +
 
   jsr createGameObject
@@ -80,11 +84,11 @@ loadMap:
   +inc16 .loadLevelValue + 1
 
   ; load the two tile bytes for vera
-  lda tileMap,x
+  lda tileBlank,x
   sta VERA_DATA0
   sta VERA_DATA1
   inx
-  lda tileMap,x
+  lda tileBlank,x
   sta VERA_DATA0
   sta VERA_DATA1
 
@@ -95,10 +99,10 @@ loadMap:
   ; pad to 64 tiles wide
   bne .nextMapCell
   !for i, 0, 3 {
-    lda tileMap
+    lda tileBlank
     sta VERA_DATA0
     sta VERA_DATA1
-    lda tileMap + 1
+    lda tileBlank + 1
     sta VERA_DATA0
     sta VERA_DATA1
   }
@@ -110,21 +114,13 @@ loadMap:
   ; adjust the player offset (it's currently reversed)
   sec
   lda #MAP_TILES_X
-  sbc PLAYER_CELL_X
-  sta PLAYER_CELL_X
+  sbc ZP_PLAYER_CELL_X
+  sta ZP_PLAYER_CELL_X
   lda #MAP_TILES_Y
-  sbc PLAYER_CELL_Y
-  sta PLAYER_CELL_Y
-
-  jsr updateMapBorder
-  rts
-; -----------------------------------------------------------------------------
+  sbc ZP_PLAYER_CELL_Y
+  sta ZP_PLAYER_CELL_Y
 
 
-
-; -----------------------------------------------------------------------------
-; load the map
-; -----------------------------------------------------------------------------
 updateMapBorder:
 
   TILE_BORDER_BR = 16
@@ -138,10 +134,10 @@ updateMapBorder:
 
   ; load to both odd and even locations
   +vchannel1
-  +vset MAP_BASE_ADDRESS_EVEN, VERA_INCR_2
+  +vset VRADDR_MAP_BASE_EVEN, VERA_INCR_2
 
   +vchannel0
-  +vset MAP_BASE_ADDRESS_ODD, VERA_INCR_2
+  +vset VRADDR_MAP_BASE_ODD, VERA_INCR_2
 
   lda #TILE_BORDER_TL
   sta VERA_DATA0
@@ -161,10 +157,10 @@ updateMapBorder:
   sta VERA_DATA1
 
   +vchannel1
-  +vset MAP_BASE_ADDRESS_EVEN + 128, VERA_INCR_128
+  +vset VRADDR_MAP_BASE_EVEN + 128, VERA_INCR_128
 
   +vchannel0
-  +vset MAP_BASE_ADDRESS_ODD + 128, VERA_INCR_128
+  +vset VRADDR_MAP_BASE_ODD + 128, VERA_INCR_128
 
   lda #TILE_BORDER_L
   ldx #MAP_TILES_Y - 2
@@ -176,10 +172,10 @@ updateMapBorder:
   bne .leftCell
 
   +vchannel1
-  +vset MAP_BASE_ADDRESS_EVEN + 246, VERA_INCR_128
+  +vset VRADDR_MAP_BASE_EVEN + 246, VERA_INCR_128
 
   +vchannel0
-  +vset MAP_BASE_ADDRESS_ODD + 246, VERA_INCR_128
+  +vset VRADDR_MAP_BASE_ODD + 246, VERA_INCR_128
 
   lda #TILE_BORDER_R
   ldx #MAP_TILES_Y - 2
@@ -193,10 +189,10 @@ updateMapBorder:
 
   ; load to both odd and even locations
   +vchannel1
-  +vset MAP_BASE_ADDRESS_EVEN + (128 * 23), VERA_INCR_2
+  +vset VRADDR_MAP_BASE_EVEN + (128 * 23), VERA_INCR_2
 
   +vchannel0
-  +vset MAP_BASE_ADDRESS_ODD + (128 * 23), VERA_INCR_2
+  +vset VRADDR_MAP_BASE_ODD + (128 * 23), VERA_INCR_2
 
   lda #TILE_BORDER_BL
   sta VERA_DATA0
@@ -237,7 +233,7 @@ vTile:
   ror
   sta VERA_ADDRx_L
   lda R4
-  adc #>MAP_BASE_ADDRESS_ODD
+  adc #>VRADDR_MAP_BASE_ODD
   sta VERA_ADDRx_M
   stz VERA_ADDRx_H
   ldx #$10

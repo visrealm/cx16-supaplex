@@ -70,6 +70,14 @@ VERA_INCR_640 = $F0
 VERA_DECR     = $08
 
 
+; Interrupts
+; -----------------------------------------------------------------------------
+VERA_IEN_VSYNC  = $01
+VERA_IEN_LINE   = $02
+VERA_IEN_SPRCOL = $04
+VERA_IEN_AFLOW  = $08
+
+
 ; DC_VIDEO
 ; -----------------------------------------------------------------------------
 VERA_VIDEO_SPRITES_ENABLED  = $40

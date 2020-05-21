@@ -72,32 +72,32 @@ tileToWorldY:
 centreMap:
 ; set starting scroll position 
 ; based on player location
-  lda PLAYER_CELL_X
+  lda ZP_PLAYER_CELL_X
   jsr tileToWorldX
 
-  sta PLAYER_X_L
+  sta ZP_PLAYER_X_L
 
-  lda PLAYER_OFFSET_X
+  lda ZP_PLAYER_OFFSET_X
   beq .afterOffset
   bpl .posOffset
   ; neg offset
   clc
-  adc PLAYER_X_L
-  sta PLAYER_X_L
+  adc ZP_PLAYER_X_L
+  sta ZP_PLAYER_X_L
   bcs .afterOffset
   dex
   bra  .afterOffset
 .posOffset:
   clc
-  adc PLAYER_X_L
-  sta PLAYER_X_L
+  adc ZP_PLAYER_X_L
+  sta ZP_PLAYER_X_L
   bcc .afterOffset
   inx
   bra  .afterOffset
 
 .afterOffset:
-  lda PLAYER_X_L
-  stx PLAYER_X_H
+  lda ZP_PLAYER_X_L
+  stx ZP_PLAYER_X_H
 
 ; adjust to screen centre
   sec
@@ -110,8 +110,8 @@ centreMap:
   bpl +
 -
   lda #BORDER_SIZE
-  stz SCROLL_X_H
-  sta SCROLL_X_L
+  stz ZP_SCROLL_X_H
+  sta ZP_SCROLL_X_L
   bra .afterSetScrollX
 +
   bne +
@@ -125,38 +125,38 @@ centreMap:
   lda #<MAX_SCROLL_X
 +
 
-  stx SCROLL_X_H
-  sta SCROLL_X_L
+  stx ZP_SCROLL_X_H
+  sta ZP_SCROLL_X_L
 .afterSetScrollX:
 
 
-  lda PLAYER_CELL_Y
+  lda ZP_PLAYER_CELL_Y
   jsr tileToWorldY
 
-  sta PLAYER_Y_L
+  sta ZP_PLAYER_Y_L
 
-  lda PLAYER_OFFSET_Y
+  lda ZP_PLAYER_OFFSET_Y
   beq .afterOffsetY
   bpl .posOffsetY
 
   ; neg offset
   clc
-  adc PLAYER_Y_L
-  sta PLAYER_Y_L
+  adc ZP_PLAYER_Y_L
+  sta ZP_PLAYER_Y_L
   bcs .afterOffsetY
   dex
   bra  .afterOffsetY
 .posOffsetY:
   clc
-  adc PLAYER_Y_L
-  sta PLAYER_Y_L
+  adc ZP_PLAYER_Y_L
+  sta ZP_PLAYER_Y_L
   bcc .afterOffsetY
   inx
   bra  .afterOffsetY
 
 .afterOffsetY:
-  lda PLAYER_Y_L
-  stx PLAYER_Y_H
+  lda ZP_PLAYER_Y_L
+  stx ZP_PLAYER_Y_H
   ; adjust to screen centre
   sec
   sbc #(VISIBLE_AREA_CY - HALF_TILE_SIZE)
@@ -168,8 +168,8 @@ centreMap:
   bpl +
 -
   lda #BORDER_SIZE
-  stz SCROLL_Y_H
-  sta SCROLL_Y_L
+  stz ZP_SCROLL_Y_H
+  sta ZP_SCROLL_Y_L
   bra .afterSetScrollY
 +
   bne +
@@ -183,8 +183,8 @@ centreMap:
   lda #<MAX_SCROLL_Y
 +
 
-  stx SCROLL_Y_H
-  sta SCROLL_Y_L
+  stx ZP_SCROLL_Y_H
+  sta ZP_SCROLL_Y_L
 .afterSetScrollY:
   rts
 ; -----------------------------------------------------------------------------

@@ -13,27 +13,27 @@
 SP_TIME_ASM_ = 1
 
 checkTime:
-  lda FRAME_INDEX
+  lda ZP_FRAME_INDEX
   cmp #60
   bne +
-  stz FRAME_INDEX
-  +incBcd TIME_SECONDS_BCD
+  stz ZP_FRAME_INDEX
+  +incBcd ZP_TIME_SECONDS_BCD
   jsr updateSeconds
-  lda TIME_SECONDS_BCD
+  lda ZP_TIME_SECONDS_BCD
   cmp #$60
   bne +
-  stz TIME_SECONDS_BCD
-  +incBcd TIME_MINUTES_BCD
+  stz ZP_TIME_SECONDS_BCD
+  +incBcd ZP_TIME_MINUTES_BCD
   jsr updateMinutes
-  lda TIME_MINUTES_BCD
+  lda ZP_TIME_MINUTES_BCD
   cmp #$60
   bne +
-  stz TIME_MINUTES_BCD
+  stz ZP_TIME_MINUTES_BCD
   jsr updateMinutes
-  +incBcd TIME_HOURS_BCD
+  +incBcd ZP_TIME_HOURS_BCD
   jsr updateHours
 + 
-
+  rts
 
 updateSeconds:
   jsr setPixelOperationLSR
@@ -44,7 +44,7 @@ updateSeconds:
   +vchannel0
   +vset OVERLAY_BOTTOM_ADDR + (160 * 3) + 104
 
-  lda TIME_SECONDS_BCD
+  lda ZP_TIME_SECONDS_BCD
   jsr output2BcdDigits
 
   +vchannel0
@@ -60,7 +60,7 @@ updateMinutes:
   +vchannel0
   +vset OVERLAY_BOTTOM_ADDR + (160 * 3) + 92
 
-  lda TIME_MINUTES_BCD
+  lda ZP_TIME_MINUTES_BCD
   jsr output2BcdDigits
 
   +vchannel0
@@ -76,7 +76,7 @@ updateHours:
   +vchannel0
   +vset OVERLAY_BOTTOM_ADDR + (160 * 3) + 80
 
-  lda TIME_HOURS_BCD
+  lda ZP_TIME_HOURS_BCD
   jsr output2BcdDigits
 
   +vchannel0

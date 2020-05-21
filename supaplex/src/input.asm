@@ -15,8 +15,21 @@ SP_INPUT_ASM_ = 1
 
 !zone input {
 
-; A = X
-; Y = Y
+; -----------------------------------------------------------------------------
+; constants
+; -----------------------------------------------------------------------------
+PLAYER_SPEED = 2
+
+
+; -----------------------------------------------------------------------------
+; testCell: check a cell for suitability to invade
+; -----------------------------------------------------------------------------
+; Inputs:
+;  A = cell X
+;  Y = cell Y
+; Returns:
+;  C = if set, passable, otherwise, not
+; -----------------------------------------------------------------------------
 testCell:
   jsr vTile
   bne +
@@ -27,7 +40,7 @@ testCell:
   beq .cellPassable
   cmp #$50
   bne .cellNotPassable
-  dec NUM_INFOTRONS
+  dec ZP_NUM_INFOTRONS
 
   +sfxPlay SFX_INFOTRON_ID
 
@@ -47,34 +60,34 @@ testCell:
 ; -----------------------------------------------------------------------------
 doInput:
 
-  stz PLAYER_INPUT
+  stz ZP_PLAYER_INPUT
   jsr JOYSTICK_GET
   eor #$ff
-  ora PLAYER_INPUT
-  sta PLAYER_INPUT
+  ora ZP_PLAYER_INPUT
+  sta ZP_PLAYER_INPUT
 
 .afterTest
   clc
-  lda PLAYER_OFFSET_X
-  adc PLAYER_SPEED_X
-  sta PLAYER_OFFSET_X
+  lda ZP_PLAYER_OFFSET_X
+  adc ZP_PLAYER_SPEED_X
+  sta ZP_PLAYER_OFFSET_X
   bne +
-  stz PLAYER_SPEED_X
+  stz ZP_PLAYER_SPEED_X
 +
 
   clc
-  lda PLAYER_OFFSET_Y
-  adc PLAYER_SPEED_Y
-  sta PLAYER_OFFSET_Y
+  lda ZP_PLAYER_OFFSET_Y
+  adc ZP_PLAYER_SPEED_Y
+  sta ZP_PLAYER_OFFSET_Y
   bne +
-  stz PLAYER_SPEED_Y
+  stz ZP_PLAYER_SPEED_Y
 +
 
   ; no input if player moving
-  lda PLAYER_OFFSET_X
+  lda ZP_PLAYER_OFFSET_X
   bne .playerMoving
 
-  lda PLAYER_OFFSET_Y
+  lda ZP_PLAYER_OFFSET_Y
   bne .playerMoving
 
   bra .allowInput
@@ -85,89 +98,89 @@ doInput:
 
 
 .allowInput:  
-  lda PLAYER_INPUT
+  lda ZP_PLAYER_INPUT
   bit #JOY_LEFT
   beq .testRight
-  lda PLAYER_CELL_X
-  ldy PLAYER_CELL_Y
+  lda ZP_PLAYER_CELL_X
+  ldy ZP_PLAYER_CELL_Y
   dec
   jsr testCell
   bcc +
 
   lda #-PLAYER_SPEED
-  sta PLAYER_SPEED_X
+  sta ZP_PLAYER_SPEED_X
   lda #(16 - PLAYER_SPEED)
-  sta PLAYER_OFFSET_X
+  sta ZP_PLAYER_OFFSET_X
 
-  ldy PLAYER_CELL_Y
-  lda PLAYER_CELL_X
+  ldy ZP_PLAYER_CELL_Y
+  lda ZP_PLAYER_CELL_X
   jsr clearTile
-  dec PLAYER_CELL_X
+  dec ZP_PLAYER_CELL_X
   jmp .doneTests
 +
 .testRight:
-  lda PLAYER_INPUT
+  lda ZP_PLAYER_INPUT
   bit #JOY_RIGHT
   beq .testUp
-  lda PLAYER_CELL_X
-  ldy PLAYER_CELL_Y
+  lda ZP_PLAYER_CELL_X
+  ldy ZP_PLAYER_CELL_Y
   inc
 
   jsr testCell
   bcc +
 
   lda #PLAYER_SPEED
-  sta PLAYER_SPEED_X
+  sta ZP_PLAYER_SPEED_X
   lda #-(16 - PLAYER_SPEED)
-  sta PLAYER_OFFSET_X
+  sta ZP_PLAYER_OFFSET_X
   
-  ldy PLAYER_CELL_Y
-  lda PLAYER_CELL_X
+  ldy ZP_PLAYER_CELL_Y
+  lda ZP_PLAYER_CELL_X
   jsr clearTile
-  inc PLAYER_CELL_X
+  inc ZP_PLAYER_CELL_X
   jmp .doneTests
 +
 .testUp:
-  lda PLAYER_INPUT
+  lda ZP_PLAYER_INPUT
   bit #JOY_UP
   beq .testDown
-  lda PLAYER_CELL_X
-  ldy PLAYER_CELL_Y
+  lda ZP_PLAYER_CELL_X
+  ldy ZP_PLAYER_CELL_Y
   dey
   jsr testCell
   bcc +
   
   lda #-PLAYER_SPEED
-  sta PLAYER_SPEED_Y
+  sta ZP_PLAYER_SPEED_Y
   lda #(16 - PLAYER_SPEED)
-  sta PLAYER_OFFSET_Y
+  sta ZP_PLAYER_OFFSET_Y
 
-  lda PLAYER_CELL_X
-  ldy PLAYER_CELL_Y
+  lda ZP_PLAYER_CELL_X
+  ldy ZP_PLAYER_CELL_Y
   jsr clearTile
-  dec PLAYER_CELL_Y
+  dec ZP_PLAYER_CELL_Y
   jmp .doneTests
 +
 .testDown:
-  lda PLAYER_INPUT
+  lda ZP_PLAYER_INPUT
   bit #JOY_DOWN
   beq .doneTests
-  lda PLAYER_CELL_X
-  ldy PLAYER_CELL_Y
+  lda ZP_PLAYER_CELL_X
+  ldy ZP_PLAYER_CELL_Y
   iny
 
   jsr testCell
   bcc +
 
   lda #PLAYER_SPEED
-  sta PLAYER_SPEED_Y
+  sta ZP_PLAYER_SPEED_Y
   lda #-(16 - PLAYER_SPEED)
-  sta PLAYER_OFFSET_Y
+  sta ZP_PLAYER_OFFSET_Y
 
-  lda PLAYER_CELL_X
-  ldy PLAYER_CELL_Y
+  lda ZP_PLAYER_CELL_X
+  ldy ZP_PLAYER_CELL_Y
   jsr clearTile
-  inc PLAYER_CELL_Y
+  inc ZP_PLAYER_CELL_Y
 +
 .doneTests:
   rts

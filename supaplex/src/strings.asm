@@ -25,3 +25,5 @@ explodPcx:   !text "explod.pcx",0
 electrPcx:   !text "electr.pcx",0
 overlayPcx:  !text "overlay.pcx",0
 fontPcx:     !text "font.pcx",0
+
+playerName:  !text "TROY",0

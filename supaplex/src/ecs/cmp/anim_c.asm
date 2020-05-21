@@ -16,7 +16,7 @@ ECS_CMP_ANIM_ASM_ = 1
 ; for a given state
 
 ; each contains:
-; 0: repeat[7]  reverse[6]  unused[5-4] step[3-0]
+; 0: repeat[7]  reverse[6]  rate? additional id? unused? [5-4] step[3-0]
 ; 1: animId[7 - 0]
 
 ; Single cell animations

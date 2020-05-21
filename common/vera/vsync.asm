@@ -19,7 +19,6 @@ defaultIrqHandler:
 VSYNC_FLAG = $30
 
 registerVsyncIrq:
-    sei
     lda $0314
     sta defaultIrqHandler
     lda $0315
@@ -29,12 +28,11 @@ registerVsyncIrq:
     sta $0314
     lda #>vSyncIrqhandler + 1
     sta $0315
-    cli
     rts
 
 vSyncIrqhandler:
-    lda $9F27
-    and #$01
+    lda VERA_ISR
+    and #VERA_IEN_VSYNC
     beq .irqDone
 
     ; Whatever code your program

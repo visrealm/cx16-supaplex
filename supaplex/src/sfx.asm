@@ -26,7 +26,7 @@ sfxInfotronFilename: !text "infotron.raw", 0
 
 !macro sfxField {
     !for i, 1, SFX_COUNT {
-        !byte $00 ; filename LSB
+        !byte $00
     }
 }
 
@@ -61,9 +61,11 @@ sfxFileLengthMSB: +sfxField
 ; initialiseSfx: initialise sfx library
 ; -----------------------------------------------------------------------------
 initialiseSfx:
-    +initSfxId SFX_BASE_ID,     sfxBaseFilename,     2, $A0
-    +initSfxId SFX_INFOTRON_ID, sfxInfotronFilename, 2, $A1
-    rts
+  +initSfxId SFX_BASE_ID,     sfxBaseFilename,     2, $A0
+  +initSfxId SFX_INFOTRON_ID, sfxInfotronFilename, 5, $A1
+  +vreg VERA_AUDIO_CTRL, $18
+  +vreg VERA_AUDIO_RATE, $10
+  rts
 
 
 ; -----------------------------------------------------------------------------

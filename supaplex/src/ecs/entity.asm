@@ -11,47 +11,46 @@
 
 ECS_ENTITY_ASM_ = 1
 
-!ifndef ECS_ADDRESS    !error "Must set address for ECS system to use: ECS_ADDRESS"
+!ifndef ECS_ADDRESS  { !error "Must set address for ECS system to use: ECS_ADDRESS" }
 
 !zone ecsEntity {
 
 NUM_ENTITY_TYPES         = 16
 
-.lastEntityIdsLSB:
-!for i, 0, NUM_ENTITY_TYPES - 1 {
-  !byte $00
+!macro entityField {
+    !for i, 1, NUM_ENTITY_TYPES {
+        !byte $00
+    }
 }
 
-.lastEntityIdsMSB:
-!for i, 0, NUM_ENTITY_TYPES - 1 {
-  !byte $00
-}
+.lastEntityIdsLSB: +entityField
+.lastEntityIdsMSB: +entityField
 
 currentEntityId:
-currentEntityIdLSB:
+.currentEntityIdLSB:
   !byte $00
-currentEntityIdMSB:
+.currentEntityIdMSB:
   !byte $00
 
 ; -----------------------------------------------------------------------------
 ; ecsEntityCreate: create an entity
 ; -----------------------------------------------------------------------------
 ; Inputs:
-;  x: entity type
+;  y: entity type
 ; Outputs:
 ;  New entity Id stored in currentEntityId
 ecsEntityCreate:
-  stx currentEntityIdMSB
-  lda .lastEntityIdsLSB, x
+  sty .currentEntityIdMSB
+  lda .lastEntityIdsLSB, y
   inc
-  sta .lastEntityIdsLSB, x
+  sta .lastEntityIdsLSB, y
   sta .currentEntityIdLSB
   bne +
-  lda .lastEntityIdsMSB, x
+  lda .lastEntityIdsMSB, y
   inc
-  sta .lastEntityIdsMSB, x
+  sta .lastEntityIdsMSB, y
 +
-  lda .lastEntityIdsMSB, x
+  lda .lastEntityIdsMSB, y
 
   ; if x is 0, we can skip all this
   beq +
@@ -60,10 +59,10 @@ ecsEntityCreate:
   asl
   asl
   asl
-  ora currentEntityIdMSB
-  sta currentEntityIdMSB
+  ora .currentEntityIdMSB
+  sta .currentEntityIdMSB
 +
-  jsr
+  rts
 }
 
 ;Common attributes. 4KB per attribute

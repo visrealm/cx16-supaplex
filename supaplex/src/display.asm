@@ -13,32 +13,48 @@
 
 SP_DISPLAY_ASM_ = 1
 
+DISPLAY_SIZE_X  = 320
+DISPLAY_SIZE_Y  = 240
+
+BOTTOM_PANEL_SIZE_Y  = 24
+VISIBLE_AREA_X       = DISPLAY_SIZE_X
+VISIBLE_AREA_Y       = DISPLAY_SIZE_Y - BOTTOM_PANEL_SIZE_Y
+VISIBLE_AREA_CX      = VISIBLE_AREA_X / 2
+VISIBLE_AREA_CY      = VISIBLE_AREA_Y / 2
+
+BORDER_SIZE  = 8
+MAX_SCROLL_X = MAP_PIXELS_X - VISIBLE_AREA_X - BORDER_SIZE
+MAX_SCROLL_Y = MAP_PIXELS_Y - VISIBLE_AREA_Y - BORDER_SIZE
+
+; -----------------------------------------------------------------------------
+; disable the display
+; -----------------------------------------------------------------------------
+disableDisplay:
+  +vreg VERA_DC_VIDEO, VERA_VIDEO_OUTPUT_VGA
+  rts
+
 ; -----------------------------------------------------------------------------
 ; configure the display
 ; -----------------------------------------------------------------------------
 configDisplay:
-  +vreg VERA_L0_MAPBASE, MAP_BASE_ADDRESS_ODD >> 9
-  +vreg VERA_L0_TILEBASE, (TILE_BASE_ADDRESS >> 9) | VERA_TILE_WIDTH_16 | VERA_TILE_HEIGHT_16
+  +vreg VERA_L0_MAPBASE, VRADDR_MAP_BASE_ODD >> 9
+  +vreg VERA_L0_TILEBASE, (VRADDR_TILE_BASE >> 9) | VERA_TILE_WIDTH_16 | VERA_TILE_HEIGHT_16
   +vreg VERA_L0_CONFIG, VERA_CONFIG_MAP_WIDTH_64 | VERA_CONFIG_MAP_HEIGHT_32 | VERA_CONFIG_4BPP
   +vreg VERA_L0_HSCROLL_H, 1
 
-  +vreg VERA_L1_TILEBASE, (OVERLAY_ADDR >> 9)
+  +vreg VERA_L1_TILEBASE, (VRADDR_OVERLAY >> 9)
   +vreg VERA_L1_CONFIG, VERA_CONFIG_BITMAP_MODE | VERA_CONFIG_4BPP
-  +vreg VERA_L1_HSCROLL_H, 10
+  +vreg VERA_L1_HSCROLL_H, OVERLAY_PAL
 
   +vreg VERA_DC_VIDEO, VERA_VIDEO_LAYER0_ENABLED | VERA_VIDEO_LAYER1_ENABLED | VERA_VIDEO_SPRITES_ENABLED | VERA_VIDEO_OUTPUT_VGA
   +vreg VERA_DC_HSCALE, VERA_SCALE_2x
   +vreg VERA_DC_VSCALE, VERA_SCALE_2x
-  +vreg VERA_IEN, 1
-  +vreg VERA_ISR, 1
-
+  +vreg VERA_IEN, VERA_IEN_VSYNC
+  +vreg VERA_ISR, VERA_IEN_VSYNC
+  
   +vset VERA_SPRITES
-  +vWriteByte0 (MURPHY_ADDR >> 5) & $ff
-  +vWriteByte0 (MURPHY_ADDR >> 13) & $ff
-  +vWriteByte0 VISIBLE_AREA_CX - HALF_TILE_SIZE
-  +vWriteByte0 0
-  +vWriteByte0 VISIBLE_AREA_CY - HALF_TILE_SIZE
-  +vWriteByte0 0
-  +vWriteByte0 $08
-  +vWriteByte0 $53
+  +vWriteWord0 MURPHY_ADDR >> 5
+  +vWriteWord0 VISIBLE_AREA_CX - HALF_TILE_SIZE
+  +vWriteWord0 VISIBLE_AREA_CY - HALF_TILE_SIZE
+  +vWriteWord0 $5308  ; murphy
   rts

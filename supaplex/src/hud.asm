@@ -13,8 +13,19 @@
 
 SP_HUD_ASM_ = 1
 
+OVERLAY_PAL = 15
+OVERLAY_BOTTOM_ADDR = (VRADDR_OVERLAY + (VISIBLE_AREA_X * VISIBLE_AREA_Y) / 2)
 
 !zone hud {
+
+; -----------------------------------------------------------------------------
+; load the overlay layer
+; -----------------------------------------------------------------------------
+loadOverlay:
+  +vLoadPcx fontPcx,    FONT_ADDR,              OVERLAY_PAL
+  +vLoadPcx overlayPcx, OVERLAY_BOTTOM_ADDR,    OVERLAY_PAL
+  +vClear VRADDR_OVERLAY, OVERLAY_BOTTOM_ADDR - VRADDR_OVERLAY
+  rts
 
 ; -----------------------------------------------------------------------------
 ; initial hud setup
@@ -31,14 +42,14 @@ hudSetup:
   lda levelNumber
   jsr hudSetLevelNumber
 
-  lda levelDat + LEVEL_NUM_INFOTRONS_OFFSET
-  sta NUM_INFOTRONS
+  lda levelDat + LEVEL_ZP_NUM_INFOTRONS_OFFSET
+  sta ZP_NUM_INFOTRONS
 
   jsr hudSetInfotrons
 
-  stz TIME_SECONDS_BCD
-  stz TIME_MINUTES_BCD
-  stz TIME_HOURS_BCD
+  stz ZP_TIME_SECONDS_BCD
+  stz ZP_TIME_MINUTES_BCD
+  stz ZP_TIME_HOURS_BCD
 
   jsr updateHours
   jsr updateMinutes
@@ -121,7 +132,7 @@ hudSetLevelNumber:
 hudSetInfotrons:
   jsr setPixelOperationNone
 
-  lda NUM_INFOTRONS
+  lda ZP_NUM_INFOTRONS
   jsr bin2bcd8
 
   +vchannel1
