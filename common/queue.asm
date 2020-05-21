@@ -33,27 +33,39 @@ qInit:
   rts
 
 ; -----------------------------------------------------------------------------
+; qInit: create a queue, store its id in address
+; -----------------------------------------------------------------------------
+!macro qCreate index, addressMsb {
+  jsr qCreate
+  stx index
+  sta addressMsb
+}
+
+; -----------------------------------------------------------------------------
 ; qInit: create a queue
 ; -----------------------------------------------------------------------------
 ; Inputs: none
 ; Returns:
 ;   x: Queue index
+;   a: Queue MSB
 ; -----------------------------------------------------------------------------
 qCreate:
   ; get the current number of queues
   ; increment it and store it
-  ldy ADDR_QUEUE_HEADERS
-  iny
-  sty ADDR_QUEUE_HEADERS
+  lda ADDR_QUEUE_HEADERS
+  inc
+  tax
+  stx ADDR_QUEUE_HEADERS
 
   ; now write the queue header (head and tail will be zero)
-  tya
   asl ; double it since there are 2 bytes per queue header
   tay
   lda #0
   sta ADDR_QUEUE_HEADERS + QUEUE_OFFSET_HEAD,y
   sta ADDR_QUEUE_HEADERS + QUEUE_OFFSET_TAIL,y
-  ldx ADDR_QUEUE_HEADERS
+  tya
+  clc
+  adc #>ADDR_QUEUE_HEADERS
   rts
 
 ; -----------------------------------------------------------------------------
@@ -70,6 +82,7 @@ qPushBack:
   ; get queue tail
   
   txa
+  asl
   clc
   adc #>ADDR_QUEUE_HEADERS ; update code below to correct queue
   sta .ldaOffsetPush + 2
@@ -142,6 +155,7 @@ qIterate:
   lda ADDR_QUEUE_HEADERS + QUEUE_OFFSET_HEAD, y
   tay
   txa
+  asl
   clc
   adc #>ADDR_QUEUE_HEADERS
   rts

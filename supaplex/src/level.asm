@@ -56,9 +56,11 @@ loadMap:
   lda #>levelDat
   sta .loadLevelValue + 2
 
+  stz ZP_CURRENT_CELL_Y
   ldy #MAP_TILES_Y
 
 .nextMapRow:
+  stz ZP_CURRENT_CELL_X
   ldx #MAP_TILES_X
 
 .nextMapCell:
@@ -67,13 +69,6 @@ loadMap:
 .loadLevelValue
   lda levelDat
   
-  ; check for player cell
-  cmp #3
-  bne +
-  stx ZP_PLAYER_CELL_X
-  sty ZP_PLAYER_CELL_Y
-+
-
   jsr createGameObject
 
   ; double the index since our map lookup has 
@@ -94,6 +89,7 @@ loadMap:
   sta VERA_DATA1
 
   ; restore y
+  inc ZP_CURRENT_CELL_X
   plx
   dex
 
@@ -107,20 +103,11 @@ loadMap:
     sta VERA_DATA0
     sta VERA_DATA1
   }
+  inc ZP_CURRENT_CELL_Y
   dey
   bne .nextMapRow
 
 .doneLoad
-
-  ; adjust the player offset (it's currently reversed)
-  sec
-  lda #MAP_TILES_X
-  sbc ZP_PLAYER_CELL_X
-  sta ZP_PLAYER_CELL_X
-  lda #MAP_TILES_Y
-  sbc ZP_PLAYER_CELL_Y
-  sta ZP_PLAYER_CELL_Y
-
 
 updateMapBorder:
 
@@ -216,6 +203,28 @@ updateMapBorder:
 ; -----------------------------------------------------------------------------
 
 
+
+; -----------------------------------------------------------------------------
+; vSetCurrent: set vram address to current tile
+; -----------------------------------------------------------------------------
+; inputs:
+;  ZP_CURRENT_CELL_X/Y set
+; -----------------------------------------------------------------------------
+vSetCurrent:
+  lda ZP_CURRENT_CELL_Y
+  sta R7
+  lda ZP_CURRENT_CELL_X
+  asl
+  asl
+  lsr R7
+  ror
+  sta VERA_ADDRx_L
+  lda R7
+  adc #>VRADDR_MAP_BASE_ODD
+  sta VERA_ADDRx_M
+  lda #$10
+  sta VERA_ADDRx_H
+  rts
 
 ; -----------------------------------------------------------------------------
 ; vTile: get the contents of a cell using its x/y coordinates

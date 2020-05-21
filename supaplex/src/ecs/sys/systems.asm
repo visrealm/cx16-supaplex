@@ -1,6 +1,6 @@
 ; Supaplex - Commander X16
 ;
-; The main game loop
+; ECS Systems
 ;
 ; Copyright (c) 2020 Troy Schrapel
 ;
@@ -8,41 +8,18 @@
 ;
 ; https://github.com/visrealm/supaplex-x16
 ;
-;
-
-
-SP_GAMELOOP_ASM_ = 1
 
 
 ; -----------------------------------------------------------------------------
-; loop to wait for vsync
+; register all ecs systems
 ; -----------------------------------------------------------------------------
-waitForVsync:
-  !byte $CB  ; WAI instruction
-  lda VSYNC_FLAG
-  bne waitForVsync
-
-  ; flow on through to the.... 
+ecsRegisterSystems:
+  jsr ecsAnimationSystemInit
+  rts
 
 ; -----------------------------------------------------------------------------
-; main game loop
+; tick all ecs systems
 ; -----------------------------------------------------------------------------
-gameLoop:
-  jsr doInput
-
-  jsr ecsTickSystems
-
-  jsr checkTime
-
-  jsr centreMap
-
-  jsr displaySetScroll
-
-  jsr updateMurphy
-
-  inc ZP_FRAME_INDEX
-
-  lda #1
-  sta VSYNC_FLAG
-
-	bra waitForVsync
+ecsTickSystems:
+  jsr ecsAnimationSystemTick
+  rts  

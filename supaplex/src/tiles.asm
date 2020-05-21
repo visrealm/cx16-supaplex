@@ -62,6 +62,12 @@ loadTiles:
   +vLoadPcx bugbasPcx,  BUGBAS_ADDR, BUGBAS_PAL
   +vLoadPcx explodPcx,  EXPLOD_ADDR, EXPLOD_PAL
   +vLoadPcx electrPcx,  ELECTR_ADDR, ELECTR_PAL
+
+  lda #<tileTable
+  sta ZP_TILE_TABLE_L
+  lda #>tileTable
+  sta ZP_TILE_TABLE_H
+
   rts
 
 
@@ -89,6 +95,8 @@ loadTiles:
     !byte (tilePalette << 4) | tileFlags | (.tileOffset >> 8)
 }
 
+!align 255,0
+tileTable:
 tileBlank:        +tileDef   0, PODIZO_ADDR, 17, PODIZO_PAL, 0
 tileZonk:         +tileDef   1, PODIZO_ADDR, 14, PODIZO_PAL, 0
 tileBase:         +tileDef   2, STATIC_ADDR, 0, STATIC_PAL, 0

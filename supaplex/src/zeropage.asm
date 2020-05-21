@@ -27,19 +27,34 @@
 
 ; -----------------------------------------------------------------------------
 
+
+ZP_ECS_CURRENT_ENTITY = $22
+ZP_ECS_CURRENT_ENTITY_LSB = ZP_ECS_CURRENT_ENTITY
+ZP_ECS_CURRENT_ENTITY_MSB = ZP_ECS_CURRENT_ENTITY + 1
+
+ZP_TILE_TABLE       = $24
+ZP_TILE_TABLE_L     = ZP_TILE_TABLE
+ZP_TILE_TABLE_H     = ZP_TILE_TABLE + 1
+
+
 ;
-; $22 - $6f unused
+; $26 - $6f unused
 ;
 
 ZP_LAST_SECOND      = $70
 ZP_CURRENT_SECOND   = $71
+
 ZP_TIME_SECONDS_BCD = $72
 ZP_TIME_MINUTES_BCD = $73
 ZP_TIME_HOURS_BCD   = $74
+
 ZP_FRAME_INDEX      = $75
 
+ZP_CURRENT_CELL_X   = $76
+ZP_CURRENT_CELL_Y   = $77
+
 ;
-; $76 - $7f unused
+; $78 - $7f unused
 ;
 
 ; -----------------------------------------------------------------------------

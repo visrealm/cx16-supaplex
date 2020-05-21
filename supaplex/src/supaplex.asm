@@ -29,6 +29,9 @@ ADDR_QUEUE_HEADERS = $6000
 
   ; turn off the display while we're setting things up
   jsr disableDisplay
+
+  ; register our ecs systems
+  jsr ecsRegisterSystems
   
   ; load the tiles from disk to vram
   jsr loadTiles
@@ -87,7 +90,6 @@ ADDR_QUEUE_HEADERS = $6000
 !source "../common/vera/text.asm"
 !source "../common/vera/vsync.asm"
 
-
 !source "src/tiles.asm"
 !source "src/strings.asm"
 !source "src/time.asm"
@@ -101,13 +103,14 @@ ADDR_QUEUE_HEADERS = $6000
 !source "src/gameloop.asm"
 !source "src/ecs/entity.asm"
 !source "src/ecs/sys/anim_s.asm"
+!source "src/ecs/sys/systems.asm"
 !source "src/gameobj.asm"
 
 
 ; -----------------------------------------------------------------------------
 ; temporarily store the level here. TBD: load it!
 ; -----------------------------------------------------------------------------
-LEVEL_NUMBER = 4
+LEVEL_NUMBER = 1
 
 levelNumber: !byte LEVEL_NUMBER
 levelDat: 

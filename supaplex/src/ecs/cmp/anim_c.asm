@@ -33,7 +33,7 @@ ECS_CMP_ANIM_ASM_ = 1
 ; murphy exit
 ; murphy attempt push (+rev)
 
-; Multi-cell animations
+; Multi-cell animations (8 frames per animation)
 ; ---------------------
 ; snik move x 8 (2 cells, 4 directions);
 ; electron move x 4 (2 cells, 2 directions) (+ rev)
@@ -45,3 +45,4 @@ ECS_CMP_ANIM_ASM_ = 1
 ; yellow disk x4 (2 cells, 2 directions) (+rev)
 ; murphy move x4 (2 cells, 2 directions) (+rev)
 ; murphy push x2 (2 cells, 1 directions) (+rev)
+

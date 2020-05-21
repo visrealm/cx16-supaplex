@@ -26,11 +26,6 @@ NUM_ENTITY_TYPES         = 16
 .lastEntityIdsLSB: +entityField
 .lastEntityIdsMSB: +entityField
 
-currentEntityId:
-.currentEntityIdLSB:
-  !byte $00
-.currentEntityIdMSB:
-  !byte $00
 
 ; -----------------------------------------------------------------------------
 ; ecsEntityCreate: create an entity
@@ -40,11 +35,11 @@ currentEntityId:
 ; Outputs:
 ;  New entity Id stored in currentEntityId
 ecsEntityCreate:
-  sty .currentEntityIdMSB
+  pha
   lda .lastEntityIdsLSB, y
   inc
   sta .lastEntityIdsLSB, y
-  sta .currentEntityIdLSB
+  sta ZP_ECS_CURRENT_ENTITY_LSB
   bne +
   lda .lastEntityIdsMSB, y
   inc
@@ -59,11 +54,15 @@ ecsEntityCreate:
   asl
   asl
   asl
-  ora .currentEntityIdMSB
-  sta .currentEntityIdMSB
+  sty ZP_ECS_CURRENT_ENTITY_MSB
+  ora ZP_ECS_CURRENT_ENTITY_MSB
+  sta ZP_ECS_CURRENT_ENTITY_MSB
 +
+  pla
   rts
 }
+
+
 
 ;Common attributes. 4KB per attribute
 ;-----------------

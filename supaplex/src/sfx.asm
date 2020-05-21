@@ -37,32 +37,45 @@ sfxRamMSB:        +sfxField
 sfxFileLengthLSB: +sfxField
 sfxFileLengthMSB: +sfxField
 
-
-!macro initSfxId sfxId, filename, ramBank, ramMSB {
+SFX_MAX_RAM_OFFSET = (BANKED_RAM_END - BANKED_RAM_START)
+!macro initSfxId sfxId, filename, ramBank, ramOffset {
     !if sfxId >= SFX_COUNT { !error "Invalid SFX id" }
+    !if <ramOffset != 0 { !warn  "RAM offset LSB will be ignored" }
+    !if ramOffset > SFX_MAX_RAM_OFFSET { !error "Invalid MSB Ram offset" }
+
+.ramAddress = $A000 + ramOffset
 
     +setRamBank ramBank
-    +loadFile filename, ramMSB << 8
+    +loadFile filename, .ramAddress
 
     ldx #sfxId
+
+    lda #>.ramAddress
+    sta R1
+
+    jsr doInitSfx
+}
+
+doInitSfx:
     lda R2H
     sec
-    sbc #ramMSB
+    sbc R1
     sta sfxFileLengthMSB, x
     lda R2L
     sta sfxFileLengthLSB, x
-    lda #ramBank
+    lda RAM_BANK
     sta sfxRamBank, x
-    lda #ramMSB
+    lda R1
     sta sfxRamMSB, x
-}
+    rts
+
 
 ; -----------------------------------------------------------------------------
 ; initialiseSfx: initialise sfx library
 ; -----------------------------------------------------------------------------
 initialiseSfx:
-  +initSfxId SFX_BASE_ID,     sfxBaseFilename,     2, $A0
-  +initSfxId SFX_INFOTRON_ID, sfxInfotronFilename, 5, $A1
+  +initSfxId SFX_BASE_ID,     sfxBaseFilename,     2, $000
+  +initSfxId SFX_INFOTRON_ID, sfxInfotronFilename, 5, $100
   +vreg VERA_AUDIO_CTRL, $18
   +vreg VERA_AUDIO_RATE, $10
   rts
@@ -85,7 +98,6 @@ initialiseSfx:
 sfxPlay:
   pha
   phy
-  phx
   lda sfxRamBank, x
   sta RAM_BANK
   stz R0L
@@ -99,7 +111,6 @@ sfxPlay:
   lda sfxFileLengthLSB, x
   tax
   jsr mem2regMultiPage
-  plx
   ply
   pla
   rts

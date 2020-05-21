@@ -46,12 +46,16 @@ createGameObject:
   tax
 
   pla
+  pha
   jsr .doCreate
+  pla
   ply
   plx
   rts
 
+
 .doCreate  
+  jsr ecsEntityCreate
   jmp (objectFactory, x)
 
 
@@ -74,11 +78,6 @@ objectFactory:
 !word createSnikSnak
 !word createRam
 !word createHardware
-!word createHardware
-!word createHardware
-!word createHardware
-!word createHardware
-!word createHardware
 
 ; -----------------------------------------------------------------------------
 ; Factory functions
@@ -93,30 +92,41 @@ objectFactory:
 ; -----------------------------------------------------------------------------
 
 createEmpty:
-createZonk:
 createBase:
-createPlayer:
-createInfotron:
 createRam:
 createHardware:
 createSwitch:
 createExit:
-createTerminal:
 createDisk:
 createPort:
 createBug:
+createZonk:
+  rts
 
+createPlayer:
+  lda ZP_CURRENT_CELL_X
+  sta ZP_PLAYER_CELL_X
+  lda ZP_CURRENT_CELL_Y
+  sta ZP_PLAYER_CELL_Y
   rts
 
 createEnemy:
-  ;jsr ecsEntityCreate
+  rts
 
-  ;currentEntityId
+createTerminal:
+  lda #(termGreen - animationDefs) >> 3
+  ldx #0
+  jsr ecsAnimationStart
+  rts
 
-
+createInfotron:
   rts
 
 createSnikSnak:
+  lda #(snikU2L - animationDefs) >> 3
+  ldx #0
+  jsr ecsAnimationStart
+
   bra createEnemy
 
 createElectron:
@@ -131,11 +141,6 @@ createElectron:
 ; from direction (0 = none, 1, 2, 3, 4)
 
 ; animation sequences
-
-sniksnakTurnNW:
-!byte 121,122,123,0
-
-
 
 !macro spriteType tileId, entityType {
     !byte entityType
