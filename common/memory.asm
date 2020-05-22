@@ -81,10 +81,10 @@ memcpyMultiPage:
   sta .storeIns + 2
 
 .loadIns:
-  lda $1000, Y
+  lda SELF_MODIFY_ADDR, Y
   
 .storeIns:
-  sta $1000, Y
+  sta SELF_MODIFY_ADDR, Y
   dey
   bne .loadIns
   inc .loadIns + 2

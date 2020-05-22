@@ -69,6 +69,38 @@ hudSetup:
 
   rts
 
+hudOutputDebug:
+  pha
+  phx
+  phy
+  php
+
+  jsr bin2bcd8
+
+  +vchannel1
+  +vpush
+  +vset FONT_ADDR
+
+  +vchannel0
+  +vpush
+  +vset VRADDR_OVERLAY + (DISPLAY_BYTES_PER_ROW * 10) + 10
+
+  ldx R8H
+  lda R8L
+  jsr output3BcdDigits
+
+  +vpop
+  +vpop
+
+  +vchannel0
+
+  plp
+  ply
+  plx
+  pla
+  rts
+
+
 ; -----------------------------------------------------------------------------
 ; set player name
 ; -----------------------------------------------------------------------------

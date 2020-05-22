@@ -37,7 +37,7 @@ outputText:
   sta R1H
 
 .getChar
-  lda $1000
+  lda SELF_MODIFY_ADDR
   beq .done
   sec
   sbc #32

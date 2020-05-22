@@ -44,7 +44,7 @@ testCell:
   beq .cellPassable
   cmp tileInfo
   bne .cellNotPassable
-  ;dec ZP_NUM_INFOTRONS
+  dec ZP_NUM_INFOTRONS
 
   +sfxPlay SFX_INFOTRON_ID
 

@@ -28,6 +28,16 @@ NUM_ENTITY_TYPES         = 16
 
 
 ; -----------------------------------------------------------------------------
+; entity id format
+; -----------------------------------------------------------------------------
+; byte   |   7   |   6   |   5   |   4   |   3   |   2   |   1   |   0   |
+; 0 LSB  [                           index (7:0)                         ]
+; 1 MSB  [       index (11:8)           ][          entity type id       ]
+; -----------------------------------------------------------------------------
+
+
+
+; -----------------------------------------------------------------------------
 ; ecsEntityCreate: create an entity
 ; -----------------------------------------------------------------------------
 ; Inputs:
@@ -35,6 +45,9 @@ NUM_ENTITY_TYPES         = 16
 ; Outputs:
 ;  New entity Id stored in currentEntityId
 ecsEntityCreate:
+
+  sty ZP_ECS_CURRENT_ENTITY_MSB
+
   pha
   lda .lastEntityIdsLSB, y
   inc
@@ -47,14 +60,14 @@ ecsEntityCreate:
 +
   lda .lastEntityIdsMSB, y
 
-  ; if x is 0, we can skip all this
+
+  ; if MSB is 0, we can skip all this
   beq +
   asl
   asl
   asl
   asl
   asl
-  sty ZP_ECS_CURRENT_ENTITY_MSB
   ora ZP_ECS_CURRENT_ENTITY_MSB
   sta ZP_ECS_CURRENT_ENTITY_MSB
 +

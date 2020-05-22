@@ -31,7 +31,7 @@ strLen:
   ldy #0               ; starting string index
 
 .loop:
-  lda $1000, y         ; get a character
+  lda SELF_MODIFY_ADDR, y         ; get a character
   beq .end             ; end of string
   iny                  ; next
   bra .loop
@@ -57,7 +57,7 @@ printStr:
   ldy #0               ; starting string index
 
 .loop:
-  lda $1000, y         ; get a character
+  lda SELF_MODIFY_ADDR, y         ; get a character
   beq .end             ; end of string
 
   jsr CHROUT           ; print character

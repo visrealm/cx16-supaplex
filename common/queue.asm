@@ -94,7 +94,7 @@ qPushBack:
   plx
   pla
 .ldaOffsetPush
-  sta $0000, y
+  sta SELF_MODIFY_MSB_ADDR, y
   rts
 
 ; -----------------------------------------------------------------------------
@@ -119,7 +119,7 @@ qPopFront:
   inc ADDR_QUEUE_HEADERS + QUEUE_OFFSET_HEAD, x
   plx
 .ldaOffsetPop
-  lda $0000, y
+  lda SELF_MODIFY_MSB_ADDR, y
   rts
 
 ; -----------------------------------------------------------------------------

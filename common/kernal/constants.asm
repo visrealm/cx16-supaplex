@@ -11,6 +11,11 @@
 
 CMN_KERNAL_CONSTANTS_ASM_ = 1
 
+; temporary address used where self-modifying code will update an instruction
+SELF_MODIFY_MSB_ADDR = $ee00
+SELF_MODIFY_ADDR     = $eeee
+
+
 CHROUT      = $FFD2	; CHROUT outputs a character (C64 Kernal API)
 CHRIN       = $FFCF		; CHRIN read from default input
 
@@ -24,6 +29,10 @@ BANKED_RAM_START    = $A000
 BANKED_RAM_END      = $BFFF
 ROM_BANK            = $9F60
 RAM_BANK            = $9F61
+
+!macro dbgBreak {
+  !ifdef DEBUG { !byte $ff }
+}
 
 !macro setRamBank bank {
   pha

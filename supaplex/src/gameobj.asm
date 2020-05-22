@@ -108,24 +108,39 @@ createPlayer:
   sta ZP_PLAYER_CELL_X
   lda ZP_CURRENT_CELL_Y
   sta ZP_PLAYER_CELL_Y
+
   rts
 
 createEnemy:
-  rts
-
-createTerminal:
-  lda #(termGreen - animationDefs) >> 3
-  ldx #0
-  jsr ecsAnimationStart
-  rts
-
 createInfotron:
   rts
 
+createTerminal:
+  jsr ecsLocationSetCurrentEntityType
+  jsr ecsAnimSetCurrentEntityType
+  jsr setLocation
+
+  lda #(termGreen - animationDefs) >> 3
+  sta ZP_ECS_CURRENT_ANIM_ID
+  stz ZP_ECS_CURRENT_ANIM_FL
+  jsr setAnimation
+
+  jsr pushAnimation
+  rts
+
+  rts
+
 createSnikSnak:
+  jsr ecsLocationSetCurrentEntityType
+  jsr ecsAnimSetCurrentEntityType
+  jsr setLocation
+
   lda #(snikU2L - animationDefs) >> 3
-  ldx #0
-  jsr ecsAnimationStart
+  sta ZP_ECS_CURRENT_ANIM_ID
+  stz ZP_ECS_CURRENT_ANIM_FL
+  jsr setAnimation
+
+  jsr pushAnimation
 
   bra createEnemy
 

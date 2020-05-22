@@ -102,8 +102,9 @@ ADDR_QUEUE_HEADERS = $6000
 !source "src/murphy.asm"
 !source "src/gameloop.asm"
 !source "src/ecs/entity.asm"
-!source "src/ecs/sys/anim_s.asm"
-!source "src/ecs/sys/systems.asm"
+!source "src/ecs/systems.asm"
+!source "src/ecs/location.asm"
+!source "src/ecs/animation.asm"
 !source "src/gameobj.asm"
 
 
