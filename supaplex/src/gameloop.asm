@@ -40,6 +40,8 @@ gameLoop:
 
   jsr updateMurphy
 
+  ; +dbgBreak
+
   inc ZP_FRAME_INDEX
 
   lda #1

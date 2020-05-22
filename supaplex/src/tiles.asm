@@ -196,9 +196,9 @@ tileSnikUr:       +tileDef  95, SNIKSN_ADDR, 1, SNIKSN_PAL, TILE_FLIP_H
 tileSnikUp:       +tileDef  96, SNIKSN_ADDR, 0, SNIKSN_PAL, 0
 tileSnikUl:       +tileDef  97, SNIKSN_ADDR, 1, SNIKSN_PAL, 0
 tileSnikL:        +tileDef  98, SNIKSN_ADDR, 2, SNIKSN_PAL, 0
-tileSnikDl:       +tileDef  99, SNIKSN_ADDR, 1, SNIKSN_PAL, TILE_FLIP_H | TILE_FLIP_V
+tileSnikDl:       +tileDef  99, SNIKSN_ADDR, 1, SNIKSN_PAL, TILE_FLIP_V
 tileSnikDn:       +tileDef 100, SNIKSN_ADDR, 0, SNIKSN_PAL, TILE_FLIP_V
-tileSnikDr:       +tileDef 101, SNIKSN_ADDR, 1, SNIKSN_PAL, TILE_FLIP_V
+tileSnikDr:       +tileDef 101, SNIKSN_ADDR, 1, SNIKSN_PAL, TILE_FLIP_V | TILE_FLIP_H
 tileSnikR:        +tileDef 102, SNIKSN_ADDR, 2, SNIKSN_PAL, TILE_FLIP_H
 tileConsoleGn1:   +tileDef 103, TERMIN_ADDR, 0, TERMIN_PAL, 0
 tileConsoleGn2:   +tileDef 104, TERMIN_ADDR, 1, TERMIN_PAL, 0

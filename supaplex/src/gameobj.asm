@@ -122,7 +122,8 @@ createTerminal:
 
   lda #(termGreen - animationDefs) >> 3
   sta ZP_ECS_CURRENT_ANIM_ID
-  stz ZP_ECS_CURRENT_ANIM_FL
+  lda #ANIM_FLAG_REPEAT
+  sta ZP_ECS_CURRENT_ANIM_FL
   jsr setAnimation
 
   jsr pushAnimation

@@ -24,6 +24,8 @@ ECS_ANIMATION_ASM_ = 1
 .ADDR_ANIM_ID_TABLE  = BANKED_RAM_START
 .ADDR_ANIM_FL_TABLE  = BANKED_RAM_START + $1000
 
+ANIM_FLAG_REPEAT = $80
+
 ; -----------------------------------------------------------------------------
 ; ecsAnimSetCurrentEntityType
 ; -----------------------------------------------------------------------------
@@ -172,7 +174,6 @@ TMP_ANIM_FL = R2
 ; -----------------------------------------------------------------------------
 ; animation definitions
 ; -----------------------------------------------------------------------------
-!align 255,0
 animationDefs:
 snikU2L: +animDef 0, tileSnikUp, tileSnikUp, tileSnikUl, tileSnikUl, tileSnikUl, tileSnikUl, tileSnikL, tileSnikL
 snikL2D: +animDef 1, tileSnikL, tileSnikL, tileSnikDl, tileSnikDl, tileSnikDl, tileSnikDl, tileSnikDn, tileSnikDn
@@ -223,6 +224,34 @@ hardwareAnimCB:
   rts
 
 snikSnakAnimCB:
+  lda ZP_ECS_CURRENT_ANIM_ID
+  cmp #(snikU2L - animationDefs) >> 3
+  bne +
+  lda #(snikL2D - animationDefs) >> 3
+  bra .doneSnikSnak
++
+  cmp #(snikL2D - animationDefs) >> 3
+  bne +
+  lda #(snikD2R - animationDefs) >> 3
+  bra .doneSnikSnak
++
+  cmp #(snikD2R - animationDefs) >> 3
+  bne +
+  lda #(snikR2U - animationDefs) >> 3
+  bra .doneSnikSnak
++
+  cmp #(snikR2U - animationDefs) >> 3
+  bne +
+  lda #(snikU2L - animationDefs) >> 3
+  bra .doneSnikSnak
++
+.stop
+  rts
+
+.doneSnikSnak:  
+  sta ZP_ECS_CURRENT_ANIM_ID
+  stz ZP_ECS_CURRENT_ANIM_FL
+  jsr pushAnimation
   rts
 
 
@@ -253,7 +282,6 @@ pushAnimation:
   jsr qPush
 
   lda ZP_ECS_CURRENT_ENTITY_MSB
-  ;+dbgBreak
   ldx .entityMsbQueueId
   jsr qPush
 
@@ -270,7 +298,6 @@ ecsAnimationSystemTick:
   sta R9 ; store queue size in R9
   
   jsr qIterate ; get starting point (y)
-;  +dbgBreak
 
 .loop:
   lda SELF_MODIFY_MSB_ADDR, y   ; modified to address of .entityLsbQueueId
@@ -283,8 +310,6 @@ ecsAnimationSystemTick:
 
   phy
 
-  ;+dbgBreak
-
   jsr ecsAnimSetCurrentEntityType ; TODO: can we make this smarter? do it less?
   jsr ecsLocationSetCurrentEntityType
   jsr getAnimation
@@ -295,7 +320,7 @@ ecsAnimationSystemTick:
   ; fill ZP_ECS_CURRENT_ANIM_ID and ZP_ECS_CURRENT_ANIM_FL
 
   lda ZP_ECS_CURRENT_ANIM_ID   ; TODO:  replace this calculation with a lookup
-  +dbgBreak
+
   stz TMP_ANIM_DEF_ADDR_H
   asl 
   rol TMP_ANIM_DEF_ADDR_H
@@ -310,10 +335,12 @@ ecsAnimationSystemTick:
   adc #>animationDefs
   sta TMP_ANIM_DEF_ADDR_H
 
-  ldy ZP_ECS_CURRENT_ANIM_FL   ; step (3:0)  TODO: account for (7:4)
+  lda ZP_ECS_CURRENT_ANIM_FL   ; step (3:0)  TODO: account for (7:4)
+  and #$0f
+  tay
   lda (TMP_ANIM_DEF_ADDR), y
   iny
-  sty ZP_ECS_CURRENT_ANIM_FL   ; write it back
+  inc  ZP_ECS_CURRENT_ANIM_FL
 
   ; here, a is the tile Id
 
@@ -325,20 +352,41 @@ ecsAnimationSystemTick:
   lda tileTable + 1, y
   sta VERA_DATA0  
 
-  ply
+  lda ZP_ECS_CURRENT_ANIM_FL
+  and #$0f
+  bit #$08
+  beq ++
+  
+  ldx .entityLsbQueueId
+  jsr qPop
+  ldx .entityMsbQueueId
+  jsr qPop
 
   lda ZP_ECS_CURRENT_ANIM_FL
-  cmp #$08
-  bne +
-  stz ZP_ECS_CURRENT_ANIM_FL
+  bit #ANIM_FLAG_REPEAT
+  beq +
+  and #$f0
+  sta ZP_ECS_CURRENT_ANIM_FL
+  jsr pushAnimation
 +
+  ; callback
+  jsr animationCompleteCallback
+++
   jsr setAnimation
-
+  ply
   iny
   dec R9
   bne .loop
 
 .end:
   rts
+
+
+animationCompleteCallback:
+  lda ZP_ECS_CURRENT_ENTITY_MSB
+  asl
+  tax
+  jmp (animationCallbacks, x)
+  ; above jump should rts
 
 }

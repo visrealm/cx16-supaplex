@@ -89,8 +89,6 @@ getLocation:
   lda (ZP_ECS_TILE_X_TABLE), y
   sta ZP_CURRENT_CELL_X
 
-;  +dbgBreak
-
   ; get y location
   lda (ZP_ECS_TILE_Y_TABLE), y
   sta ZP_CURRENT_CELL_Y
