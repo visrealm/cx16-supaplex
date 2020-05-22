@@ -111,7 +111,7 @@ ADDR_QUEUE_HEADERS = $6000
 ; -----------------------------------------------------------------------------
 ; temporarily store the level here. TBD: load it!
 ; -----------------------------------------------------------------------------
-LEVEL_NUMBER = 1
+LEVEL_NUMBER = 24
 
 levelNumber: !byte LEVEL_NUMBER
 levelDat: 
@@ -119,3 +119,6 @@ levelDat:
 !if LEVEL_NUMBER = 2 { !binary "bin/level2.dat" }
 !if LEVEL_NUMBER = 3 { !binary "bin/level3.dat" }
 !if LEVEL_NUMBER = 4 { !binary "bin/level4.dat" }
+!if LEVEL_NUMBER = 11 { !binary "bin/level11.dat" }
+!if LEVEL_NUMBER = 24 { !binary "bin/level24.dat" }
+!if LEVEL_NUMBER = 30 { !binary "bin/level30.dat" }

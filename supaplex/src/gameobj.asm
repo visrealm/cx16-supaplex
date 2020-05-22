@@ -120,7 +120,7 @@ createTerminal:
   jsr ecsAnimSetCurrentEntityType
   jsr setLocation
 
-  lda #(termGreen - animationDefs) >> 3
+  lda #(animTermGreen - animationDefs) >> 3
   sta ZP_ECS_CURRENT_ANIM_ID
   lda #ANIM_FLAG_REPEAT
   sta ZP_ECS_CURRENT_ANIM_FL
@@ -136,7 +136,7 @@ createSnikSnak:
   jsr ecsAnimSetCurrentEntityType
   jsr setLocation
 
-  lda #(snikU2L - animationDefs) >> 3
+  lda #(animSnikU2L - animationDefs) >> 3
   sta ZP_ECS_CURRENT_ANIM_ID
   stz ZP_ECS_CURRENT_ANIM_FL
   jsr setAnimation
@@ -146,6 +146,18 @@ createSnikSnak:
   bra createEnemy
 
 createElectron:
+  jsr ecsLocationSetCurrentEntityType
+  jsr ecsAnimSetCurrentEntityType
+  jsr setLocation
+
+  lda #(animElectron - animationDefs) >> 3
+  sta ZP_ECS_CURRENT_ANIM_ID
+  ;lda #ANIM_FLAG_REPEAT
+  stz ZP_ECS_CURRENT_ANIM_FL
+  jsr setAnimation
+
+  jsr pushAnimation
+
   bra createEnemy
 
 

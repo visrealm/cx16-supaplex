@@ -28,6 +28,8 @@ waitForVsync:
 ; main game loop
 ; -----------------------------------------------------------------------------
 gameLoop:
+  jsr displaySetScroll
+
   jsr doInput
 
   jsr ecsTickSystems
@@ -35,8 +37,6 @@ gameLoop:
   jsr checkTime
 
   jsr centreMap
-
-  jsr displaySetScroll
 
   jsr updateMurphy
 

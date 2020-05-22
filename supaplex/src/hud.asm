@@ -55,7 +55,7 @@ hudSetup:
   jsr hudSetLevelNumber
 
   lda levelDat + LEVEL_NUM_INFOTRONS_OFFSET
-  ;sta ZP_NUM_INFOTRONS
+  sta ZP_NUM_INFOTRONS
 
   jsr hudSetInfotrons
 

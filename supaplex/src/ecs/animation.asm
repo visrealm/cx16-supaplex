@@ -175,11 +175,14 @@ TMP_ANIM_FL = R2
 ; animation definitions
 ; -----------------------------------------------------------------------------
 animationDefs:
-snikU2L: +animDef 0, tileSnikUp, tileSnikUp, tileSnikUl, tileSnikUl, tileSnikUl, tileSnikUl, tileSnikL, tileSnikL
-snikL2D: +animDef 1, tileSnikL, tileSnikL, tileSnikDl, tileSnikDl, tileSnikDl, tileSnikDl, tileSnikDn, tileSnikDn
-snikD2R: +animDef 2, tileSnikDn, tileSnikDn, tileSnikDr, tileSnikDr, tileSnikDr, tileSnikDr, tileSnikR, tileSnikR
-snikR2U: +animDef 3, tileSnikR, tileSnikR, tileSnikUr, tileSnikUr, tileSnikUr, tileSnikUr, tileSnikUp, tileSnikUp
-termGreen: +animDef 4, tileConsoleGn1, tileConsoleGn2, tileConsoleGn3, tileConsoleGn4, tileConsoleGn5, tileConsoleGn6, tileConsoleGn7, tileConsoleGn8
+animSnikU2L: +animDef 0, tileSnikUp, tileSnikUp, tileSnikUl, tileSnikUl, tileSnikUl, tileSnikUl, tileSnikL, tileSnikL
+animSnikL2D: +animDef 1, tileSnikL, tileSnikL, tileSnikDl, tileSnikDl, tileSnikDl, tileSnikDl, tileSnikDn, tileSnikDn
+animSnikD2R: +animDef 2, tileSnikDn, tileSnikDn, tileSnikDr, tileSnikDr, tileSnikDr, tileSnikDr, tileSnikR, tileSnikR
+animSnikR2U: +animDef 3, tileSnikR, tileSnikR, tileSnikUr, tileSnikUr, tileSnikUr, tileSnikUr, tileSnikUp, tileSnikUp
+animTermGreen: +animDef 5, tileConsoleGn1, tileConsoleGn1, tileConsoleGn2, tileConsoleGn2, tileConsoleGn3, tileConsoleGn3, tileConsoleGn4, tileConsoleGn4
+animTermReg:   +animDef 6, tileConsoleRd1, tileConsoleRd2, tileConsoleRd3, tileConsoleRd4, tileConsoleRd5, tileConsoleRd6, tileConsoleRd7, tileConsoleRd8
+animElectron:  +animDef 7,  tileElectron1, tileElectron2, tileElectron2, tileElectron3, tileElectron4, tileElectron5, tileElectron6, tileElectron6
+animElectron2:  +animDef 8, tileElectron7, tileElectron7, tileElectron6, tileElectron5, tileElectron4, tileElectron3, tileElectron2, tileElectron2
 
 ; TODO: Add a lookup for the above to save computing the address each time
 
@@ -218,31 +221,45 @@ portAnimCB:
 exitAnimCB:
 bugAnimCB:
 infotronAnimCB:
-electronAnimCB:
 ramAnimCB:
 hardwareAnimCB:
   rts
 
+electronAnimCB:
+  lda ZP_ECS_CURRENT_ANIM_ID
+  cmp #(animElectron - animationDefs) >> 3
+  bne +
+  lda #(animElectron2 - animationDefs) >> 3
+  bra .doneElectron
++
+  lda #(animElectron - animationDefs) >> 3
+
+.doneElectron:  
+  sta ZP_ECS_CURRENT_ANIM_ID
+  stz ZP_ECS_CURRENT_ANIM_FL
+  jsr pushAnimation
+  rts
+
 snikSnakAnimCB:
   lda ZP_ECS_CURRENT_ANIM_ID
-  cmp #(snikU2L - animationDefs) >> 3
+  cmp #(animSnikU2L - animationDefs) >> 3
   bne +
-  lda #(snikL2D - animationDefs) >> 3
+  lda #(animSnikL2D - animationDefs) >> 3
   bra .doneSnikSnak
 +
-  cmp #(snikL2D - animationDefs) >> 3
+  cmp #(animSnikL2D - animationDefs) >> 3
   bne +
-  lda #(snikD2R - animationDefs) >> 3
+  lda #(animSnikD2R - animationDefs) >> 3
   bra .doneSnikSnak
 +
-  cmp #(snikD2R - animationDefs) >> 3
+  cmp #(animSnikD2R - animationDefs) >> 3
   bne +
-  lda #(snikR2U - animationDefs) >> 3
+  lda #(animSnikR2U - animationDefs) >> 3
   bra .doneSnikSnak
 +
-  cmp #(snikR2U - animationDefs) >> 3
+  cmp #(animSnikR2U - animationDefs) >> 3
   bne +
-  lda #(snikU2L - animationDefs) >> 3
+  lda #(animSnikU2L - animationDefs) >> 3
   bra .doneSnikSnak
 +
 .stop
@@ -294,6 +311,8 @@ ecsAnimationSystemTick:
   ldx .entityLsbQueueId
   jsr qSize
   beq .end
+
+;  jsr hudOutputDebug
 
   sta R9 ; store queue size in R9
   
