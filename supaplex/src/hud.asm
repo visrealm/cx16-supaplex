@@ -76,6 +76,7 @@ hudOutputDebug:
   php
 
   jsr bin2bcd8
+  jsr setPixelOperationNone
 
   +vchannel1
   +vpush

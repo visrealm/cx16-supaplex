@@ -12,29 +12,16 @@
 
 !source "src/ecs/entity_type.asm"
 
-; by object type?   zonk, infotron, snik, electron, bug?
-; by characteristic?  fallers, enemies
-; components: animation, movement
-;  each object contains a list of its component ids
-; sniksnak1: animId, moveId, etc.
 
-; animation system
-;  list of animation components
-;   each containing: cell index, tile queue
-
-; on level load, object factory (jump table?)
-; 
-; gameObject logic:
-; most objects are "sleeping"
-; objects can be woken by adjacent movement
-
-; sniksnak logic:
-; states:
-;   - moving
-;   - searching
-;   
-
-; a: tileId
+; -----------------------------------------------------------------------------
+; createGameObject
+; -----------------------------------------------------------------------------
+; Create a game object. THis is called for every tile loaded
+;
+; Inputs:
+;  A: TileId (as set in the level file)
+;  ZP_CURRENT_CELL_X, ZP_CURRENT_CELL_Y
+; -----------------------------------------------------------------------------
 createGameObject:
   phx
   phy
@@ -53,14 +40,24 @@ createGameObject:
   plx
   rts
 
-
+; -----------------------------------------------------------------------------
+; JSR wrapper for objectFactory
+; -----------------------------------------------------------------------------
 .doCreate  
   jsr ecsEntityCreate
   jmp (objectFactory, x)
 
 
-
-; Object factory. Maps to entity type
+; -----------------------------------------------------------------------------
+; objectFactory
+; -----------------------------------------------------------------------------
+; Callback for each object type. called when an object of that type is created
+;
+; Inputs:
+;  A: TileId (as set in the level file)
+;  ZP_ECS_CURRENT_ENTITY
+;  ZP_CURRENT_CELL_X, ZP_CURRENT_CELL_Y
+; -----------------------------------------------------------------------------
 objectFactory:
 !word createEmpty
 !word createZonk
@@ -80,17 +77,8 @@ objectFactory:
 !word createHardware
 
 ; -----------------------------------------------------------------------------
-; Factory functions
+; placeholder callbacks (not yet implemented)
 ; -----------------------------------------------------------------------------
-; inputs:
-;   a: tileId
-;   x: double entity type id
-;   y: entity type id
-; returns
-;   A: MSB byte of queue
-;   Y: starting offset (head index)
-; -----------------------------------------------------------------------------
-
 createEmpty:
 createBase:
 createRam:
@@ -101,74 +89,11 @@ createDisk:
 createPort:
 createBug:
 createZonk:
-  rts
-
-createPlayer:
-  lda ZP_CURRENT_CELL_X
-  sta ZP_PLAYER_CELL_X
-  lda ZP_CURRENT_CELL_Y
-  sta ZP_PLAYER_CELL_Y
-
-  rts
-
-createEnemy:
 createInfotron:
   rts
 
-createTerminal:
-  jsr ecsLocationSetCurrentEntityType
-  jsr ecsAnimSetCurrentEntityType
-  jsr setLocation
-
-  lda #(animTermGreen - animationDefs) >> 3
-  sta ZP_ECS_CURRENT_ANIM_ID
-  lda #ANIM_FLAG_REPEAT
-  sta ZP_ECS_CURRENT_ANIM_FL
-  jsr setAnimation
-
-  jsr pushAnimation
-  rts
-
-  rts
-
-createSnikSnak:
-  jsr ecsLocationSetCurrentEntityType
-  jsr ecsAnimSetCurrentEntityType
-  jsr setLocation
-
-  lda #(animSnikU2L - animationDefs) >> 3
-  sta ZP_ECS_CURRENT_ANIM_ID
-  stz ZP_ECS_CURRENT_ANIM_FL
-  jsr setAnimation
-
-  jsr pushAnimation
-
-  bra createEnemy
-
-createElectron:
-  jsr ecsLocationSetCurrentEntityType
-  jsr ecsAnimSetCurrentEntityType
-  jsr setLocation
-
-  lda #(animElectron - animationDefs) >> 3
-  sta ZP_ECS_CURRENT_ANIM_ID
-  ;lda #ANIM_FLAG_REPEAT
-  stz ZP_ECS_CURRENT_ANIM_FL
-  jsr setAnimation
-
-  jsr pushAnimation
-
-  bra createEnemy
 
 
-; structure of a game object
-; x cell
-; y cell
-; facing [2] (up, left, down, right) | type [6]
-; status [3] (static, moving, searching, exploding, falling, consumed) | step ()
-; from direction (0 = none, 1, 2, 3, 4)
-
-; animation sequences
 
 !macro spriteType tileId, entityType {
     !byte entityType

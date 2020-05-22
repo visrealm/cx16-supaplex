@@ -74,35 +74,3 @@ ecsEntityCreate:
   pla
   rts
 }
-
-
-
-;Common attributes. 4KB per attribute
-;-----------------
-;Entity Id / Type  - Not required (inferred)
-
-; Bank  1
-;Cell X
-;Cell Y
-
-; Bank 2
-; Flags
-; State?
-
-; Bank 3
-;Animation flags
-;Animation id
-
-
-;Cell array = 6KB
-;24 rows
-;4 bytes per cell
-
-;4 bytes...
-;0-1: Entity Id
-;2:   Flags (head/tail/direction?)
-
-; Entity id has type encoded:
-; [7 - 5]: MSB;  [4 - 0]: type 
-; [7 - 0]: LSB
-

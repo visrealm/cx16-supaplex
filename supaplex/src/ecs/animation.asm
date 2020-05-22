@@ -189,8 +189,15 @@ animElectron2:  +animDef 8, tileElectron7, tileElectron7, tileElectron6, tileEle
 
 ; -----------------------------------------------------------------------------
 ; animation callbacks
-; an entity-type specific function is called when an animation completes
 ; -----------------------------------------------------------------------------
+; Animation callback (when an animation completes)
+;
+; Inputs:
+;  ZP_ECS_CURRENT_ENTITY
+;  ZP_CURRENT_CELL_X, ZP_CURRENT_CELL_Y
+;  ZP_ECS_CURRENT_ANIM_ID, ZP_ECS_CURRENT_ANIM_FL
+; -----------------------------------------------------------------------------
+
 animationCallbacks:
   !word emptyAnimCB
   !word zonkAnimCB
@@ -209,6 +216,9 @@ animationCallbacks:
   !word ramAnimCB
   !word hardwareAnimCB
 
+; -----------------------------------------------------------------------------
+; placeholder callbacks (not yet implemented)
+; -----------------------------------------------------------------------------
 emptyAnimCB:
 zonkAnimCB:
 playerAnimCB:
@@ -225,51 +235,16 @@ ramAnimCB:
 hardwareAnimCB:
   rts
 
-electronAnimCB:
-  lda ZP_ECS_CURRENT_ANIM_ID
-  cmp #(animElectron - animationDefs) >> 3
-  bne +
-  lda #(animElectron2 - animationDefs) >> 3
-  bra .doneElectron
-+
-  lda #(animElectron - animationDefs) >> 3
-
-.doneElectron:  
-  sta ZP_ECS_CURRENT_ANIM_ID
-  stz ZP_ECS_CURRENT_ANIM_FL
-  jsr pushAnimation
-  rts
-
-snikSnakAnimCB:
-  lda ZP_ECS_CURRENT_ANIM_ID
-  cmp #(animSnikU2L - animationDefs) >> 3
-  bne +
-  lda #(animSnikL2D - animationDefs) >> 3
-  bra .doneSnikSnak
-+
-  cmp #(animSnikL2D - animationDefs) >> 3
-  bne +
-  lda #(animSnikD2R - animationDefs) >> 3
-  bra .doneSnikSnak
-+
-  cmp #(animSnikD2R - animationDefs) >> 3
-  bne +
-  lda #(animSnikR2U - animationDefs) >> 3
-  bra .doneSnikSnak
-+
-  cmp #(animSnikR2U - animationDefs) >> 3
-  bne +
-  lda #(animSnikU2L - animationDefs) >> 3
-  bra .doneSnikSnak
-+
-.stop
-  rts
-
-.doneSnikSnak:  
-  sta ZP_ECS_CURRENT_ANIM_ID
-  stz ZP_ECS_CURRENT_ANIM_FL
-  jsr pushAnimation
-  rts
+  
+; -----------------------------------------------------------------------------
+; JSR wrapper called for animationCallbacks
+; -----------------------------------------------------------------------------
+animationCompleteCallback:
+  lda ZP_ECS_CURRENT_ENTITY_MSB
+  asl
+  tax
+  jmp (animationCallbacks, x)
+  ; above jump should rts
 
 
 ; -----------------------------------------------------------------------------
@@ -305,14 +280,18 @@ pushAnimation:
   rts
 
 
-
+; -----------------------------------------------------------------------------
+; ecsAnimationSystemTick
+; -----------------------------------------------------------------------------
+; Called for each frame. Animate those who need animating
+; -----------------------------------------------------------------------------
 ecsAnimationSystemTick:
   +vchannel0
   ldx .entityLsbQueueId
   jsr qSize
   beq .end
 
-;  jsr hudOutputDebug
+  jsr hudOutputDebug
 
   sta R9 ; store queue size in R9
   
@@ -400,12 +379,5 @@ ecsAnimationSystemTick:
 .end:
   rts
 
-
-animationCompleteCallback:
-  lda ZP_ECS_CURRENT_ENTITY_MSB
-  asl
-  tax
-  jmp (animationCallbacks, x)
-  ; above jump should rts
 
 }

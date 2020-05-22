@@ -1,6 +1,6 @@
 ; Supaplex - Commander X16
 ;
-; The main game loop
+; Murphy (the main character)
 ;
 ; Copyright (c) 2020 Troy Schrapel
 ;
@@ -9,6 +9,23 @@
 ; https://github.com/visrealm/supaplex-x16
 ;
 ;
+
+!zone murphy {
+
+; -----------------------------------------------------------------------------
+; createPlayer
+; -----------------------------------------------------------------------------
+; Inputs:
+;  ZP_ECS_CURRENT_ENTITY
+;  ZP_CURRENT_CELL_X, ZP_CURRENT_CELL_Y are set
+; -----------------------------------------------------------------------------
+createPlayer:
+  lda ZP_CURRENT_CELL_X
+  sta ZP_PLAYER_CELL_X
+  lda ZP_CURRENT_CELL_Y
+  sta ZP_PLAYER_CELL_Y
+  rts
+
 
 ; -----------------------------------------------------------------------------
 ; update the murphy sprite
@@ -70,3 +87,8 @@ updateMurphy:
 +++
 
   rts
+
+  
+; -----------------------------------------------------------------------------
+
+} ; murphy
