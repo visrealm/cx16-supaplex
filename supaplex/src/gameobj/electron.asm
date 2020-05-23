@@ -18,9 +18,7 @@
 ;  ZP_ECS_CURRENT_ENTITY, ZP_CURRENT_CELL_X, ZP_CURRENT_CELL_Y are set
 ; -----------------------------------------------------------------------------
 createElectron:
-  jsr ecsLocationSetCurrentEntityType
   jsr ecsAnimSetCurrentEntityType
-  jsr setLocation
 
   lda #(animElectron - animationDefs) >> 3
   sta ZP_ECS_CURRENT_ANIM_ID
@@ -28,7 +26,7 @@ createElectron:
   stz ZP_ECS_CURRENT_ANIM_FL
   jsr setAnimation
 
-  jsr pushAnimation
+  jsr ecsAnimationPush
   rts
 
 
@@ -53,7 +51,7 @@ electronAnimCB:
 .doneElectron:  
   sta ZP_ECS_CURRENT_ANIM_ID
   stz ZP_ECS_CURRENT_ANIM_FL
-  jsr pushAnimation
+  jsr ecsAnimationPush
   rts
 
 

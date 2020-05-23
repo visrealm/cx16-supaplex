@@ -52,7 +52,7 @@ TILE_FLIP_V = $08
 ; load the tiles from disk into vram
 ; -----------------------------------------------------------------------------
 loadTiles:
-  +setRamBank 0
+  +setRamBank RAM_BANK_SCRATCH
   +vLoadPcx staticPcx,  STATIC_ADDR, STATIC_PAL
   +vLoadPcx podizoPcx,  PODIZO_ADDR, PODIZO_PAL
   +vLoadPcx murphyPcx,  MURPHY_ADDR, MURPHY_PAL
@@ -69,6 +69,35 @@ loadTiles:
   sta ZP_TILE_TABLE_H
 
   rts
+
+; -----------------------------------------------------------------------------
+; outputTile
+; -----------------------------------------------------------------------------
+; Inputs:
+;  a: tileId
+;
+; Prerequisites:
+;  VERA address already set
+; -----------------------------------------------------------------------------
+outputTile:
+  asl ; double it
+  tay
+  bcc +
+    ; if tile id is >= 128 we need to 
+    ; adjust the starting address
+  lda tileTable + $100, y
+  sta VERA_DATA0  
+  lda tileTable + $101, y
+  sta VERA_DATA0
+  bra ++
++
+  lda tileTable, y
+  sta VERA_DATA0  
+  lda tileTable + 1, y
+  sta VERA_DATA0
+++
+  rts
+; -----------------------------------------------------------------------------
 
 
 ; -----------------------------------------------------------------------------

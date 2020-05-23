@@ -45,6 +45,9 @@ createGameObject:
 ; -----------------------------------------------------------------------------
 .doCreate  
   jsr ecsEntityCreate
+  jsr ecsLocationSetCurrentEntityType
+  jsr setLocation
+
   jmp (objectFactory, x)
 
 

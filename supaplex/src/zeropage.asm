@@ -27,13 +27,18 @@
 
 ; -----------------------------------------------------------------------------
 
-
+; the current entity we're working with
 ZP_ECS_CURRENT_ENTITY = $22
 ZP_ECS_CURRENT_ENTITY_LSB = ZP_ECS_CURRENT_ENTITY
 ZP_ECS_CURRENT_ENTITY_MSB = ZP_ECS_CURRENT_ENTITY + 1
 
+; a temporary entity (when we're querying other entities)
+ZP_ECS_TEMP_ENTITY = $24
+ZP_ECS_TEMP_ENTITY_LSB = ZP_ECS_TEMP_ENTITY
+ZP_ECS_TEMP_ENTITY_MSB = ZP_ECS_TEMP_ENTITY + 1
+
 ;
-; $24 - $2f unused
+; $26 - $2f unused
 ;
 
 ZP_TILE_TABLE       = $30
@@ -62,9 +67,13 @@ ZP_ECS_TILE_Y_TABLE     = $3c
 ZP_ECS_TILE_Y_TABLE_LSB = ZP_ECS_TILE_Y_TABLE
 ZP_ECS_TILE_Y_TABLE_MSB = ZP_ECS_TILE_Y_TABLE + 1
 
+ZP_ECS_LOCATION_SYSTEM  = $3e
+ZP_ECS_LOCATION_SYSTEM_LSB = ZP_ECS_LOCATION_SYSTEM
+ZP_ECS_LOCATION_SYSTEM_MSB = ZP_ECS_LOCATION_SYSTEM + 1
+
 
 ;
-; $3e - $6f unused
+; $40 - $6f unused
 ;
 
 ZP_LAST_SECOND      = $70
@@ -82,7 +91,9 @@ ZP_FRAME_INDEX      = $75
 ;
 
 ; -----------------------------------------------------------------------------
-; $80 - $A8: not available
+; \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
+;  \ \ \ \ \ \ \ \ \ \ \ \ $80 - $A8: not available  \ \ \ \ \ \ \ \ \ \ \ \ \
+; \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
 ; -----------------------------------------------------------------------------
 
 ZP_SCROLL_X      = $a9

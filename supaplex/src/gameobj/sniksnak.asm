@@ -18,16 +18,13 @@
 ;  ZP_ECS_CURRENT_ENTITY, ZP_CURRENT_CELL_X, ZP_CURRENT_CELL_Y are set
 ; -----------------------------------------------------------------------------
 createSnikSnak:
-  jsr ecsLocationSetCurrentEntityType
-  jsr setLocation
-
   jsr ecsAnimSetCurrentEntityType
   lda #(animSnikU2L - animationDefs) >> 3
   sta ZP_ECS_CURRENT_ANIM_ID
   stz ZP_ECS_CURRENT_ANIM_FL
   jsr setAnimation
 
-  jsr pushAnimation
+  jsr ecsAnimationPush
   rts
 
 
@@ -62,13 +59,11 @@ snikSnakAnimCB:
   lda #(animSnikU2L - animationDefs) >> 3
   bra .doneSnikSnak
 +
-.stop
-  rts
 
 .doneSnikSnak:  
   sta ZP_ECS_CURRENT_ANIM_ID
   stz ZP_ECS_CURRENT_ANIM_FL
-  jsr pushAnimation
+  jsr ecsAnimationPush
   rts
 
 ; -----------------------------------------------------------------------------

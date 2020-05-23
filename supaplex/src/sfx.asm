@@ -74,8 +74,8 @@ doInitSfx:
 ; initialiseSfx: initialise sfx library
 ; -----------------------------------------------------------------------------
 initialiseSfx:
-  +initSfxId SFX_BASE_ID,     sfxBaseFilename,     2, $000
-  +initSfxId SFX_INFOTRON_ID, sfxInfotronFilename, 5, $100
+  +initSfxId SFX_BASE_ID,     sfxBaseFilename,     RAM_BANK_SFX_BASE,     $000
+  +initSfxId SFX_INFOTRON_ID, sfxInfotronFilename, RAM_BANK_SFX_INFOTRON, $100
   +vreg VERA_AUDIO_CTRL, $18
   +vreg VERA_AUDIO_RATE, $10
   rts

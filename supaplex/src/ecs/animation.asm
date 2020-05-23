@@ -20,7 +20,7 @@ ECS_ANIMATION_ASM_ = 1
 ; Used to set and get the animation attributes for a given entity
 ; =============================================================================
 
-.ANIM_COMPONENT_BANK = 11
+.ANIM_COMPONENT_BANK = RAM_BANK_ANIM_COMPONENT
 .ADDR_ANIM_ID_TABLE  = BANKED_RAM_START
 .ADDR_ANIM_FL_TABLE  = BANKED_RAM_START + $1000
 
@@ -36,11 +36,21 @@ ecsAnimSetCurrentEntityType:
   lda ZP_ECS_CURRENT_ENTITY_MSB
   ; TODO - check for index (11:8)
   and #$0f
-  clc
-  adc #>.ADDR_ANIM_ID_TABLE
+  ora #>.ADDR_ANIM_ID_TABLE
   sta ZP_ECS_ANIM_ID_TABLE_MSB
   adc #>(.ADDR_ANIM_FL_TABLE - .ADDR_ANIM_ID_TABLE)
   sta ZP_ECS_ANIM_FL_TABLE_MSB
+  rts
+
+.debugCurrentEntityTypeSanityCheck:
+  pha
+  lda ZP_ECS_ANIM_ID_TABLE_MSB
+  and #$0f
+  cmp ZP_ECS_CURRENT_ENTITY_MSB
+  beq +
+  +dbgBreak
++
+  pla
   rts
 
 ; -----------------------------------------------------------------------------
@@ -52,6 +62,11 @@ ecsAnimSetCurrentEntityType:
 ;   ZP_ECS_CURRENT_ANIM_FL
 ; -----------------------------------------------------------------------------
 setAnimation:
+
+!ifdef DEBUG {
+  jsr .debugCurrentEntityTypeSanityCheck
+}
+
   +setRamBank .ANIM_COMPONENT_BANK
   phy
 
@@ -79,6 +94,11 @@ setAnimation:
 ;   ZP_ECS_CURRENT_ANIM_FL
 ; -----------------------------------------------------------------------------
 getAnimation:
+
+!ifdef DEBUG {
+  jsr .debugCurrentEntityTypeSanityCheck
+}
+
   +setRamBank .ANIM_COMPONENT_BANK
   
   phy
@@ -263,12 +283,12 @@ ecsAnimationSystemInit:
   rts
 
 ; -----------------------------------------------------------------------------
-; pushAnimation
+; ecsAnimationPush
 ; -----------------------------------------------------------------------------
 ; Inputs:
 ;   ZP_ECS_CURRENT_ENTITY
 ; -----------------------------------------------------------------------------
-pushAnimation:
+ecsAnimationPush:
   lda ZP_ECS_CURRENT_ENTITY_LSB
   ldx .entityLsbQueueId
   jsr qPush
@@ -291,8 +311,6 @@ ecsAnimationSystemTick:
   jsr qSize
   beq .end
 
-  jsr hudOutputDebug
-
   sta R9 ; store queue size in R9
   
   jsr qIterate ; get starting point (y)
@@ -307,7 +325,6 @@ ecsAnimationSystemTick:
   sta ZP_ECS_CURRENT_ENTITY_MSB
 
   phy
-
   jsr ecsAnimSetCurrentEntityType ; TODO: can we make this smarter? do it less?
   jsr ecsLocationSetCurrentEntityType
   jsr getAnimation
@@ -341,14 +358,7 @@ ecsAnimationSystemTick:
   inc  ZP_ECS_CURRENT_ANIM_FL
 
   ; here, a is the tile Id
-
-  asl ; double it
-  tay
-
-  lda tileTable, y
-  sta VERA_DATA0  
-  lda tileTable + 1, y
-  sta VERA_DATA0  
+  jsr outputTile
 
   lda ZP_ECS_CURRENT_ANIM_FL
   and #$0f
@@ -365,7 +375,7 @@ ecsAnimationSystemTick:
   beq +
   and #$f0
   sta ZP_ECS_CURRENT_ANIM_FL
-  jsr pushAnimation
+  jsr ecsAnimationPush
 +
   ; callback
   jsr animationCompleteCallback
@@ -374,6 +384,7 @@ ecsAnimationSystemTick:
   ply
   iny
   dec R9
+  clc ; I don't understand why this is necessary. but it is
   bne .loop
 
 .end:

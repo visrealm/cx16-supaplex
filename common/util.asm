@@ -110,6 +110,26 @@ CMN_UTIL_ASM_ = 1
   sbc right + 1
 }
 
+
+; -----------------------------------------------------------------------------
+; +subImm8From16: subtract an 8 bit number from a 16 bit number
+; -----------------------------------------------------------------------------
+; Inputs:
+;  left:  address containing LSB of left value
+;  right: immediate 8-bit value
+; Outputs:
+;  res:   address containing LSB of result
+; -----------------------------------------------------------------------------
+!macro subImm8From16 left, right, res {
+  sec
+  lda left
+  sbc #right
+  sta res
+  lda left + 1
+  sbc #0
+  sta res + 1
+}
+
 ; -----------------------------------------------------------------------------
 ; +incBcd: increment a BCD byte (inc instruction doesn't work in bcd mode)
 ; -----------------------------------------------------------------------------

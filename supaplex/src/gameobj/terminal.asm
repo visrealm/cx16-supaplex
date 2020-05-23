@@ -19,8 +19,6 @@
 ;  ZP_CURRENT_CELL_X, ZP_CURRENT_CELL_Y are set
 ; -----------------------------------------------------------------------------
 createTerminal:
-  jsr ecsLocationSetCurrentEntityType
-  jsr setLocation
 
   jsr ecsAnimSetCurrentEntityType
   lda #(animTermGreen - animationDefs) >> 3
@@ -29,7 +27,7 @@ createTerminal:
   sta ZP_ECS_CURRENT_ANIM_FL
   jsr setAnimation
 
-  jsr pushAnimation
+  jsr ecsAnimationPush
   rts
 
   rts
