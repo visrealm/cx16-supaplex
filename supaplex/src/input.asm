@@ -28,21 +28,22 @@ PLAYER_SPEED = 2
 ; testCell: check a cell for suitability to invade
 ; -----------------------------------------------------------------------------
 ; Inputs:
-;  A = cell X
-;  Y = cell Y
+;  ZP_ECS_TEMP_ENTITY
 ; Returns:
 ;  C = if set, passable, otherwise, not
 ; -----------------------------------------------------------------------------
 testCell:
-  jsr vTile
-  cmp tileBase
+
+  lda ZP_ECS_TEMP_ENTITY_MSB
+  and #$0f
+  cmp #ENTITY_TYPE_BASE
   bne +
   +sfxPlay SFX_BASE_ID
   bra .cellPassable
 +
-  cmp tileBlank
+  cmp #ENTITY_TYPE_EMPTY
   beq .cellPassable
-  cmp tileInfo
+  cmp #ENTITY_TYPE_INFOTRON
   bne .cellNotPassable
   dec ZP_NUM_INFOTRONS
 
@@ -51,6 +52,7 @@ testCell:
   jsr hudSetInfotrons
 
 .cellPassable
+  jsr ecsLocationClearTemp
   sec
   rts
 
@@ -120,11 +122,11 @@ doInput:
   
   ; adjust x or y
   !if incOrDec > 0 {
-    !if xOrY = "x" { inc }
-    !if xOrY = "y" { iny }
+    !if xOrY = "x" { jsr ecsLocationPeekRight }
+    !if xOrY = "y" { jsr ecsLocationPeekDown }
   } else {
-    !if xOrY = "x" { dec }
-    !if xOrY = "y" { dey }
+    !if xOrY = "x" { jsr ecsLocationPeekLeft }
+    !if xOrY = "y" { jsr ecsLocationPeekUp }
   }
 
   ; test the cell. can we go there?
@@ -164,6 +166,12 @@ doInput:
 }
 
 .allowInput:  
+  lda ZP_PLAYER_CELL_X
+  ldy ZP_PLAYER_CELL_Y
+  sta ZP_CURRENT_CELL_X
+  sty ZP_CURRENT_CELL_Y
+  jsr ecsLocationGetEntity
+
   +checkDirection JOY_LEFT,  -1, "x"
   +checkDirection JOY_RIGHT,  1, "x"
   +checkDirection JOY_UP,    -1, "y"
@@ -171,6 +179,12 @@ doInput:
 
 doneTests:
 
+  jsr ecsLocationGetEntity
+  jsr ecsLocationPeekDown
+
+  lda ZP_ECS_TEMP_ENTITY_MSB
+  and #$0f
+  jsr hudOutputDebug
 
   rts
 

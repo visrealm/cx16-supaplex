@@ -40,9 +40,10 @@ ecsLocationSetCurrentEntityType:
   rts
 
 .debugCurrentEntityTypeSanityCheck:
+
   lda ZP_ECS_TILE_X_TABLE_MSB
+  eor ZP_ECS_CURRENT_ENTITY_MSB
   and #$0f
-  cmp ZP_ECS_CURRENT_ENTITY_MSB
   beq +
   +dbgBreak
 +
@@ -110,6 +111,7 @@ getLocation:
   ; get y location
   lda (ZP_ECS_TILE_Y_TABLE), y
   sta ZP_CURRENT_CELL_Y
+  jsr ecsLocationGetEntity
 
 !ifdef DEBUG { ; debug sanity check
   pha
@@ -205,8 +207,14 @@ ecsLocationGetEntity:
 ;   ZP_ECS_TEMP_ENTITY : Temporary entity located one cell to the left
 ; -----------------------------------------------------------------------------
 ecsLocationPeekLeft:
-  +dbgBreak
   +setRamBank .LOCATION_SYSTEM_BANK
+
+  ; update temp cell to point to last cell peeked
+  lda ZP_CURRENT_CELL_X
+  dec 
+  sta ZP_TEMP_CELL_X
+  lda ZP_CURRENT_CELL_Y
+  sta ZP_TEMP_CELL_Y
 
   ldy ZP_ECS_LOCATION_SYSTEM_LSB ; backup current location
 
@@ -235,6 +243,13 @@ ecsLocationPeekLeft:
 ecsLocationPeekRight:
   +setRamBank .LOCATION_SYSTEM_BANK
 
+  ; update temp cell to point to last cell peeked
+  lda ZP_CURRENT_CELL_X
+  inc
+  sta ZP_TEMP_CELL_X
+  lda ZP_CURRENT_CELL_Y
+  sta ZP_TEMP_CELL_Y
+
   ldy ZP_ECS_LOCATION_SYSTEM_LSB ; backup current location
 
   inc ZP_ECS_LOCATION_SYSTEM_LSB
@@ -262,6 +277,13 @@ ecsLocationPeekRight:
 ; -----------------------------------------------------------------------------
 ecsLocationPeekUp:
   +setRamBank .LOCATION_SYSTEM_BANK
+
+  ; update temp cell to point to last cell peeked
+  lda ZP_CURRENT_CELL_X
+  sta ZP_TEMP_CELL_X
+  lda ZP_CURRENT_CELL_Y
+  dec
+  sta ZP_TEMP_CELL_Y
 
   ldy ZP_ECS_LOCATION_SYSTEM_LSB
   tya
@@ -302,6 +324,13 @@ ecsLocationPeekUp:
 ecsLocationPeekDown:
   +setRamBank .LOCATION_SYSTEM_BANK
 
+  ; update temp cell to point to last cell peeked
+  lda ZP_CURRENT_CELL_X
+  sta ZP_TEMP_CELL_X
+  lda ZP_CURRENT_CELL_Y
+  inc
+  sta ZP_TEMP_CELL_Y
+
   ldy ZP_ECS_LOCATION_SYSTEM_LSB
   tya
   eor #$80   ; toggle first bit (switches from left or right bank)
@@ -325,7 +354,84 @@ ecsLocationPeekDown:
 
   sty ZP_ECS_LOCATION_SYSTEM_LSB ; restore current location
 
-  rts  
+  rts
+
+
+; -----------------------------------------------------------------------------
+; ecsLocationClearTemp
+; -----------------------------------------------------------------------------
+; clear the temp location (to move into it)
+; Inputs:
+;   ZP_ECS_CURRENT_ENTITY
+;   ZP_ECS_LOCATION_SYSTEM
+;   ZP_CURRENT_CELL_X/Y set for current entity
+;
+;   ZP_TEMP_CELL - location of temporary entity
+;   ZP_ECS_TEMP_ENTITY (entity to swap with)
+; -----------------------------------------------------------------------------
+ecsLocationClearTemp:
+  +setRamBank .LOCATION_SYSTEM_BANK
+
+  ldy #0
+  jsr ecsEntityCreate
+  jsr ecsLocationSetCurrentEntityType
+  jsr setLocation
+  rts
+
+
+; -----------------------------------------------------------------------------
+; ecsLocationSwap
+; -----------------------------------------------------------------------------
+; return the entity (as a temporary entity) below the current location
+; Inputs:
+;   ZP_ECS_CURRENT_ENTITY
+;   ZP_ECS_LOCATION_SYSTEM
+;   ZP_CURRENT_CELL_X/Y set for current entity
+;
+;   ZP_TEMP_CELL - location of temporary entity
+;   ZP_ECS_TEMP_ENTITY (entity to swap with)
+; -----------------------------------------------------------------------------
+ecsLocationSwap:
+  +setRamBank .LOCATION_SYSTEM_BANK
+
+  ; back-up current entity
+  lda ZP_ECS_CURRENT_ENTITY_LSB
+  sta R7L
+  lda ZP_ECS_CURRENT_ENTITY_MSB
+  sta R7H
+
+  ; set new entity
+  lda ZP_ECS_TEMP_ENTITY_LSB
+  sta ZP_ECS_CURRENT_ENTITY_LSB
+  lda ZP_ECS_TEMP_ENTITY_MSB
+  sta ZP_ECS_CURRENT_ENTITY_MSB
+
+  ; set temporary entity to current location
+  jsr ecsLocationSetCurrentEntityType
+  jsr setLocation
+
+  ; restore current entity back
+  lda R7L
+  sta ZP_ECS_CURRENT_ENTITY_LSB
+  lda R7H
+  sta ZP_ECS_CURRENT_ENTITY_MSB
+
+  jsr vSetCurrent
+  lda tileBlank
+  sta VERA_DATA0  
+  lda tileBlank + 1
+  sta VERA_DATA0
+
+  ; set new location
+  lda ZP_TEMP_CELL_X
+  sta ZP_CURRENT_CELL_X
+  lda ZP_TEMP_CELL_Y
+  sta ZP_CURRENT_CELL_Y
+
+  jsr ecsLocationSetCurrentEntityType
+  jsr setLocation
+
+  rts
 
 ; =============================================================================
 ; .setLocationAddressToMsbByCell

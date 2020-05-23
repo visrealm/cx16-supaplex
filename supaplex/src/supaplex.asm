@@ -105,6 +105,7 @@ ADDR_QUEUE_HEADERS = $6000
 !source "src/ecs/systems.asm"
 !source "src/ecs/location.asm"
 !source "src/ecs/animation.asm"
+!source "src/ecs/enemy.asm"
 !source "src/gameobj/murphy.asm"
 !source "src/gameobj/sniksnak.asm"
 !source "src/gameobj/electron.asm"
@@ -115,10 +116,11 @@ ADDR_QUEUE_HEADERS = $6000
 ; -----------------------------------------------------------------------------
 ; temporarily store the level here. TBD: load it!
 ; -----------------------------------------------------------------------------
-LEVEL_NUMBER = 30
+LEVEL_NUMBER = 11
 
 levelNumber: !byte LEVEL_NUMBER
 levelDat: 
+!if LEVEL_NUMBER = 0 { !binary "bin/testlevel.sp" }
 !if LEVEL_NUMBER = 1 { !binary "bin/level1.dat" }
 !if LEVEL_NUMBER = 2 { !binary "bin/level2.dat" }
 !if LEVEL_NUMBER = 3 { !binary "bin/level3.dat" }

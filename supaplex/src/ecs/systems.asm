@@ -22,5 +22,6 @@ ecsRegisterSystems:
 ; tick all ecs systems
 ; -----------------------------------------------------------------------------
 ecsTickSystems:
+  jsr ecsEnemySystemTick
   jsr ecsAnimationSystemTick
   rts  

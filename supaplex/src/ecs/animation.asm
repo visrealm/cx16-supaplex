@@ -232,7 +232,7 @@ animationCallbacks:
   !word bugAnimCB
   !word infotronAnimCB
   !word electronAnimCB
-  !word snikSnakAnimCB
+  !word enemyAnimCB;snikSnakAnimCB
   !word ramAnimCB
   !word hardwareAnimCB
 
@@ -264,7 +264,7 @@ animationCompleteCallback:
   asl
   tax
   jmp (animationCallbacks, x)
-  ; above jump should rts
+  ; above jump will rts
 
 
 ; -----------------------------------------------------------------------------

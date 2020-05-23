@@ -49,6 +49,7 @@ createGameObject:
   jsr setLocation
 
   jmp (objectFactory, x)
+  ; above jump will rts
 
 
 ; -----------------------------------------------------------------------------
