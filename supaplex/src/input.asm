@@ -179,12 +179,12 @@ doInput:
 
 doneTests:
 
-  jsr ecsLocationGetEntity
-  jsr ecsLocationPeekDown
+  ;jsr ecsLocationGetEntity
+  ;jsr ecsLocationPeekDown
 
-  lda ZP_ECS_TEMP_ENTITY_MSB
-  and #$0f
-  jsr hudOutputDebug
+  ;lda ZP_ECS_TEMP_ENTITY_MSB
+  ;and #$0f
+  ;jsr hudOutputDebug
 
   rts
 

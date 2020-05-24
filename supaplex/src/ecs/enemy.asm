@@ -27,18 +27,18 @@ ECS_LOCATION_ASM_ = 1
 .ADDR_ENEMY_STATE_TABLE  = BANKED_RAM_START
 
 ; the direction we're facing
-ENEMY_FACING_LEFT  = $00
-ENEMY_FACING_UP    = $01
-ENEMY_FACING_RIGHT = $02
-ENEMY_FACING_DOWN  = $03
+ENEMY_FACING_LEFT      = $00
+ENEMY_FACING_UP        = $01
+ENEMY_FACING_RIGHT     = $02
+ENEMY_FACING_DOWN      = $03
 
-ENEMY_FLAG_MOVING  = $10
+ENEMY_FLAG_JUST_TURNED = $04
+ENEMY_FLAG_MOVING = $10
 
 ; enemy state
 ; -----------
-; facing    1:0
-; moving     :4
-
+; facing     1:0
+; justTurned  :4
 
 ; -----------------------------------------------------------------------------
 ; ecsEnemySetCurrentEntityType
@@ -139,24 +139,94 @@ ecsEnemySystemTick:
 
 
 ; -----------------------------------------------------------------------------
-; order of cells to search
-; we only search three.
+; order of cells to search. we only search three.
 ; if no matches found, we do the first one (which will result in a left rotation)
+;
+; the normal search sequence for an enemy is (relative to its direction):
+;   left, forward, right
+;
+; immediately after an enemy turns, its search sequence changes
+;   forward, left, right
+;
+
+
 ; -----------------------------------------------------------------------------
-enemySearchTable:
-  !word ecsLocationPeekLeft       ; <- start here if facing up
-  !word ecsLocationPeekUp         ; <- start here if facing right
-  !word ecsLocationPeekRight      ; <- start here if facing down
-  !word ecsLocationPeekDown       ; <- start here if facing left
+; these are mapped to the enemy state flag
+; -----------------------------------------------------------------------------
+enemySearchStep1:
+  !word ecsLocationPeekDown   ; left
+  !word ecsLocationPeekLeft   ; up
+  !word ecsLocationPeekUp     ; right
+  !word ecsLocationPeekRight  ; down
+  !word ecsLocationPeekLeft   ; left - just turned
+  !word ecsLocationPeekUp     ; up - just turned
+  !word ecsLocationPeekRight  ; right - just turned
+  !word ecsLocationPeekDown   ; down - just turned
+
+enemySearchStep2:
   !word ecsLocationPeekLeft
   !word ecsLocationPeekUp
+  !word ecsLocationPeekRight
+  !word ecsLocationPeekDown
+  !word ecsLocationPeekDown
+  !word ecsLocationPeekLeft
+  !word ecsLocationPeekUp
+  !word ecsLocationPeekRight
+
+enemySearchStep3:
+  !word ecsLocationPeekUp
+  !word ecsLocationPeekRight
+  !word ecsLocationPeekDown
+  !word ecsLocationPeekLeft
+  !word ecsLocationPeekUp
+  !word ecsLocationPeekRight
+  !word ecsLocationPeekDown
+  !word ecsLocationPeekLeft
+
+newStateLookup:
+newStateAfterStep1:
+  !byte ENEMY_FACING_DOWN  | ENEMY_FLAG_JUST_TURNED
+  !byte ENEMY_FACING_LEFT  | ENEMY_FLAG_JUST_TURNED
+  !byte ENEMY_FACING_UP    | ENEMY_FLAG_JUST_TURNED
+  !byte ENEMY_FACING_RIGHT | ENEMY_FLAG_JUST_TURNED
+  !byte ENEMY_FACING_LEFT  | ENEMY_FLAG_MOVING
+  !byte ENEMY_FACING_UP    | ENEMY_FLAG_MOVING
+  !byte ENEMY_FACING_RIGHT | ENEMY_FLAG_MOVING
+  !byte ENEMY_FACING_DOWN  | ENEMY_FLAG_MOVING
+
+newStateAfterStep2:
+  !byte ENEMY_FACING_LEFT  | ENEMY_FLAG_MOVING
+  !byte ENEMY_FACING_UP    | ENEMY_FLAG_MOVING
+  !byte ENEMY_FACING_RIGHT | ENEMY_FLAG_MOVING
+  !byte ENEMY_FACING_DOWN  | ENEMY_FLAG_MOVING
+  !byte ENEMY_FACING_DOWN  | ENEMY_FLAG_JUST_TURNED
+  !byte ENEMY_FACING_LEFT  | ENEMY_FLAG_JUST_TURNED
+  !byte ENEMY_FACING_UP    | ENEMY_FLAG_JUST_TURNED
+  !byte ENEMY_FACING_RIGHT | ENEMY_FLAG_JUST_TURNED
+
+
+newStateAfterStep3:
+  !byte ENEMY_FACING_UP    | ENEMY_FLAG_JUST_TURNED
+  !byte ENEMY_FACING_RIGHT | ENEMY_FLAG_JUST_TURNED
+  !byte ENEMY_FACING_DOWN  | ENEMY_FLAG_JUST_TURNED
+  !byte ENEMY_FACING_LEFT  | ENEMY_FLAG_JUST_TURNED
+  !byte ENEMY_FACING_UP    | ENEMY_FLAG_JUST_TURNED
+  !byte ENEMY_FACING_RIGHT | ENEMY_FLAG_JUST_TURNED
+  !byte ENEMY_FACING_DOWN  | ENEMY_FLAG_JUST_TURNED
+  !byte ENEMY_FACING_LEFT  | ENEMY_FLAG_JUST_TURNED
+
 
 
 
 ; y - set to index into enemySearchTable
-.enemyPeek:
-  jmp (enemySearchTable, x)
-  ; above jump will rts
+.enemyPeekStep1:
+  jmp (enemySearchStep1, x)
+  
+.enemyPeekStep2:
+  jmp (enemySearchStep2, x)
+
+.enemyPeekStep3:
+  jmp (enemySearchStep3, x)
 
 ; -----------------------------------------------------------------------------
 ; enemyAnimCB
@@ -170,58 +240,72 @@ enemySearchTable:
 enemyAnimCB:
 
   jsr getEnemyState
-  and #$0f
   sta ZP_ECS_ENEMY_STATE_CURRENT
+
+
+  +dbgBreak
+
+  and #$07 ; only care about first 3 bits
   asl   ; double it because we're searching words
   tax
-  lda #-1
-  sta TS_TESTING
+  stz R5H ; count of tests
 
-!for i, 1, 3 {
-  jsr .enemyPeek
-;+dbgBreak
+  jsr .enemyPeekStep1
   lda ZP_ECS_TEMP_ENTITY_MSB
   and #$0f
-  beq .endSearch
-  inc TS_TESTING
-  inx ; try next location
-  inx
-}
+  beq .endSearch ;  is empty?
+  inc R5H
+
+  jsr .enemyPeekStep2
+  lda ZP_ECS_TEMP_ENTITY_MSB
+  and #$0f
+  beq .endSearch ;  is empty?
+  inc R5H
+
+  jsr .enemyPeekStep3
+  lda ZP_ECS_TEMP_ENTITY_MSB
+  and #$0f
+  beq .endSearch ;  is empty?
+  stz R5H  ; clear count.. do the first one
+
+  ; no match found. doesn't matter we just turned in that case
+  ; reset that flag
+  lda ZP_ECS_ENEMY_STATE_CURRENT
+  and #!ENEMY_FLAG_JUST_TURNED
+  sta ZP_ECS_ENEMY_STATE_CURRENT
+
 
 .endSearch
-  ; here. ZP_ECS_TEMP_ENTITY_MSB is where we're going (if we're going)
-  ; R5 contains relative direction from UP
-  lda TS_TESTING
-  bne +
-  ; same direction... we're moving!
+
+  lda ZP_ECS_ENEMY_STATE_CURRENT
+  and #$07 ; only care about first 3 bits
+
+; now we want to find our new state, so need to look it up
+;  address is computed by taking current state and adding
+;  8 for the number of steps taken to find our new state
+  clc
+  ldx R5H
+.stateLookupLoop  
+  beq +
+  adc #8  ; skip 8 bytes in our lookup
+  dex
+  bra .stateLookupLoop
++
+  tax
+  lda newStateLookup, x
+  +dbgBreak
+  ; set the new state. but ZP_ECS_ENEMY_STATE_CURRENT 
+  ; can still be used to compare with old state
+  jsr setEnemyState 
+  
+  bit #ENEMY_FLAG_MOVING
+  beq +
+
+  ; moving
   jsr ecsLocationSwap
-  bra .doneTest
 
 +
-  ; different direction, we're rotating
-  cmp #1   ; if offset is 1, we're turning right. otherwise, left
-  beq .turnRight
-.turnLeft
-  lda ZP_ECS_ENEMY_STATE_CURRENT
-  dec
-  bpl .saveState
-  clc
-  adc #4
-  bra .saveState
-
-.turnRight
-;+dbgBreak
-  lda ZP_ECS_ENEMY_STATE_CURRENT
-  inc
-  cmp #4
-  bne .saveState
-  lda #0
-.saveState
-
-  sta ZP_ECS_ENEMY_STATE_CURRENT
-  jsr setEnemyState
-
-.doneTest:
+  ; not moving
 
   ;sta ZP_ECS_CURRENT_ANIM_ID
   stz ZP_ECS_CURRENT_ANIM_FL

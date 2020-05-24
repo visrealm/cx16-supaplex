@@ -68,7 +68,6 @@ snikSnakAnimCB:
 .doneSnikSnak:  
   sta ZP_ECS_CURRENT_ANIM_ID
   stz ZP_ECS_CURRENT_ANIM_FL
-  jsr ecsAnimationPush
   jmp enemyAnimCB
 
 ; -----------------------------------------------------------------------------

@@ -22,15 +22,13 @@ createElectron:
   lda #ENEMY_FACING_UP
   jsr setEnemyState
 
-  ;+dbgBreak
-
   jsr ecsAnimSetCurrentEntityType
 
   lda #(animElectron - animationDefs) >> 3
   sta ZP_ECS_CURRENT_ANIM_ID
-  ;lda #ANIM_FLAG_REPEAT
   stz ZP_ECS_CURRENT_ANIM_FL
   jsr setAnimation
+  
   jsr ecsAnimationPush
   rts
 
@@ -56,7 +54,6 @@ electronAnimCB:
 .doneElectron:  
   sta ZP_ECS_CURRENT_ANIM_ID
   stz ZP_ECS_CURRENT_ANIM_FL
-  jsr ecsAnimationPush
   jmp enemyAnimCB
   ;rts
 
