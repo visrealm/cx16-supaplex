@@ -434,6 +434,13 @@ ecsLocationSwap:
   jsr ecsLocationSetCurrentEntityType
   jsr setLocation
 
+  ; Here, we want to look at cells adjacent
+  ; the newly blank cell (above for fallers)
+  ; and (left and right, above-left and above-right
+  ; for rollers) and let them know a space just opened up. 
+  ; perhaps we add them to a queue to process on the next frame?
+  jsr adjacentCellClearedCB
+
   rts
 
 ; =============================================================================

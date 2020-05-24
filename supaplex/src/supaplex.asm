@@ -106,6 +106,7 @@ ADDR_QUEUE_HEADERS = $6000
 !source "src/ecs/location.asm"
 !source "src/ecs/animation.asm"
 !source "src/ecs/enemy.asm"
+!source "src/ecs/falling.asm"
 !source "src/gameobj/murphy.asm"
 !source "src/gameobj/sniksnak.asm"
 !source "src/gameobj/electron.asm"

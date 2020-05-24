@@ -16,6 +16,8 @@
 ecsRegisterSystems:
   jsr ecsAnimationSystemInit
   jsr ecsLocationSystemInit
+  jsr ecsEnemySystemInit
+  jsr ecsFallingSystemInit
   rts
 
 ; -----------------------------------------------------------------------------
@@ -23,5 +25,6 @@ ecsRegisterSystems:
 ; -----------------------------------------------------------------------------
 ecsTickSystems:
   jsr ecsEnemySystemTick
+  jsr ecsFallingSystemTick
   jsr ecsAnimationSystemTick
   rts  
