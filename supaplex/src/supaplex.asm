@@ -116,7 +116,7 @@ ADDR_QUEUE_HEADERS = $6000
 ; -----------------------------------------------------------------------------
 ; temporarily store the level here. TBD: load it!
 ; -----------------------------------------------------------------------------
-LEVEL_NUMBER = 0
+LEVEL_NUMBER = 1
 
 levelNumber: !byte LEVEL_NUMBER
 levelDat: 

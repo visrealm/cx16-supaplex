@@ -87,9 +87,6 @@ snikSnakAnimCB:
   jsr enemyAnimCB
 
   tax
-
-  jsr hudOutputDebug
-  +dbgBreak
     
   lda animationIdTable, x
   sta ZP_ECS_CURRENT_ANIM_ID

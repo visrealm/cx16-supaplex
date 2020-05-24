@@ -268,7 +268,7 @@ enemyAnimCB:
   ; no match found. doesn't matter we just turned in that case
   ; reset that flag
   lda ZP_ECS_ENEMY_STATE_CURRENT
-  and #!ENEMY_FLAG_JUST_TURNED
+  and #$03;!ENEMY_FLAG_JUST_TURNED
   sta ZP_ECS_ENEMY_STATE_CURRENT
 
 
@@ -280,10 +280,10 @@ enemyAnimCB:
 ; now we want to find our new state, so need to look it up
 ;  address is computed by taking current state and adding
 ;  8 for the number of steps taken to find our new state
-  clc
   ldx R5H
 .stateLookupLoop  
   beq +
+  clc
   adc #8  ; skip 8 bytes in our lookup
   dex
   bra .stateLookupLoop
@@ -302,6 +302,9 @@ enemyAnimCB:
   jsr ecsLocationSwap
 
 +
+  lda R5H
+  and #$03
+  sta R5H
 
   ; now, in A, we'll store the old and new directions
   ; so our spscific enemy can animate it if he feels so inclined
@@ -312,6 +315,7 @@ enemyAnimCB:
   asl
   ora R5H
   and #$0f
+
 
   rts
 
