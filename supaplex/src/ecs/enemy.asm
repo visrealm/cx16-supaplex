@@ -242,9 +242,6 @@ enemyAnimCB:
   jsr getEnemyState
   sta ZP_ECS_ENEMY_STATE_CURRENT
 
-
-  +dbgBreak
-
   and #$07 ; only care about first 3 bits
   asl   ; double it because we're searching words
   tax
@@ -293,9 +290,9 @@ enemyAnimCB:
 +
   tax
   lda newStateLookup, x
-  +dbgBreak
   ; set the new state. but ZP_ECS_ENEMY_STATE_CURRENT 
   ; can still be used to compare with old state
+  sta R5H
   jsr setEnemyState 
   
   bit #ENEMY_FLAG_MOVING
@@ -305,12 +302,16 @@ enemyAnimCB:
   jsr ecsLocationSwap
 
 +
-  ; not moving
 
-  ;sta ZP_ECS_CURRENT_ANIM_ID
-  stz ZP_ECS_CURRENT_ANIM_FL
-  jsr ecsAnimationPush
-
+  ; now, in A, we'll store the old and new directions
+  ; so our spscific enemy can animate it if he feels so inclined
+  ; (3:2) old direction   (1:0) new direction
+  lda ZP_ECS_ENEMY_STATE_CURRENT ; load old state
+  and #$03 ; only care about direction
+  asl
+  asl
+  ora R5H
+  and #$0f
 
   rts
 

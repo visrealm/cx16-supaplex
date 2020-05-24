@@ -111,7 +111,10 @@ getLocation:
   ; get y location
   lda (ZP_ECS_TILE_Y_TABLE), y
   sta ZP_CURRENT_CELL_Y
-  jsr ecsLocationGetEntity
+
+  ; TODO: Shouldn't need this call to ecsLocationGetEntity
+  ;       It's not being set correctly somewhere
+  jsr ecsLocationGetEntity  
 
 !ifdef DEBUG { ; debug sanity check
   pha

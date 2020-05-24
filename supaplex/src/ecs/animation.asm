@@ -24,7 +24,8 @@ ECS_ANIMATION_ASM_ = 1
 .ADDR_ANIM_ID_TABLE  = BANKED_RAM_START
 .ADDR_ANIM_FL_TABLE  = BANKED_RAM_START + $1000
 
-ANIM_FLAG_REPEAT = $80
+ANIM_FLAG_REPEAT  = $80
+ANIM_FLAG_REVERSE = $40   ; reverse the order of frames
 
 ; -----------------------------------------------------------------------------
 ; ecsAnimSetCurrentEntityType
@@ -199,10 +200,14 @@ animSnikU2L: +animDef 0, tileSnikUp, tileSnikUp, tileSnikUl, tileSnikUl, tileSni
 animSnikL2D: +animDef 1, tileSnikL, tileSnikL, tileSnikDl, tileSnikDl, tileSnikDl, tileSnikDl, tileSnikDn, tileSnikDn
 animSnikD2R: +animDef 2, tileSnikDn, tileSnikDn, tileSnikDr, tileSnikDr, tileSnikDr, tileSnikDr, tileSnikR, tileSnikR
 animSnikR2U: +animDef 3, tileSnikR, tileSnikR, tileSnikUr, tileSnikUr, tileSnikUr, tileSnikUr, tileSnikUp, tileSnikUp
-animTermGreen: +animDef 5, tileConsoleGn1, tileConsoleGn1, tileConsoleGn2, tileConsoleGn2, tileConsoleGn3, tileConsoleGn3, tileConsoleGn4, tileConsoleGn4
-animTermReg:   +animDef 6, tileConsoleRd1, tileConsoleRd2, tileConsoleRd3, tileConsoleRd4, tileConsoleRd5, tileConsoleRd6, tileConsoleRd7, tileConsoleRd8
-animElectron:  +animDef 7,  tileElectron1, tileElectron2, tileElectron2, tileElectron3, tileElectron4, tileElectron5, tileElectron6, tileElectron6
-animElectron2:  +animDef 8, tileElectron7, tileElectron7, tileElectron6, tileElectron5, tileElectron4, tileElectron3, tileElectron2, tileElectron2
+animSnikU2U: +animDef 4, tileSnikUp1, tileSnikUp2, tileSnikUp3, tileSnikUp4, tileSnikUp5, tileSnikUp6, tileSnikUp7, tileSnikUp8
+animSnikL2L: +animDef 5, tileSnikLeft1, tileSnikLeft2, tileSnikLeft3, tileSnikLeft4, tileSnikLeft5, tileSnikLeft6, tileSnikLeft7, tileSnikLeft8
+animSnikD2D: +animDef 6, tileSnikDown1, tileSnikDown2, tileSnikDown3, tileSnikDown4, tileSnikDown5, tileSnikDown6, tileSnikDown7, tileSnikDown8
+animSnikR2R: +animDef 7, tileSnikRight1, tileSnikRight2, tileSnikRight3, tileSnikRight4, tileSnikRight5, tileSnikRight6, tileSnikRight7, tileSnikRight8
+animTermGreen: +animDef 8, tileConsoleGn1, tileConsoleGn1, tileConsoleGn2, tileConsoleGn2, tileConsoleGn3, tileConsoleGn3, tileConsoleGn4, tileConsoleGn4
+animTermReg:   +animDef 9, tileConsoleRd1, tileConsoleRd2, tileConsoleRd3, tileConsoleRd4, tileConsoleRd5, tileConsoleRd6, tileConsoleRd7, tileConsoleRd8
+animElectron:  +animDef 10,  tileElectron1, tileElectron2, tileElectron2, tileElectron3, tileElectron4, tileElectron5, tileElectron6, tileElectron6
+animElectron2:  +animDef 11, tileElectron7, tileElectron7, tileElectron6, tileElectron5, tileElectron4, tileElectron3, tileElectron2, tileElectron2
 
 ; TODO: Add a lookup for the above to save computing the address each time
 
@@ -232,7 +237,7 @@ animationCallbacks:
   !word bugAnimCB
   !word infotronAnimCB
   !word electronAnimCB
-  !word enemyAnimCB;snikSnakAnimCB
+  !word snikSnakAnimCB
   !word ramAnimCB
   !word hardwareAnimCB
 
@@ -309,7 +314,9 @@ ecsAnimationSystemTick:
   +vchannel0
   ldx .entityLsbQueueId
   jsr qSize
-  beq .end
+  bne +
+  rts
++
 
   sta R9 ; store queue size in R9
   
@@ -351,11 +358,24 @@ ecsAnimationSystemTick:
   sta TMP_ANIM_DEF_ADDR_H
 
   lda ZP_ECS_CURRENT_ANIM_FL   ; step (3:0)  TODO: account for (7:4)
+  bit #ANIM_FLAG_REVERSE
+  bne +
+  ; forward
   and #$0f
   tay
   lda (TMP_ANIM_DEF_ADDR), y
   iny
-  inc  ZP_ECS_CURRENT_ANIM_FL
+  inc ZP_ECS_CURRENT_ANIM_FL
+  bra .afterInc
++
+  ; reverse
+  and #$0f
+  tay
+  lda (TMP_ANIM_DEF_ADDR), y
+  dey
+  dec ZP_ECS_CURRENT_ANIM_FL
+
+.afterInc
 
   ; here, a is the tile Id
   jsr outputTile

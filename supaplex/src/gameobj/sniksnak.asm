@@ -26,11 +26,51 @@ createSnikSnak:
   jsr ecsAnimSetCurrentEntityType
   lda #(animSnikU2L - animationDefs) >> 3
   sta ZP_ECS_CURRENT_ANIM_ID
-  stz ZP_ECS_CURRENT_ANIM_FL
+  lda #0
+  sta ZP_ECS_CURRENT_ANIM_FL
   jsr setAnimation
 
   jsr ecsAnimationPush
   rts
+
+
+animationIdTable:
+.l2lId: !byte (animSnikL2L - animationDefs) >> 3  ; todo
+.l2uId: !byte (animSnikU2L - animationDefs) >> 3  ; r
+.l2rId: !byte 0
+.l2dId: !byte (animSnikL2D - animationDefs) >> 3
+.u2lId: !byte (animSnikU2L - animationDefs) >> 3
+.u2uId: !byte (animSnikU2U - animationDefs) >> 3  ; todo
+.u2rId: !byte (animSnikR2U - animationDefs) >> 3  ; r
+.u2dId: !byte 0
+.r2lId: !byte 0
+.r2uId: !byte (animSnikR2U - animationDefs) >> 3 
+.r2rId: !byte (animSnikR2R - animationDefs) >> 3  ; todo
+.r2dId: !byte (animSnikD2R - animationDefs) >> 3  ; r
+.d2lId: !byte (animSnikL2D - animationDefs) >> 3  ;IdrId
+.d2uId: !byte 0
+.d2rId: !byte (animSnikD2R - animationDefs) >> 3 
+.d2dId: !byte (animSnikD2D - animationDefs) >> 3 ; todo
+
+
+animationFlTable:
+.l2lFl: !byte 0
+.l2uFl: !byte ANIM_FLAG_REVERSE | $07
+.l2rFl: !byte 0
+.l2dFl: !byte 0
+.u2lFl: !byte 0
+.u2uFl: !byte 0
+.u2rFl: !byte ANIM_FLAG_REVERSE | $07
+.u2dFl: !byte 0
+.r2lFl: !byte 0
+.r2uFl: !byte 0
+.r2rFl: !byte 0
+.r2dFl: !byte ANIM_FLAG_REVERSE | $07
+.d2lFl: !byte ANIM_FLAG_REVERSE | $07
+.d2uFl: !byte 0
+.d2rFl: !byte 0
+.d2dFl: !byte 0
+
 
 
 ; -----------------------------------------------------------------------------
@@ -43,33 +83,22 @@ createSnikSnak:
 ;  ZP_ECS_CURRENT_ANIM_ID, ZP_ECS_CURRENT_ANIM_FL
 ; -----------------------------------------------------------------------------
 snikSnakAnimCB:
-  lda ZP_ECS_CURRENT_ANIM_ID
-  cmp #(animSnikU2L - animationDefs) >> 3
-  bne +
-  lda #(animSnikL2D - animationDefs) >> 3
-  bra .doneSnikSnak
-+
-  cmp #(animSnikL2D - animationDefs) >> 3
-  bne +
-  lda #(animSnikD2R - animationDefs) >> 3
-  bra .doneSnikSnak
-+
-  cmp #(animSnikD2R - animationDefs) >> 3
-  bne +
-  lda #(animSnikR2U - animationDefs) >> 3
-  bra .doneSnikSnak
-+
-  cmp #(animSnikR2U - animationDefs) >> 3
-  bne +
-  lda #(animSnikU2L - animationDefs) >> 3
-  bra .doneSnikSnak
-+
 
-.doneSnikSnak:  
+  jsr enemyAnimCB
+
+  tax
+
+  jsr hudOutputDebug
+  +dbgBreak
+    
+  lda animationIdTable, x
   sta ZP_ECS_CURRENT_ANIM_ID
-  stz ZP_ECS_CURRENT_ANIM_FL
-  jmp enemyAnimCB
+  lda animationFlTable, x
+  sta ZP_ECS_CURRENT_ANIM_FL
 
+  jsr ecsAnimationPush
+
+  rts
 ; -----------------------------------------------------------------------------
 
 
