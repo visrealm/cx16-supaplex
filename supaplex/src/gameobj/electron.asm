@@ -43,19 +43,25 @@ createElectron:
 ;  ZP_ECS_CURRENT_ANIM_ID, ZP_ECS_CURRENT_ANIM_FL
 ; -----------------------------------------------------------------------------
 electronAnimCB:
-  lda ZP_ECS_CURRENT_ANIM_ID
+
+  jsr enemyAnimCB
+
+  tax
+
   cmp #(animElectron - animationDefs) >> 3
   bne +
   lda #(animElectron2 - animationDefs) >> 3
   bra .doneElectron
 +
   lda #(animElectron - animationDefs) >> 3
+.doneElectron:
 
-.doneElectron:  
   sta ZP_ECS_CURRENT_ANIM_ID
   stz ZP_ECS_CURRENT_ANIM_FL
-  jmp enemyAnimCB
-  ;rts
+
+  jsr ecsAnimationPush
+
+  rts
 
 
 ; -----------------------------------------------------------------------------
