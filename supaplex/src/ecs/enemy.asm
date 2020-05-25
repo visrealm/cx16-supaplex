@@ -55,16 +55,18 @@ ecsEnemySetCurrentEntityType:
   sta ZP_ECS_ENEMY_STATE_TABLE_MSB
   rts
 
+!ifdef SANITY {
 .debugCurrentEntityTypeSanityCheck:
   pha
   lda ZP_ECS_ENEMY_STATE_TABLE_MSB
   and #$0f
   cmp ZP_ECS_CURRENT_ENTITY_MSB
   beq +
-  +dbgBreak
+  +dbgSanityCheckBreak
 +
   pla
   rts
+}
 
 ; -----------------------------------------------------------------------------
 ; setEnemyState
@@ -75,7 +77,7 @@ ecsEnemySetCurrentEntityType:
 ; -----------------------------------------------------------------------------
 setEnemyState:
 
-!ifdef DEBUG {
+!ifdef SANITY {
   jsr .debugCurrentEntityTypeSanityCheck
 }
 
@@ -101,7 +103,7 @@ setEnemyState:
 ; -----------------------------------------------------------------------------
 getEnemyState:
 
-!ifdef DEBUG {
+!ifdef SANITY {
   jsr .debugCurrentEntityTypeSanityCheck
 }
 
@@ -246,7 +248,9 @@ newStateAfterStep3:
 ;  ZP_ECS_CURRENT_ANIM_ID, ZP_ECS_CURRENT_ANIM_FL
 ; -----------------------------------------------------------------------------
 enemyAnimCB:
+  jsr ecsLocationGetEntity
 
+  jsr ecsEnemySetCurrentEntityType
   jsr getEnemyState
   sta ZP_ECS_ENEMY_STATE_CURRENT
 

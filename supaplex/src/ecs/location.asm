@@ -39,15 +39,17 @@ ecsLocationSetCurrentEntityType:
   sta ZP_ECS_TILE_Y_TABLE_MSB
   rts
 
+!ifdef SANITY {
 .debugCurrentEntityTypeSanityCheck:
 
   lda ZP_ECS_TILE_X_TABLE_MSB
   eor ZP_ECS_CURRENT_ENTITY_MSB
   and #$0f
   beq +
-  +dbgBreak
+  +dbgSanityCheckBreak
 +
   rts
+}
 
 ; -----------------------------------------------------------------------------
 ; setLocation
@@ -59,7 +61,7 @@ ecsLocationSetCurrentEntityType:
 ; -----------------------------------------------------------------------------
 setLocation:
 
-!ifdef DEBUG {
+!ifdef SANITY {
   jsr .debugCurrentEntityTypeSanityCheck
 }
 
@@ -93,7 +95,7 @@ setLocation:
 ;   ZP_CURRENT_CELL_Y
 ; -----------------------------------------------------------------------------
 getLocation:
-!ifdef DEBUG {
+!ifdef SANITY {
   jsr .debugCurrentEntityTypeSanityCheck
 }
 
@@ -111,28 +113,6 @@ getLocation:
   ; get y location
   lda (ZP_ECS_TILE_Y_TABLE), y
   sta ZP_CURRENT_CELL_Y
-
-  ; TODO: Shouldn't need this call to ecsLocationGetEntity
-  ;       It's not being set correctly somewhere
-  jsr ecsLocationGetEntity  
-
-!ifdef DEBUG { ; debug sanity check
-  pha
-  phx
-  ldy ZP_ECS_CURRENT_ENTITY_LSB
-  ldx ZP_ECS_CURRENT_ENTITY_MSB
-  jsr ecsLocationGetEntity
-  cpy ZP_ECS_CURRENT_ENTITY_LSB
-  beq +
-  +dbgBreak
-+
-  cpx ZP_ECS_CURRENT_ENTITY_MSB
-  beq +
-  +dbgBreak
-+
-  plx
-  pla
-}  
 
   ply
   rts
@@ -155,6 +135,32 @@ ecsLocationSystemInit:
   stz ZP_ECS_TILE_Y_TABLE_LSB
   rts
 
+
+; =============================================================================
+; .setLocationAddressToMsbByCell
+; -----------------------------------------------------------------------------
+; Sets ZP_ECS_LOCATION_SYSTEM for the msb address of ZP_CURRENT_CELL
+; -----------------------------------------------------------------------------
+!macro setLocationAddressToMsbByCell {
+
+  ; cell address: two rows per 256 byte page
+  ; even row [0 -> 119],  odd row [128 -> 247]
+  ; [x0, y0, x1, y1, x2, y2, etc.]
+
+  stz ZP_ECS_LOCATION_SYSTEM_LSB
+  lda ZP_CURRENT_CELL_Y
+  lsr                              ; halve it. we get two rows per 256 byte page
+  ror ZP_ECS_LOCATION_SYSTEM_LSB   ; if y was odd, then start at 128 in current page
+  ora #>BANKED_RAM_START           ; set high nibble (would need to add if it wasn't a 4KB mutiple)
+  sta ZP_ECS_LOCATION_SYSTEM_MSB
+  lda ZP_CURRENT_CELL_X            ; double x since we stoe two bytes per cell (entity id)
+  asl
+  inc  ; add one to get msb. This saves us some time in callers
+       ; where we started at lsb, moved to msb, then back again
+  ora ZP_ECS_LOCATION_SYSTEM_LSB
+  sta ZP_ECS_LOCATION_SYSTEM_LSB
+}
+
 ; -----------------------------------------------------------------------------
 ; ecsLocationSetEntity
 ; -----------------------------------------------------------------------------
@@ -165,8 +171,9 @@ ecsLocationSystemInit:
 ;   ZP_ECS_LOCATION_SYSTEM will be set to cell LSB
 ; -----------------------------------------------------------------------------
 ecsLocationSetEntity:
+  +setRamBank .LOCATION_SYSTEM_BANK
 
-  jsr .setLocationAddressToMsbByCell ; TODO: macro to save 12 cycles?
+  +setLocationAddressToMsbByCell
 
   lda ZP_ECS_CURRENT_ENTITY_MSB
   sta (ZP_ECS_LOCATION_SYSTEM)
@@ -187,8 +194,9 @@ ecsLocationSetEntity:
 ;   ZP_ECS_CURRENT_ENTITY - also ZP_ECS_LOCATION_SYSTEM is set to cell LSB
 ; -----------------------------------------------------------------------------
 ecsLocationGetEntity:
+  +setRamBank .LOCATION_SYSTEM_BANK
 
-  jsr .setLocationAddressToMsbByCell   ; TODO: macro to save 12 cycles?
+  +setLocationAddressToMsbByCell
 
   lda (ZP_ECS_LOCATION_SYSTEM)
   sta ZP_ECS_CURRENT_ENTITY_MSB
@@ -198,6 +206,35 @@ ecsLocationGetEntity:
   lda (ZP_ECS_LOCATION_SYSTEM)
   sta ZP_ECS_CURRENT_ENTITY_LSB
   rts
+
+
+; -----------------------------------------------------------------------------
+; Before we start peeking, ecsLocationGetEntity needs to be called
+; -----------------------------------------------------------------------------
+!ifdef SANITY { ; debug sanity check
+.peekSanityCheck:
+  pha
+  phx
+  phy
+
+  ; check if ecsLocationGetEntity as called
+  ; before this
+  ldy ZP_ECS_LOCATION_SYSTEM_LSB
+  ldx ZP_ECS_LOCATION_SYSTEM_MSB
+  jsr ecsLocationGetEntity 
+  cpy ZP_ECS_LOCATION_SYSTEM_LSB
+  beq +
+  +dbgSanityCheckBreak
++
+  cpx ZP_ECS_LOCATION_SYSTEM_MSB
+  beq +
+  +dbgSanityCheckBreak
++  
+  ply
+  plx
+  pla
+  rts
+}  
 
 
 ; -----------------------------------------------------------------------------
@@ -211,6 +248,10 @@ ecsLocationGetEntity:
 ; -----------------------------------------------------------------------------
 ecsLocationPeekLeft:
   +setRamBank .LOCATION_SYSTEM_BANK
+
+  !ifdef SANITY {
+    jsr .peekSanityCheck
+  }
 
   ; update temp cell to point to last cell peeked
   lda ZP_CURRENT_CELL_X
@@ -246,6 +287,10 @@ ecsLocationPeekLeft:
 ecsLocationPeekRight:
   +setRamBank .LOCATION_SYSTEM_BANK
 
+  !ifdef SANITY {
+    jsr .peekSanityCheck
+  }
+
   ; update temp cell to point to last cell peeked
   lda ZP_CURRENT_CELL_X
   inc
@@ -253,18 +298,14 @@ ecsLocationPeekRight:
   lda ZP_CURRENT_CELL_Y
   sta ZP_TEMP_CELL_Y
 
-  ldy ZP_ECS_LOCATION_SYSTEM_LSB ; backup current location
+  ldy #2
 
-  inc ZP_ECS_LOCATION_SYSTEM_LSB
-  inc ZP_ECS_LOCATION_SYSTEM_LSB
-  lda (ZP_ECS_LOCATION_SYSTEM)
+  lda (ZP_ECS_LOCATION_SYSTEM), y
   sta ZP_ECS_TEMP_ENTITY_LSB
 
-  inc ZP_ECS_LOCATION_SYSTEM_LSB
-  lda (ZP_ECS_LOCATION_SYSTEM)
+  iny
+  lda (ZP_ECS_LOCATION_SYSTEM), y
   sta ZP_ECS_TEMP_ENTITY_MSB
-
-  sty ZP_ECS_LOCATION_SYSTEM_LSB ; restore current location
 
   rts  
 
@@ -281,6 +322,10 @@ ecsLocationPeekRight:
 ecsLocationPeekUp:
   +setRamBank .LOCATION_SYSTEM_BANK
 
+  !ifdef SANITY {
+    jsr .peekSanityCheck
+  }
+
   ; update temp cell to point to last cell peeked
   lda ZP_CURRENT_CELL_X
   sta ZP_TEMP_CELL_X
@@ -290,7 +335,7 @@ ecsLocationPeekUp:
 
   ldy ZP_ECS_LOCATION_SYSTEM_LSB
   tya
-  eor #$80   ; toggle first bit (switches from left or right bank)
+  eor #$80   ; toggle first bit (switches between odd and even rows)
   sta ZP_ECS_LOCATION_SYSTEM_LSB
 
   bpl +
@@ -327,6 +372,10 @@ ecsLocationPeekUp:
 ecsLocationPeekDown:
   +setRamBank .LOCATION_SYSTEM_BANK
 
+  !ifdef SANITY {
+    jsr .peekSanityCheck
+  }
+
   ; update temp cell to point to last cell peeked
   lda ZP_CURRENT_CELL_X
   sta ZP_TEMP_CELL_X
@@ -336,11 +385,11 @@ ecsLocationPeekDown:
 
   ldy ZP_ECS_LOCATION_SYSTEM_LSB
   tya
-  eor #$80   ; toggle first bit (switches from left or right bank)
+  eor #$80   ; toggle first bit (switches between odd and even rows)
   sta ZP_ECS_LOCATION_SYSTEM_LSB
 
   bmi +
-    inc ZP_ECS_LOCATION_SYSTEM_MSB ; go back a page
+    inc ZP_ECS_LOCATION_SYSTEM_MSB ; go forward a page
 +
 
   lda (ZP_ECS_LOCATION_SYSTEM)
@@ -352,7 +401,7 @@ ecsLocationPeekDown:
 
   cpy #$80
   bmi +
-    dec ZP_ECS_LOCATION_SYSTEM_MSB ; go forward a page
+    dec ZP_ECS_LOCATION_SYSTEM_MSB ; go back a page
 +
 
   sty ZP_ECS_LOCATION_SYSTEM_LSB ; restore current location
@@ -439,34 +488,9 @@ ecsLocationSwap:
   ; and (left and right, above-left and above-right
   ; for rollers) and let them know a space just opened up. 
   ; perhaps we add them to a queue to process on the next frame?
-  jsr adjacentCellClearedCB
+  
+  ;jsr adjacentCellClearedCB
 
-  rts
-
-; =============================================================================
-; .setLocationAddressToMsbByCell
-; -----------------------------------------------------------------------------
-; Sets ZP_ECS_LOCATION_SYSTEM for the msb address of ZP_CURRENT_CELL
-; -----------------------------------------------------------------------------
-.setLocationAddressToMsbByCell:
-  +setRamBank .LOCATION_SYSTEM_BANK
-
-  ; cell address: two rows per 256 byte page
-  ; even row [0 -> 119],  odd row [128 -> 247]
-  ; [x0, y0, x1, y1, x2, y2, etc.]
-
-  stz ZP_ECS_LOCATION_SYSTEM_LSB
-  lda ZP_CURRENT_CELL_Y
-  lsr                              ; halve it. we get two rows per 256 byte page
-  ror ZP_ECS_LOCATION_SYSTEM_LSB   ; if y was odd, then start at 128 in current page
-  ora #>BANKED_RAM_START           ; set high nibble (would need to add if it wasn't a 4KB mutiple)
-  sta ZP_ECS_LOCATION_SYSTEM_MSB
-  lda ZP_CURRENT_CELL_X
-  asl
-  inc  ; add one to get msb. This saves us some time in callers
-       ; where we starteded at lsb, moved to msb, then back again
-  adc ZP_ECS_LOCATION_SYSTEM_LSB
-  sta ZP_ECS_LOCATION_SYSTEM_LSB
   rts
 
 }; ecsLocationSystem

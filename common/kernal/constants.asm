@@ -30,6 +30,13 @@ BANKED_RAM_END      = $BFFF
 ROM_BANK            = $9F60
 RAM_BANK            = $9F61
 
+; have a separate one for sanity checks
+; so I can find the others I use temporarily
+; easier
+!macro dbgSanityCheckBreak {
+  !ifdef SANITY { !byte $ff }
+}
+
 !macro dbgBreak {
   !ifdef DEBUG { !byte $ff }
 }

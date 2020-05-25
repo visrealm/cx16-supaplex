@@ -49,7 +49,7 @@ ecsAnimSetCurrentEntityType:
   and #$0f
   cmp ZP_ECS_CURRENT_ENTITY_MSB
   beq +
-  +dbgBreak
+  +dbgSanityCheckBreak
 +
   pla
   rts
@@ -64,7 +64,7 @@ ecsAnimSetCurrentEntityType:
 ; -----------------------------------------------------------------------------
 setAnimation:
 
-!ifdef DEBUG {
+!ifdef SANITY {
   jsr .debugCurrentEntityTypeSanityCheck
 }
 
@@ -96,7 +96,7 @@ setAnimation:
 ; -----------------------------------------------------------------------------
 getAnimation:
 
-!ifdef DEBUG {
+!ifdef SANITY {
   jsr .debugCurrentEntityTypeSanityCheck
 }
 
