@@ -35,6 +35,7 @@ ecsLocationSetCurrentEntityType:
   and #$0f
   ora #>.ADDR_TILE_X_TABLE
   sta ZP_ECS_TILE_X_TABLE_MSB
+  clc
   adc #>(.ADDR_TILE_Y_TABLE - .ADDR_TILE_X_TABLE)
   sta ZP_ECS_TILE_Y_TABLE_MSB
   rts
@@ -66,7 +67,6 @@ setLocation:
 }
 
   +setRamBank .LOCATION_COMPONENT_BANK
-  phy
 
   ; index
   ldy ZP_ECS_CURRENT_ENTITY_LSB
@@ -82,7 +82,6 @@ setLocation:
   ; set this entity in the location map
   jsr ecsLocationSetEntity
 
-  ply
   rts
 
 ; -----------------------------------------------------------------------------
@@ -101,8 +100,6 @@ getLocation:
 
   +setRamBank .LOCATION_COMPONENT_BANK
   
-  phy
-
   ; index
   ldy ZP_ECS_CURRENT_ENTITY_LSB
 
@@ -114,7 +111,6 @@ getLocation:
   lda (ZP_ECS_TILE_Y_TABLE), y
   sta ZP_CURRENT_CELL_Y
 
-  ply
   rts
 
 } ; ecsLocationComponent
@@ -427,8 +423,8 @@ ecsLocationClearTemp:
   ldy #0
   jsr ecsEntityCreate
   jsr ecsLocationSetCurrentEntityType
-  jsr setLocation
-  rts
+  jmp setLocation
+  ; rts
 
 
 ; -----------------------------------------------------------------------------
@@ -457,6 +453,10 @@ ecsLocationSwap:
   sta ZP_ECS_CURRENT_ENTITY_LSB
   lda ZP_ECS_TEMP_ENTITY_MSB
   sta ZP_ECS_CURRENT_ENTITY_MSB
+
+  ; TODO: here, I think we'll need a different temporary
+  ;       entity type (wake/transitioning). once it expires
+  ;       it can notify its surrounding cells
 
   ; set temporary entity to current location
   jsr ecsLocationSetCurrentEntityType

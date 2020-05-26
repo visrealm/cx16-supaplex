@@ -32,8 +32,6 @@ createGameObject:
   asl ; double it since objectFactory contains words
   tax
 
-  pla
-  pha
   jsr .doCreate
   pla
   ply
@@ -58,7 +56,7 @@ createGameObject:
 ; Callback for each object type. called when an object of that type is created
 ;
 ; Inputs:
-;  A: TileId (as set in the level file)
+;  ZP_CURRENT_OBJECT_TYPE: TileId (as set in the level file)
 ;  ZP_ECS_CURRENT_ENTITY
 ;  ZP_CURRENT_CELL_X, ZP_CURRENT_CELL_Y
 ; -----------------------------------------------------------------------------
@@ -70,15 +68,15 @@ objectFactory:
 !word createDisk
 !word createDisk
 !word createDisk
-!word createTerminal
+!word createSwitch
 !word createPort
-!word createExit
 !word createBug
 !word createInfotron
 !word createElectron
 !word createSnikSnak
 !word createRam
 !word createHardware
+!word createTransition
 
 ; -----------------------------------------------------------------------------
 ; placeholder callbacks (not yet implemented)
@@ -87,13 +85,12 @@ createEmpty:
 createBase:
 createRam:
 createHardware:
-createSwitch:
-createExit:
 createDisk:
 createPort:
 createBug:
 createZonk:
 createInfotron:
+createTransition:
   rts
 
 
@@ -113,7 +110,7 @@ spriteTypes:
 +spriteType 4, ENTITY_TYPE_INFOTRON
 +spriteType 5, ENTITY_TYPE_RAM
 +spriteType 6, ENTITY_TYPE_HARDWARE
-+spriteType 7, ENTITY_TYPE_EXIT
++spriteType 7, ENTITY_TYPE_SWITCH
 +spriteType 8, ENTITY_TYPE_ORANGE_DISK
 +spriteType 9,  ENTITY_TYPE_PORT ; right
 +spriteType 10, ENTITY_TYPE_PORT ; down
@@ -125,7 +122,7 @@ spriteTypes:
 +spriteType 16, ENTITY_TYPE_PORT ; special up
 +spriteType 17, ENTITY_TYPE_SNIK_SNAK
 +spriteType 18, ENTITY_TYPE_YELLOW_DISK
-+spriteType 19, ENTITY_TYPE_TERMINAL
++spriteType 19, ENTITY_TYPE_SWITCH
 +spriteType 20, ENTITY_TYPE_RED_DISK
 +spriteType 21, ENTITY_TYPE_PORT ; vert
 +spriteType 22, ENTITY_TYPE_PORT ; horz

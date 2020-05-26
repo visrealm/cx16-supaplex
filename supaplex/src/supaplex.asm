@@ -107,17 +107,18 @@ ADDR_QUEUE_HEADERS = $6000
 !source "src/ecs/animation.asm"
 !source "src/ecs/enemy.asm"
 !source "src/ecs/falling.asm"
+!source "src/ecs/transitioning.asm"
 !source "src/gameobj/murphy.asm"
 !source "src/gameobj/sniksnak.asm"
 !source "src/gameobj/electron.asm"
-!source "src/gameobj/terminal.asm"
+!source "src/gameobj/switch.asm"
 !source "src/gameobj/gameobj.asm"
 
 
 ; -----------------------------------------------------------------------------
 ; temporarily store the level here. TBD: load it!
 ; -----------------------------------------------------------------------------
-LEVEL_NUMBER = 1
+LEVEL_NUMBER = 11
 
 levelNumber: !byte LEVEL_NUMBER
 levelDat: 

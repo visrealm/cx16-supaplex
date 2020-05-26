@@ -30,8 +30,8 @@ createSnikSnak:
   sta ZP_ECS_CURRENT_ANIM_FL
   jsr setAnimation
 
-  jsr ecsAnimationPush
-  rts
+  jmp ecsAnimationPush
+  ; rts
 
 
 animationIdTable:
@@ -93,9 +93,8 @@ snikSnakAnimCB:
   lda animationFlTable, x
   sta ZP_ECS_CURRENT_ANIM_FL
 
-  jsr ecsAnimationPush
-
-  rts
+  jmp ecsAnimationPush
+  ; rts
 ; -----------------------------------------------------------------------------
 
 

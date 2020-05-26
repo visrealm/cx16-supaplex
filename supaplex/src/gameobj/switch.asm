@@ -11,6 +11,18 @@
 
 !zone terminal {
 
+
+OBJ_TYPE_EXIT = 7
+OBJ_TYPE_TERM = 19
+
+createSwitch:
+  lda ZP_CURRENT_OBJECT_TYPE
+  cmp #OBJ_TYPE_EXIT
+  bne +
+  bra createExit
++
+  bra createTerminal
+
 ; -----------------------------------------------------------------------------
 ; createTerminal
 ; -----------------------------------------------------------------------------
@@ -27,11 +39,12 @@ createTerminal:
   sta ZP_ECS_CURRENT_ANIM_FL
   jsr setAnimation
 
-  jsr ecsAnimationPush
-  rts
-
-  rts
-
+  jmp ecsAnimationPush
+  ;rts
 ; -----------------------------------------------------------------------------
+
+createExit:
+  rts
+
 
 } ; terminal

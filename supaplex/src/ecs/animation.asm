@@ -39,6 +39,7 @@ ecsAnimSetCurrentEntityType:
   and #$0f
   ora #>.ADDR_ANIM_ID_TABLE
   sta ZP_ECS_ANIM_ID_TABLE_MSB
+  clc
   adc #>(.ADDR_ANIM_FL_TABLE - .ADDR_ANIM_ID_TABLE)
   sta ZP_ECS_ANIM_FL_TABLE_MSB
   rts
@@ -81,6 +82,42 @@ setAnimation:
   ; set animation flags
   lda ZP_ECS_CURRENT_ANIM_FL
   sta (ZP_ECS_ANIM_FL_TABLE), y
+
+  ply
+  rts
+
+
+; -----------------------------------------------------------------------------
+; setAnimation
+; -----------------------------------------------------------------------------
+; Inputs:
+;   ZP_ECS_CURRENT_ENTITY
+;   ZP_ECS_CURRENT_ANIM_ID
+;   ZP_ECS_CURRENT_ANIM_FL
+; -----------------------------------------------------------------------------
+setAnimationTemp:
+  lda ZP_ECS_TEMP_ENTITY_MSB
+  ; TODO - check for index (11:8)
+  and #$0f
+  ora #>.ADDR_ANIM_ID_TABLE
+  sta R9L
+  clc
+  adc #>(.ADDR_ANIM_FL_TABLE - .ADDR_ANIM_ID_TABLE)
+  sta R9H
+
+  +setRamBank .ANIM_COMPONENT_BANK
+  phy
+
+  ; index
+  ldy ZP_ECS_TEMP_ENTITY_LSB
+
+  ; set animation id
+  lda #0
+  sta (R9), y
+  
+  ; set animation flags
+  lda #0
+  sta (R9), y
 
   ply
   rts
@@ -196,18 +233,19 @@ TMP_ANIM_FL = R2
 ; animation definitions
 ; -----------------------------------------------------------------------------
 animationDefs:
-animSnikU2L: +animDef 0, tileSnikUp, tileSnikUp, tileSnikUl, tileSnikUl, tileSnikUl, tileSnikUl, tileSnikL, tileSnikL
-animSnikL2D: +animDef 1, tileSnikL, tileSnikL, tileSnikDl, tileSnikDl, tileSnikDl, tileSnikDl, tileSnikDn, tileSnikDn
-animSnikD2R: +animDef 2, tileSnikDn, tileSnikDn, tileSnikDr, tileSnikDr, tileSnikDr, tileSnikDr, tileSnikR, tileSnikR
-animSnikR2U: +animDef 3, tileSnikR, tileSnikR, tileSnikUr, tileSnikUr, tileSnikUr, tileSnikUr, tileSnikUp, tileSnikUp
-animSnikU2U: +animDef 4, tileSnikUp1, tileSnikUp2, tileSnikUp3, tileSnikUp4, tileSnikUp5, tileSnikUp6, tileSnikUp7, tileSnikUp8
-animSnikL2L: +animDef 5, tileSnikLeft1, tileSnikLeft2, tileSnikLeft3, tileSnikLeft4, tileSnikLeft5, tileSnikLeft6, tileSnikLeft7, tileSnikLeft8
-animSnikD2D: +animDef 6, tileSnikDown1, tileSnikDown2, tileSnikDown3, tileSnikDown4, tileSnikDown5, tileSnikDown6, tileSnikDown7, tileSnikDown8
-animSnikR2R: +animDef 7, tileSnikRight1, tileSnikRight2, tileSnikRight3, tileSnikRight4, tileSnikRight5, tileSnikRight6, tileSnikRight7, tileSnikRight8
-animTermGreen: +animDef 8, tileConsoleGn1, tileConsoleGn1, tileConsoleGn2, tileConsoleGn2, tileConsoleGn3, tileConsoleGn3, tileConsoleGn4, tileConsoleGn4
-animTermReg:   +animDef 9, tileConsoleRd1, tileConsoleRd2, tileConsoleRd3, tileConsoleRd4, tileConsoleRd5, tileConsoleRd6, tileConsoleRd7, tileConsoleRd8
-animElectron:  +animDef 10,  tileElectron1, tileElectron2, tileElectron2, tileElectron3, tileElectron4, tileElectron5, tileElectron6, tileElectron6
-animElectron2:  +animDef 11, tileElectron7, tileElectron7, tileElectron6, tileElectron5, tileElectron4, tileElectron3, tileElectron2, tileElectron2
+animBlank: +animDef 0, tileBlank, tileBlank, tileBlank, tileBlank, tileBlank, tileBlank, tileBlank, tileBlank
+animSnikU2L: +animDef 1, tileSnikUp, tileSnikUp, tileSnikUl, tileSnikUl, tileSnikUl, tileSnikUl, tileSnikL, tileSnikL
+animSnikL2D: +animDef 2, tileSnikL, tileSnikL, tileSnikDl, tileSnikDl, tileSnikDl, tileSnikDl, tileSnikDn, tileSnikDn
+animSnikD2R: +animDef 3, tileSnikDn, tileSnikDn, tileSnikDr, tileSnikDr, tileSnikDr, tileSnikDr, tileSnikR, tileSnikR
+animSnikR2U: +animDef 4, tileSnikR, tileSnikR, tileSnikUr, tileSnikUr, tileSnikUr, tileSnikUr, tileSnikUp, tileSnikUp
+animSnikU2U: +animDef 5, tileSnikUp1, tileSnikUp2, tileSnikUp3, tileSnikUp4, tileSnikUp5, tileSnikUp6, tileSnikUp7, tileSnikUp8
+animSnikL2L: +animDef 6, tileSnikLeft1, tileSnikLeft2, tileSnikLeft3, tileSnikLeft4, tileSnikLeft5, tileSnikLeft6, tileSnikLeft7, tileSnikLeft8
+animSnikD2D: +animDef 7, tileSnikDown1, tileSnikDown2, tileSnikDown3, tileSnikDown4, tileSnikDown5, tileSnikDown6, tileSnikDown7, tileSnikDown8
+animSnikR2R: +animDef 8, tileSnikRight1, tileSnikRight2, tileSnikRight3, tileSnikRight4, tileSnikRight5, tileSnikRight6, tileSnikRight7, tileSnikRight8
+animTermGreen: +animDef 9, tileConsoleGn1, tileConsoleGn1, tileConsoleGn2, tileConsoleGn2, tileConsoleGn3, tileConsoleGn3, tileConsoleGn4, tileConsoleGn4
+animTermReg:   +animDef 10, tileConsoleRd1, tileConsoleRd2, tileConsoleRd3, tileConsoleRd4, tileConsoleRd5, tileConsoleRd6, tileConsoleRd7, tileConsoleRd8
+animElectron:  +animDef 11,  tileElectron1, tileElectron2, tileElectron2, tileElectron3, tileElectron4, tileElectron5, tileElectron6, tileElectron6
+animElectron2:  +animDef 12, tileElectron7, tileElectron7, tileElectron6, tileElectron5, tileElectron4, tileElectron3, tileElectron2, tileElectron2
 
 ; TODO: Add a lookup for the above to save computing the address each time
 
@@ -231,15 +269,15 @@ animationCallbacks:
   !word yellowDiskAnimCB
   !word redDiskAnimCB
   !word orangeDiskAnimCB
-  !word terminalAnimCB
+  !word switchAnimCB
   !word portAnimCB
-  !word exitAnimCB
   !word bugAnimCB
   !word infotronAnimCB
   !word electronAnimCB
   !word snikSnakAnimCB
   !word ramAnimCB
   !word hardwareAnimCB
+  !word transitionAnimCB
 
 ; -----------------------------------------------------------------------------
 ; placeholder callbacks (not yet implemented)
@@ -251,9 +289,8 @@ baseAnimCB:
 yellowDiskAnimCB:
 redDiskAnimCB:
 orangeDiskAnimCB:
-terminalAnimCB:
+switchAnimCB:
 portAnimCB:
-exitAnimCB:
 bugAnimCB:
 infotronAnimCB:
 ramAnimCB:
@@ -304,6 +341,17 @@ ecsAnimationPush:
 
   rts
 
+
+ecsAnimationPushTemp:
+  lda ZP_ECS_TEMP_ENTITY_LSB
+  ldx .entityLsbQueueId
+  jsr qPush
+
+  lda ZP_ECS_TEMP_ENTITY_MSB
+  ldx .entityMsbQueueId
+  jsr qPush
+
+  rts
 
 ; -----------------------------------------------------------------------------
 ; ecsAnimationSystemTick

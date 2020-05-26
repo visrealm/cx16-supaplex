@@ -80,9 +80,9 @@ setEnemyState:
 !ifdef SANITY {
   jsr .debugCurrentEntityTypeSanityCheck
 }
-
+  pha
   +setRamBank .ENEMY_COMPONENT_BANK
-  phy
+  pla
 
   ; index
   ldy ZP_ECS_CURRENT_ENTITY_LSB
@@ -90,7 +90,6 @@ setEnemyState:
   ; set enemy state
   sta (ZP_ECS_ENEMY_STATE_TABLE), y
 
-  ply
   rts
 
 ; -----------------------------------------------------------------------------
@@ -109,14 +108,11 @@ getEnemyState:
 
   +setRamBank .ENEMY_COMPONENT_BANK
   
-  phy
-
   ; index
   ldy ZP_ECS_CURRENT_ENTITY_LSB
 
   ; get enemy state
   lda (ZP_ECS_ENEMY_STATE_TABLE), y
-  ply
 
   rts
 
@@ -311,6 +307,7 @@ enemyAnimCB:
   beq +
 
   ; moving
+  jsr ecsEntityCreateTransitioning
   jsr ecsLocationSwap
 
 +

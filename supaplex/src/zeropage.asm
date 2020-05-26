@@ -40,8 +40,10 @@ ZP_ECS_TEMP_ENTITY_MSB = ZP_ECS_TEMP_ENTITY + 1
 ZP_TEMP_CELL_X     = $26
 ZP_TEMP_CELL_Y     = $27
 
+ZP_CURRENT_OBJECT_TYPE = $28  ; tileId/object type
+
 ;
-; $28 - $2f unused
+; $29 - $2f unused
 ;
 
 ZP_TILE_TABLE       = $30

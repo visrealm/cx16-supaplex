@@ -29,8 +29,8 @@ createElectron:
   stz ZP_ECS_CURRENT_ANIM_FL
   jsr setAnimation
   
-  jsr ecsAnimationPush
-  rts
+  jmp ecsAnimationPush
+  ;rts
 
 
 ; -----------------------------------------------------------------------------
@@ -59,9 +59,8 @@ electronAnimCB:
   sta ZP_ECS_CURRENT_ANIM_ID
   stz ZP_ECS_CURRENT_ANIM_FL
 
-  jsr ecsAnimationPush
-
-  rts
+  jmp ecsAnimationPush
+  ; rts
 
 
 ; -----------------------------------------------------------------------------

@@ -68,6 +68,7 @@ loadMap:
 
 .loadLevelValue
   lda levelDat
+  sta ZP_CURRENT_OBJECT_TYPE
   
   jsr createGameObject
 

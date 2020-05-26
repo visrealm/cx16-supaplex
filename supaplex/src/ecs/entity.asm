@@ -73,4 +73,19 @@ ecsEntityCreate:
 +
   pla
   rts
+
+
+; -----------------------------------------------------------------------------
+; ecsEntityCreateTemp: reset the msb for a given type
+; -----------------------------------------------------------------------------
+ecsEntityCreateTemp:
+  pha
+  sty ZP_ECS_TEMP_ENTITY_MSB
+  lda .lastEntityIdsLSB, y
+  inc
+  sta .lastEntityIdsLSB, y
+  sta ZP_ECS_TEMP_ENTITY_LSB
+  pla
+  rts
+
 }

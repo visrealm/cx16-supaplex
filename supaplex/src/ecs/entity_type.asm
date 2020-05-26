@@ -25,15 +25,15 @@ ENTITY_TYPE_BASE         = 3
 ENTITY_TYPE_YELLOW_DISK  = 4
 ENTITY_TYPE_RED_DISK     = 5
 ENTITY_TYPE_ORANGE_DISK  = 6
-ENTITY_TYPE_TERMINAL     = 7
+ENTITY_TYPE_SWITCH       = 7 ; terminal and exit
 ENTITY_TYPE_PORT         = 8
-ENTITY_TYPE_EXIT         = 9 ; need?
-ENTITY_TYPE_BUG          = 10
-ENTITY_TYPE_INFOTRON     = 11
-ENTITY_TYPE_ELECTRON     = 12
-ENTITY_TYPE_SNIK_SNAK    = 13
-ENTITY_TYPE_RAM          = 14
-ENTITY_TYPE_HARDWARE     = 15
+ENTITY_TYPE_BUG          = 9
+ENTITY_TYPE_INFOTRON     = 10
+ENTITY_TYPE_ELECTRON     = 11
+ENTITY_TYPE_SNIK_SNAK    = 12
+ENTITY_TYPE_RAM          = 13
+ENTITY_TYPE_HARDWARE     = 14
+ENTITY_TYPE_TRANSITION   = 15
 
 NUM_ENTITY_TYPES         = 16
 
@@ -65,15 +65,15 @@ entityTypeFlags1: !zone {
 .disky:  !byte ENTITY_FLAGL_PUSHABLE | ENTITY_FLAGL_EXPLOSIVE
 .diskr:  !byte ENTITY_FLAGL_CONSUMABLE | ENTITY_FLAGL_EXPLOSIVE
 .disko:  !byte ENTITY_FLAGL_PUSHABLE | ENTITY_FLAGL_EXPLOSIVE | ENTITY_FLAGL_CANFALL
-.term:   !byte $00
+.switch: !byte $00
 .port:   !byte ENTITY_FLAGL_PORT
-.exit:   !byte $00
 .bug:    !byte ENTITY_FLAGL_CONSUMABLE | ENTITY_FLAGL_ENEMY 
 .infotr: !byte ENTITY_FLAGL_CONSUMABLE | ENTITY_FLAGL_CANFALL | ENTITY_FLAGL_ROUNDED
 .electr: !byte ENTITY_FLAGL_ENEMY | ENTITY_FLAGL_EXPLOSIVE
 .snik:   !byte ENTITY_FLAGL_ENEMY | ENTITY_FLAGL_EXPLOSIVE
 .ram:    !byte ENTITY_FLAGL_ROUNDED
 .hardwr: !byte ENTITY_FLAGL_INVINCIBLE 
+.trans:  !byte $00
 }
 
 
@@ -85,15 +85,15 @@ entityTypeFlags2: !zone {
 .disky:  !byte $00
 .diskr:  !byte $00
 .disko:  !byte $00
-.term:   !byte ENTITY_FLAGH_SWITCH
+.switch: !byte ENTITY_FLAGH_SWITCH
 .port:   !byte $00
-.exit:   !byte ENTITY_FLAGH_SWITCH
 .bug:    !byte $00
 .infotr: !byte $00
 .electr: !byte ENTITY_FLAGH_EXPLOSIVE_E
 .snik:   !byte $00
 .ram:    !byte $00
 .hardwr: !byte $00
+.trans:  !byte $00
 }
 
 
