@@ -27,6 +27,19 @@ NUM_ENTITY_TYPES         = 16
 .lastEntityIdsMSB: +entityField
 
 
+; Change of heart. I don't think I should encode the entity type in the
+; entity id:
+;  1. It's wasteful on attribute storage. 
+;  2. Requires a lot of page switching for common attributes
+;  3. Requires generating a new entity id when an entity changes
+;     from one type to another (this happens a lot)
+;
+; ECS2: Entity id is literally a pointer.  A Banked address pointer
+;   Each attribute has a known bank and offset.  We can fit 4 bytes per bank.
+;   The most common ones should be together:
+;      entity type, location, animation ?
+;      less common, but similar in other bank(s)
+
 ; -----------------------------------------------------------------------------
 ; entity id format
 ; -----------------------------------------------------------------------------
