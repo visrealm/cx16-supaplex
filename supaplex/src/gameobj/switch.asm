@@ -31,13 +31,11 @@ createSwitch:
 ;  ZP_CURRENT_CELL_X, ZP_CURRENT_CELL_Y are set
 ; -----------------------------------------------------------------------------
 createTerminal:
-
-  jsr ecsAnimSetCurrentEntityType
   lda #(animTermGreen - animationDefs) >> 3
   sta ZP_ECS_CURRENT_ANIM_ID
   lda #ANIM_FLAG_REPEAT
   sta ZP_ECS_CURRENT_ANIM_FL
-  jsr setAnimation
+  jsr ecsSetAnimation
 
   jmp ecsAnimationPush
   ;rts

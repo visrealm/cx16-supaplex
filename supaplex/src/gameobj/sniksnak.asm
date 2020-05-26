@@ -18,17 +18,14 @@
 ;  ZP_ECS_CURRENT_ENTITY, ZP_CURRENT_CELL_X, ZP_CURRENT_CELL_Y are set
 ; -----------------------------------------------------------------------------
 createSnikSnak:
-  jsr ecsEnemySetCurrentEntityType
   lda #ENEMY_FACING_UP
-  jsr setEnemyState
+  jsr ecsSetEnemyState
 
-
-  jsr ecsAnimSetCurrentEntityType
   lda #(animSnikU2L - animationDefs) >> 3
   sta ZP_ECS_CURRENT_ANIM_ID
   lda #0
   sta ZP_ECS_CURRENT_ANIM_FL
-  jsr setAnimation
+  jsr ecsSetAnimation
 
   jmp ecsAnimationPush
   ; rts

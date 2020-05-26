@@ -48,6 +48,37 @@ ecsEntitySetType:
   sta (ZP_ECS_CURRENT_ENTITY), y
   rts
 
+; -----------------------------------------------------------------------------
+; ecsEntityGetType: get entity type
+; -----------------------------------------------------------------------------
+; Returns: A: Entity type
+; -----------------------------------------------------------------------------
+ecsEntityGetType:
+  ldy #ECS_ATTRIBUTE_ENTITY_TYPE
+  lda (ZP_ECS_CURRENT_ENTITY), y
+  rts
+
+; -----------------------------------------------------------------------------
+; ecsTempEntitySetType: get entity type
+; -----------------------------------------------------------------------------
+; Returns: A: Entity type
+; -----------------------------------------------------------------------------
+ecsTempEntitySetType:
+  ldy #ECS_ATTRIBUTE_ENTITY_TYPE
+  sta (ZP_ECS_TEMP_ENTITY), y
+  rts
+
+
+; -----------------------------------------------------------------------------
+; ecsTempEntityGetType: get entity type
+; -----------------------------------------------------------------------------
+; Returns: A: Entity type
+; -----------------------------------------------------------------------------
+ecsTempEntityGetType:
+  ldy #ECS_ATTRIBUTE_ENTITY_TYPE
+  lda (ZP_ECS_TEMP_ENTITY), y
+  rts
+
 
 ; -----------------------------------------------------------------------------
 ; entity flags

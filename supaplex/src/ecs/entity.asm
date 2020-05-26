@@ -45,12 +45,21 @@ ECS_ENTITY_ASM_ = 1
 ;       we're capped at 8KB / ECS_BYTES_PER_BANK entities
 ECS_BYTES_PER_BANK = 5
 
+; first bank attributes
 ECS_ATTRIBUTE_ENTITY_TYPE = 0
+ECS_ATTRIBUTE_LOCATION_X  = 1
+ECS_ATTRIBUTE_LOCATION_Y  = 2
+ECS_ATTRIBUTE_ANIM_ID     = 3
+ECS_ATTRIBUTE_ANIM_FL     = 4
+
+; second bank attributes
+ECS_ATTRIBUTE_ENTITY_TYPE = 0
+
 
 ecsInit:
   lda #>BANKED_RAM_START
   sta .nextEntityIdsMSB
-  stx .nextEntityIdsLSB
+  stz .nextEntityIdsLSB
 
   jsr ecsRegisterSystems
 

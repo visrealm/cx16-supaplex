@@ -19,11 +19,6 @@ ECS_LOCATION_ASM_ = 1
 ; Used to set and get the location attributes for a given entity
 ; =============================================================================
 
-.LOCATION_COMPONENT_BANK = RAM_BANK_LOC_COMPONENT
-.ADDR_TILE_X_TABLE  = BANKED_RAM_START
-.ADDR_TILE_Y_TABLE  = BANKED_RAM_START + $1000
-
-
 ; -----------------------------------------------------------------------------
 ; setLocation
 ; -----------------------------------------------------------------------------
@@ -34,22 +29,16 @@ ECS_LOCATION_ASM_ = 1
 ; -----------------------------------------------------------------------------
 ecsSetLocation:
 
-!ifdef SANITY {
-  jsr .debugCurrentEntityTypeSanityCheck
-}
-
-  +setRamBank .LOCATION_COMPONENT_BANK
-
-  ; index
-  ldy ZP_ECS_CURRENT_ENTITY_LSB
+  ldy #ECS_ATTRIBUTE_LOCATION_X
 
   ; set x location
   lda ZP_CURRENT_CELL_X
-  sta (ZP_ECS_TILE_X_TABLE), y
-  
+  sta (ZP_ECS_CURRENT_ENTITY), y
+
   ; set y location
+  iny    ; Y
   lda ZP_CURRENT_CELL_Y
-  sta (ZP_ECS_TILE_Y_TABLE), y
+  sta (ZP_ECS_CURRENT_ENTITY), y
 
   ; set this entity in the location map
   jsr ecsLocationSetEntity
@@ -57,7 +46,7 @@ ecsSetLocation:
   rts
 
 ; -----------------------------------------------------------------------------
-; getLocation
+; ecsGetLocation
 ; -----------------------------------------------------------------------------
 ; Inputs:
 ;   ZP_ECS_CURRENT_ENTITY
@@ -65,22 +54,16 @@ ecsSetLocation:
 ;   ZP_CURRENT_CELL_X
 ;   ZP_CURRENT_CELL_Y
 ; -----------------------------------------------------------------------------
-getLocation:
-!ifdef SANITY {
-  jsr .debugCurrentEntityTypeSanityCheck
-}
-
-  +setRamBank .LOCATION_COMPONENT_BANK
-  
-  ; index
-  ldy ZP_ECS_CURRENT_ENTITY_LSB
+ecsGetLocation:
+  ldy #ECS_ATTRIBUTE_LOCATION_X
 
   ; get x location
-  lda (ZP_ECS_TILE_X_TABLE), y
+  lda (ZP_ECS_CURRENT_ENTITY), y
   sta ZP_CURRENT_CELL_X
 
   ; get y location
-  lda (ZP_ECS_TILE_Y_TABLE), y
+  iny    ; Y
+  lda (ZP_ECS_CURRENT_ENTITY), y
   sta ZP_CURRENT_CELL_Y
 
   rts
@@ -92,24 +75,21 @@ getLocation:
 !zone ecsLocationSystem {
 ; =============================================================================
 
-.LOCATION_SYSTEM_BANK = RAM_BANK_LOC_SYSTEM
-
+LOCATION_MAP_ADDR = ADDR_ECS
 
 ; -----------------------------------------------------------------------------
 ; initialise the location system
 ; -----------------------------------------------------------------------------
 ecsLocationSystemInit:
-  stz ZP_ECS_TILE_X_TABLE_LSB
-  stz ZP_ECS_TILE_Y_TABLE_LSB
   rts
 
 
 ; =============================================================================
-; .setLocationAddressToMsbByCell
+; .setCurrentLocationAddress
 ; -----------------------------------------------------------------------------
 ; Sets ZP_ECS_LOCATION_SYSTEM for the msb address of ZP_CURRENT_CELL
 ; -----------------------------------------------------------------------------
-!macro setLocationAddressToMsbByCell {
+!macro .setCurrentLocationAddress {
 
   ; cell address: two rows per 256 byte page
   ; even row [0 -> 119],  odd row [128 -> 247]
@@ -119,12 +99,10 @@ ecsLocationSystemInit:
   lda ZP_CURRENT_CELL_Y
   lsr                              ; halve it. we get two rows per 256 byte page
   ror ZP_ECS_LOCATION_SYSTEM_LSB   ; if y was odd, then start at 128 in current page
-  ora #>BANKED_RAM_START           ; set high nibble (would need to add if it wasn't a 4KB mutiple)
+  ora #>LOCATION_MAP_ADDR           ; set high nibble (would need to add if it wasn't a 4KB mutiple)
   sta ZP_ECS_LOCATION_SYSTEM_MSB
   lda ZP_CURRENT_CELL_X            ; double x since we stoe two bytes per cell (entity id)
   asl
-  inc  ; add one to get msb. This saves us some time in callers
-       ; where we started at lsb, moved to msb, then back again
   ora ZP_ECS_LOCATION_SYSTEM_LSB
   sta ZP_ECS_LOCATION_SYSTEM_LSB
 }
@@ -139,17 +117,14 @@ ecsLocationSystemInit:
 ;   ZP_ECS_LOCATION_SYSTEM will be set to cell LSB
 ; -----------------------------------------------------------------------------
 ecsLocationSetEntity:
-  +setRamBank .LOCATION_SYSTEM_BANK
-
-  +setLocationAddressToMsbByCell
-
-  lda ZP_ECS_CURRENT_ENTITY_MSB
-  sta (ZP_ECS_LOCATION_SYSTEM)
-
-  dec ZP_ECS_LOCATION_SYSTEM_LSB ; move to lsb
+  +.setCurrentLocationAddress
 
   lda ZP_ECS_CURRENT_ENTITY_LSB
   sta (ZP_ECS_LOCATION_SYSTEM)
+
+  ldy #1
+  lda ZP_ECS_CURRENT_ENTITY_MSB
+  sta (ZP_ECS_LOCATION_SYSTEM), y
   rts
 
 ; -----------------------------------------------------------------------------
@@ -162,47 +137,15 @@ ecsLocationSetEntity:
 ;   ZP_ECS_CURRENT_ENTITY - also ZP_ECS_LOCATION_SYSTEM is set to cell LSB
 ; -----------------------------------------------------------------------------
 ecsLocationGetEntity:
-  +setRamBank .LOCATION_SYSTEM_BANK
-
-  +setLocationAddressToMsbByCell
-
-  lda (ZP_ECS_LOCATION_SYSTEM)
-  sta ZP_ECS_CURRENT_ENTITY_MSB
-
-  dec ZP_ECS_LOCATION_SYSTEM_LSB ; move to lsb
+  +.setCurrentLocationAddress
 
   lda (ZP_ECS_LOCATION_SYSTEM)
   sta ZP_ECS_CURRENT_ENTITY_LSB
+
+  ldy #1
+  lda (ZP_ECS_LOCATION_SYSTEM), y
+  sta ZP_ECS_CURRENT_ENTITY_MSB
   rts
-
-
-; -----------------------------------------------------------------------------
-; Before we start peeking, ecsLocationGetEntity needs to be called
-; -----------------------------------------------------------------------------
-!ifdef SANITY { ; debug sanity check
-.peekSanityCheck:
-  pha
-  phx
-  phy
-
-  ; check if ecsLocationGetEntity as called
-  ; before this
-  ldy ZP_ECS_LOCATION_SYSTEM_LSB
-  ldx ZP_ECS_LOCATION_SYSTEM_MSB
-  jsr ecsLocationGetEntity 
-  cpy ZP_ECS_LOCATION_SYSTEM_LSB
-  beq +
-  +dbgSanityCheckBreak
-+
-  cpx ZP_ECS_LOCATION_SYSTEM_MSB
-  beq +
-  +dbgSanityCheckBreak
-+  
-  ply
-  plx
-  pla
-  rts
-}  
 
 
 ; -----------------------------------------------------------------------------
@@ -215,11 +158,6 @@ ecsLocationGetEntity:
 ;   ZP_ECS_TEMP_ENTITY : Temporary entity located one cell to the left
 ; -----------------------------------------------------------------------------
 ecsLocationPeekLeft:
-  +setRamBank .LOCATION_SYSTEM_BANK
-
-  !ifdef SANITY {
-    jsr .peekSanityCheck
-  }
 
   ; update temp cell to point to last cell peeked
   lda ZP_CURRENT_CELL_X
@@ -253,12 +191,6 @@ ecsLocationPeekLeft:
 ;   ZP_ECS_TEMP_ENTITY : Temporary entity located one cell to the right
 ; -----------------------------------------------------------------------------
 ecsLocationPeekRight:
-  +setRamBank .LOCATION_SYSTEM_BANK
-
-  !ifdef SANITY {
-    jsr .peekSanityCheck
-  }
-
   ; update temp cell to point to last cell peeked
   lda ZP_CURRENT_CELL_X
   inc
@@ -288,12 +220,6 @@ ecsLocationPeekRight:
 ;   ZP_ECS_TEMP_ENTITY : Temporary entity located one cell above
 ; -----------------------------------------------------------------------------
 ecsLocationPeekUp:
-  +setRamBank .LOCATION_SYSTEM_BANK
-
-  !ifdef SANITY {
-    jsr .peekSanityCheck
-  }
-
   ; update temp cell to point to last cell peeked
   lda ZP_CURRENT_CELL_X
   sta ZP_TEMP_CELL_X
@@ -338,12 +264,6 @@ ecsLocationPeekUp:
 ;   ZP_ECS_TEMP_ENTITY : Temporary entity located one cell below
 ; -----------------------------------------------------------------------------
 ecsLocationPeekDown:
-  +setRamBank .LOCATION_SYSTEM_BANK
-
-  !ifdef SANITY {
-    jsr .peekSanityCheck
-  }
-
   ; update temp cell to point to last cell peeked
   lda ZP_CURRENT_CELL_X
   sta ZP_TEMP_CELL_X
@@ -378,28 +298,6 @@ ecsLocationPeekDown:
 
 
 ; -----------------------------------------------------------------------------
-; ecsLocationClearTemp
-; -----------------------------------------------------------------------------
-; clear the temp location (to move into it)
-; Inputs:
-;   ZP_ECS_CURRENT_ENTITY
-;   ZP_ECS_LOCATION_SYSTEM
-;   ZP_CURRENT_CELL_X/Y set for current entity
-;
-;   ZP_TEMP_CELL - location of temporary entity
-;   ZP_ECS_TEMP_ENTITY (entity to swap with)
-; -----------------------------------------------------------------------------
-ecsLocationClearTemp:
-  +setRamBank .LOCATION_SYSTEM_BANK
-
-  ldy #0
-  jsr ecsEntityCreate
-  jsr ecsLocationSetCurrentEntityType
-  jmp setLocation
-  ; rts
-
-
-; -----------------------------------------------------------------------------
 ; ecsLocationSwap
 ; -----------------------------------------------------------------------------
 ; return the entity (as a temporary entity) below the current location
@@ -412,8 +310,7 @@ ecsLocationClearTemp:
 ;   ZP_ECS_TEMP_ENTITY (entity to swap with)
 ; -----------------------------------------------------------------------------
 ecsLocationSwap:
-  +setRamBank .LOCATION_SYSTEM_BANK
-
+  +dbgBreak
   ; back-up current entity
   lda ZP_ECS_CURRENT_ENTITY_LSB
   sta R7L
@@ -431,8 +328,7 @@ ecsLocationSwap:
   ;       it can notify its surrounding cells
 
   ; set temporary entity to current location
-  jsr ecsLocationSetCurrentEntityType
-  jsr setLocation
+  jsr ecsSetLocation
 
   ; restore current entity back
   lda R7L
@@ -451,9 +347,7 @@ ecsLocationSwap:
   sta ZP_CURRENT_CELL_X
   lda ZP_TEMP_CELL_Y
   sta ZP_CURRENT_CELL_Y
-
-  jsr ecsLocationSetCurrentEntityType
-  jsr setLocation
+  jsr ecsSetLocation
 
   ; Here, we want to look at cells adjacent
   ; the newly blank cell (above for fallers)

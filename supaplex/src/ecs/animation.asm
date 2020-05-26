@@ -20,110 +20,38 @@ ECS_ANIMATION_ASM_ = 1
 ; Used to set and get the animation attributes for a given entity
 ; =============================================================================
 
-.ANIM_COMPONENT_BANK = RAM_BANK_ANIM_COMPONENT
-.ADDR_ANIM_ID_TABLE  = BANKED_RAM_START
-.ADDR_ANIM_FL_TABLE  = BANKED_RAM_START + $1000
-
 ANIM_FLAG_REPEAT  = $80
 ANIM_FLAG_REVERSE = $40   ; reverse the order of frames
 
-; -----------------------------------------------------------------------------
-; ecsAnimSetCurrentEntityType
-; -----------------------------------------------------------------------------
-; Inputs:
-;   ZP_ECS_CURRENT_ENTITY
-; -----------------------------------------------------------------------------
-ecsAnimSetCurrentEntityType:
-  lda ZP_ECS_CURRENT_ENTITY_MSB
-  ; TODO - check for index (11:8)
-  and #$0f
-  ora #>.ADDR_ANIM_ID_TABLE
-  sta ZP_ECS_ANIM_ID_TABLE_MSB
-  clc
-  adc #>(.ADDR_ANIM_FL_TABLE - .ADDR_ANIM_ID_TABLE)
-  sta ZP_ECS_ANIM_FL_TABLE_MSB
-  rts
-
-.debugCurrentEntityTypeSanityCheck:
-  pha
-  lda ZP_ECS_ANIM_ID_TABLE_MSB
-  and #$0f
-  cmp ZP_ECS_CURRENT_ENTITY_MSB
-  beq +
-  +dbgSanityCheckBreak
-+
-  pla
-  rts
 
 ; -----------------------------------------------------------------------------
-; setAnimation
+; ecsSetAnimation
 ; -----------------------------------------------------------------------------
 ; Inputs:
 ;   ZP_ECS_CURRENT_ENTITY
 ;   ZP_ECS_CURRENT_ANIM_ID
 ;   ZP_ECS_CURRENT_ANIM_FL
 ; -----------------------------------------------------------------------------
-setAnimation:
-
-!ifdef SANITY {
-  jsr .debugCurrentEntityTypeSanityCheck
-}
-
-  +setRamBank .ANIM_COMPONENT_BANK
+ecsSetAnimation:
   phy
 
-  ; index
-  ldy ZP_ECS_CURRENT_ENTITY_LSB
+  ldy #ECS_ATTRIBUTE_ANIM_ID
 
   ; set animation id
-  lda ZP_ECS_CURRENT_ANIM_ID
-  sta (ZP_ECS_ANIM_ID_TABLE), y
-  
+  lda ECS_ATTRIBUTE_ANIM_ID
+  sta (ZP_ECS_CURRENT_ENTITY), y
+
   ; set animation flags
-  lda ZP_ECS_CURRENT_ANIM_FL
-  sta (ZP_ECS_ANIM_FL_TABLE), y
+  iny    ; flags
+  lda ECS_ATTRIBUTE_ANIM_FL
+  sta (ZP_ECS_CURRENT_ENTITY), y
 
   ply
   rts
 
 
 ; -----------------------------------------------------------------------------
-; setAnimation
-; -----------------------------------------------------------------------------
-; Inputs:
-;   ZP_ECS_CURRENT_ENTITY
-;   ZP_ECS_CURRENT_ANIM_ID
-;   ZP_ECS_CURRENT_ANIM_FL
-; -----------------------------------------------------------------------------
-setAnimationTemp:
-  lda ZP_ECS_TEMP_ENTITY_MSB
-  ; TODO - check for index (11:8)
-  and #$0f
-  ora #>.ADDR_ANIM_ID_TABLE
-  sta R9L
-  clc
-  adc #>(.ADDR_ANIM_FL_TABLE - .ADDR_ANIM_ID_TABLE)
-  sta R9H
-
-  +setRamBank .ANIM_COMPONENT_BANK
-  phy
-
-  ; index
-  ldy ZP_ECS_TEMP_ENTITY_LSB
-
-  ; set animation id
-  lda #0
-  sta (R9), y
-  
-  ; set animation flags
-  lda #0
-  sta (R9), y
-
-  ply
-  rts
-
-; -----------------------------------------------------------------------------
-; getAnimation
+; ecsGetAnimation
 ; -----------------------------------------------------------------------------
 ; Inputs:
 ;   ZP_ECS_CURRENT_ENTITY
@@ -131,26 +59,20 @@ setAnimationTemp:
 ;   ZP_ECS_CURRENT_ANIM_ID
 ;   ZP_ECS_CURRENT_ANIM_FL
 ; -----------------------------------------------------------------------------
-getAnimation:
-
-!ifdef SANITY {
-  jsr .debugCurrentEntityTypeSanityCheck
-}
-
-  +setRamBank .ANIM_COMPONENT_BANK
+ecsGetAnimation:
   
   phy
 
-  ; index
-  ldy ZP_ECS_CURRENT_ENTITY_LSB
+  ldy #ECS_ATTRIBUTE_ANIM_ID
 
-  ; set animation id
-  lda (ZP_ECS_ANIM_ID_TABLE), y
-  sta ZP_ECS_CURRENT_ANIM_ID
-  
-  ; set animation flags
-  lda (ZP_ECS_ANIM_FL_TABLE), y
-  sta ZP_ECS_CURRENT_ANIM_FL
+  ; get animation id
+  lda (ZP_ECS_CURRENT_ENTITY), y
+  sta ECS_ATTRIBUTE_ANIM_ID
+
+  ; get animation flags
+  iny    ; flags
+  lda (ZP_ECS_CURRENT_ENTITY), y
+  sta ECS_ATTRIBUTE_ANIM_FL
 
   ply
   rts
@@ -189,7 +111,7 @@ TMP_ANIM_DEF_ADDR =   R3
 TMP_ANIM_DEF_ADDR_L = R3L
 TMP_ANIM_DEF_ADDR_H = R3H
 
-TMP_ANIM_FL = R2
+TMP_ANIM_FL         = R2
 
 
 ; -----------------------------------------------------------------------------
@@ -341,24 +263,14 @@ ecsAnimationPush:
 
   rts
 
-
-ecsAnimationPushTemp:
-  lda ZP_ECS_TEMP_ENTITY_LSB
-  ldx .entityLsbQueueId
-  jsr qPush
-
-  lda ZP_ECS_TEMP_ENTITY_MSB
-  ldx .entityMsbQueueId
-  jsr qPush
-
-  rts
-
 ; -----------------------------------------------------------------------------
 ; ecsAnimationSystemTick
 ; -----------------------------------------------------------------------------
 ; Called for each frame. Animate those who need animating
 ; -----------------------------------------------------------------------------
 ecsAnimationSystemTick:
+  +setRamBank RAM_BANK_ECS_PRIMARY
+  
   +vchannel0
   ldx .entityLsbQueueId
   jsr qSize
@@ -380,10 +292,8 @@ ecsAnimationSystemTick:
   sta ZP_ECS_CURRENT_ENTITY_MSB
 
   phy
-  jsr ecsAnimSetCurrentEntityType ; TODO: can we make this smarter? do it less?
-  jsr ecsLocationSetCurrentEntityType
-  jsr getAnimation
-  jsr getLocation
+  jsr ecsGetAnimation
+  jsr ecsGetLocation
   
   jsr vSetCurrent
 
@@ -448,7 +358,7 @@ ecsAnimationSystemTick:
   ; callback
   jsr animationCompleteCallback
 ++
-  jsr setAnimation
+  jsr ecsSetAnimation
   ply
   iny
   dec R9

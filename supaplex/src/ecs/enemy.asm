@@ -23,8 +23,6 @@ ECS_LOCATION_ASM_ = 1
 ; Used to set and get the enemy attributes for a given entity
 ; =============================================================================
 
-.ENEMY_COMPONENT_BANK = RAM_BANK_ENEMY_COMPONENT
-.ADDR_ENEMY_STATE_TABLE  = BANKED_RAM_START
 
 ; the direction we're facing
 ENEMY_FACING_LEFT      = $00
@@ -41,78 +39,42 @@ ENEMY_FLAG_MOVING = $10
 ; justTurned  :2
 ; moving      :4
 
-; -----------------------------------------------------------------------------
-; ecsEnemySetCurrentEntityType
-; -----------------------------------------------------------------------------
-; Inputs:
-;   ZP_ECS_CURRENT_ENTITY
-; -----------------------------------------------------------------------------
-ecsEnemySetCurrentEntityType:
-  lda ZP_ECS_CURRENT_ENTITY_MSB
-  ; TODO - check for index (11:8)
-  and #$0f
-  ora #>.ADDR_ENEMY_STATE_TABLE
-  sta ZP_ECS_ENEMY_STATE_TABLE_MSB
-  rts
-
-!ifdef SANITY {
-.debugCurrentEntityTypeSanityCheck:
-  pha
-  lda ZP_ECS_ENEMY_STATE_TABLE_MSB
-  and #$0f
-  cmp ZP_ECS_CURRENT_ENTITY_MSB
-  beq +
-  +dbgSanityCheckBreak
-+
-  pla
-  rts
-}
 
 ; -----------------------------------------------------------------------------
-; setEnemyState
+; ecsSetEnemyState
 ; -----------------------------------------------------------------------------
 ; Inputs:
 ;   ZP_ECS_CURRENT_ENTITY
 ;   A: State
 ; -----------------------------------------------------------------------------
-setEnemyState:
+ecsSetEnemyState:
+  ldy #RAM_BANK_ENEMY_COMPONENT
+  sty RAM_BANK
 
-!ifdef SANITY {
-  jsr .debugCurrentEntityTypeSanityCheck
-}
-  pha
-  +setRamBank .ENEMY_COMPONENT_BANK
-  pla
-
-  ; index
-  ldy ZP_ECS_CURRENT_ENTITY_LSB
+  ldy #ECS_ATTRIBUTE_ENTITY_TYPE
 
   ; set enemy state
-  sta (ZP_ECS_ENEMY_STATE_TABLE), y
+  sta (ZP_ECS_CURRENT_ENTITY), y
 
   rts
 
 ; -----------------------------------------------------------------------------
-; getEnemyState
+; ecsGetEnemyState
 ; -----------------------------------------------------------------------------
 ; Inputs:
 ;   ZP_ECS_CURRENT_ENTITY
 ; Outputs:
 ;   A: State
 ; -----------------------------------------------------------------------------
-getEnemyState:
+ecsGetEnemyState:
 
-!ifdef SANITY {
-  jsr .debugCurrentEntityTypeSanityCheck
-}
+  ldy #RAM_BANK_ENEMY_COMPONENT
+  sty RAM_BANK
 
-  +setRamBank .ENEMY_COMPONENT_BANK
-  
-  ; index
-  ldy ZP_ECS_CURRENT_ENTITY_LSB
+  ldy #ECS_ATTRIBUTE_ENTITY_TYPE
 
-  ; get enemy state
-  lda (ZP_ECS_ENEMY_STATE_TABLE), y
+  ; set enemy state
+  lda (ZP_ECS_CURRENT_ENTITY), y
 
   rts
 
@@ -244,10 +206,7 @@ newStateAfterStep3:
 ;  ZP_ECS_CURRENT_ANIM_ID, ZP_ECS_CURRENT_ANIM_FL
 ; -----------------------------------------------------------------------------
 enemyAnimCB:
-  jsr ecsLocationGetEntity
-
-  jsr ecsEnemySetCurrentEntityType
-  jsr getEnemyState
+  jsr ecsGetEnemyState
   sta ZP_ECS_ENEMY_STATE_CURRENT
 
   and #$07 ; only care about first 3 bits
@@ -301,13 +260,12 @@ enemyAnimCB:
   ; set the new state. but ZP_ECS_ENEMY_STATE_CURRENT 
   ; can still be used to compare with old state
   sta R5H
-  jsr setEnemyState 
+  jsr ecsSetEnemyState 
   
   bit #ENEMY_FLAG_MOVING
   beq +
 
   ; moving
-  jsr ecsEntityCreateTransitioning
   jsr ecsLocationSwap
 
 +

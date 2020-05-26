@@ -34,7 +34,7 @@ PLAYER_SPEED = 2
 ; -----------------------------------------------------------------------------
 testCell:
 
-  lda ZP_ECS_TEMP_ENTITY_MSB
+  jsr ecsTempEntityGetType
   and #$0f
   cmp #ENTITY_TYPE_BASE
   bne +
@@ -52,7 +52,10 @@ testCell:
   jsr hudSetInfotrons
 
 .cellPassable
-  jsr ecsLocationClearTemp
+  lda #ENTITY_TYPE_EMPTY
+  +dbgBreak
+  jsr ecsTempEntitySetType;ecsLocationClearTemp
+  
   sec
   rts
 

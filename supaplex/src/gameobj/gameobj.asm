@@ -41,8 +41,9 @@ createGameObject:
 ; -----------------------------------------------------------------------------
 ; JSR wrapper for objectFactory
 ; -----------------------------------------------------------------------------
-.doCreate  
+.doCreate
   jsr ecsEntityCreate
+  +setRamBank RAM_BANK_ECS_PRIMARY
   tya
   jsr ecsEntitySetType
   jsr ecsSetLocation
@@ -73,8 +74,8 @@ objectFactory:
 !word createPort
 !word createBug
 !word createInfotron
-!word createElectron
-!word createSnikSnak
+!word createEmpty;createElectron
+!word createEmpty;createSnikSnak
 !word createRam
 !word createHardware
 !word createTransition
