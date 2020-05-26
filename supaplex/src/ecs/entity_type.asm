@@ -44,8 +44,7 @@ NUM_ENTITY_TYPES         = 16
 ; Inputs: A: Entity type
 ; -----------------------------------------------------------------------------
 ecsEntitySetType:
-  ldy #ECS_ATTRIBUTE_ENTITY_TYPE
-  sta (ZP_ECS_CURRENT_ENTITY), y
+  sta (ZP_ECS_CURRENT_ENTITY)
   rts
 
 ; -----------------------------------------------------------------------------
@@ -54,8 +53,7 @@ ecsEntitySetType:
 ; Returns: A: Entity type
 ; -----------------------------------------------------------------------------
 ecsEntityGetType:
-  ldy #ECS_ATTRIBUTE_ENTITY_TYPE
-  lda (ZP_ECS_CURRENT_ENTITY), y
+  lda (ZP_ECS_CURRENT_ENTITY)
   rts
 
 ; -----------------------------------------------------------------------------
@@ -64,8 +62,7 @@ ecsEntityGetType:
 ; Returns: A: Entity type
 ; -----------------------------------------------------------------------------
 ecsTempEntitySetType:
-  ldy #ECS_ATTRIBUTE_ENTITY_TYPE
-  sta (ZP_ECS_TEMP_ENTITY), y
+  sta (ZP_ECS_TEMP_ENTITY)
   rts
 
 
@@ -75,8 +72,7 @@ ecsTempEntitySetType:
 ; Returns: A: Entity type
 ; -----------------------------------------------------------------------------
 ecsTempEntityGetType:
-  ldy #ECS_ATTRIBUTE_ENTITY_TYPE
-  lda (ZP_ECS_TEMP_ENTITY), y
+  lda (ZP_ECS_TEMP_ENTITY)
   rts
 
 

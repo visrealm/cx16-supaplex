@@ -35,7 +35,6 @@ PLAYER_SPEED = 2
 testCell:
 
   jsr ecsTempEntityGetType
-  and #$0f
   cmp #ENTITY_TYPE_BASE
   bne +
   +sfxPlay SFX_BASE_ID
@@ -53,8 +52,12 @@ testCell:
 
 .cellPassable
   lda #ENTITY_TYPE_EMPTY
-  +dbgBreak
   jsr ecsTempEntitySetType;ecsLocationClearTemp
+  lda ZP_TEMP_CELL_X
+  sta ZP_CURRENT_CELL_X
+  lda ZP_TEMP_CELL_Y
+  sta ZP_CURRENT_CELL_Y
+  jsr ecsSetLocation
   
   sec
   rts
@@ -120,8 +123,8 @@ doInput:
   beq .endCheck
 
   ; get player location
-  lda ZP_PLAYER_CELL_X
-  ldy ZP_PLAYER_CELL_Y
+ ; lda ZP_PLAYER_CELL_X
+ ; ldy ZP_PLAYER_CELL_Y
   
   ; adjust x or y
   !if incOrDec > 0 {

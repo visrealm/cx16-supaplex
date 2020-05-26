@@ -25,6 +25,10 @@ ecsRegisterSystems:
 ; -----------------------------------------------------------------------------
 ecsTickSystems:
   jsr ecsEnemySystemTick
+  +setRamBank RAM_BANK_ECS_PRIMARY
+
   jsr ecsFallingSystemTick
-  jmp ecsAnimationSystemTick
+  ;jmp ecsAnimationSystemTick
+  rts
+  
   ; rts

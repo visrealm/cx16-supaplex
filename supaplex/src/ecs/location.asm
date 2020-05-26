@@ -28,7 +28,7 @@ ECS_LOCATION_ASM_ = 1
 ;   ZP_CURRENT_CELL_Y
 ; -----------------------------------------------------------------------------
 ecsSetLocation:
-
+  phy
   ldy #ECS_ATTRIBUTE_LOCATION_X
 
   ; set x location
@@ -42,6 +42,7 @@ ecsSetLocation:
 
   ; set this entity in the location map
   jsr ecsLocationSetEntity
+  ply
 
   rts
 
@@ -55,6 +56,8 @@ ecsSetLocation:
 ;   ZP_CURRENT_CELL_Y
 ; -----------------------------------------------------------------------------
 ecsGetLocation:
+
+  phy
   ldy #ECS_ATTRIBUTE_LOCATION_X
 
   ; get x location
@@ -65,6 +68,7 @@ ecsGetLocation:
   iny    ; Y
   lda (ZP_ECS_CURRENT_ENTITY), y
   sta ZP_CURRENT_CELL_Y
+  ply
 
   rts
 
