@@ -32,7 +32,7 @@ ADDR_QUEUE_HEADERS = $6000
   jsr disableDisplay
 
   ; register our ecs systems
-  jsr ecsRegisterSystems
+  jsr ecsInit
   
   ; load the tiles from disk to vram
   jsr loadTiles

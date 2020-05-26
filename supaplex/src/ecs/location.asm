@@ -23,34 +23,6 @@ ECS_LOCATION_ASM_ = 1
 .ADDR_TILE_X_TABLE  = BANKED_RAM_START
 .ADDR_TILE_Y_TABLE  = BANKED_RAM_START + $1000
 
-; -----------------------------------------------------------------------------
-; ecsLocationSetCurrentEntityType
-; -----------------------------------------------------------------------------
-; Inputs:
-;   ZP_ECS_CURRENT_ENTITY
-; -----------------------------------------------------------------------------
-ecsLocationSetCurrentEntityType:
-  lda ZP_ECS_CURRENT_ENTITY_MSB
-  ; TODO - check for index (11:8)
-  and #$0f
-  ora #>.ADDR_TILE_X_TABLE
-  sta ZP_ECS_TILE_X_TABLE_MSB
-  clc
-  adc #>(.ADDR_TILE_Y_TABLE - .ADDR_TILE_X_TABLE)
-  sta ZP_ECS_TILE_Y_TABLE_MSB
-  rts
-
-!ifdef SANITY {
-.debugCurrentEntityTypeSanityCheck:
-
-  lda ZP_ECS_TILE_X_TABLE_MSB
-  eor ZP_ECS_CURRENT_ENTITY_MSB
-  and #$0f
-  beq +
-  +dbgSanityCheckBreak
-+
-  rts
-}
 
 ; -----------------------------------------------------------------------------
 ; setLocation
@@ -60,7 +32,7 @@ ecsLocationSetCurrentEntityType:
 ;   ZP_CURRENT_CELL_X
 ;   ZP_CURRENT_CELL_Y
 ; -----------------------------------------------------------------------------
-setLocation:
+ecsSetLocation:
 
 !ifdef SANITY {
   jsr .debugCurrentEntityTypeSanityCheck

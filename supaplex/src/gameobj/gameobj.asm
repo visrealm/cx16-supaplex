@@ -43,8 +43,9 @@ createGameObject:
 ; -----------------------------------------------------------------------------
 .doCreate  
   jsr ecsEntityCreate
-  jsr ecsLocationSetCurrentEntityType
-  jsr setLocation
+  tya
+  jsr ecsEntitySetType
+  jsr ecsSetLocation
 
   jmp (objectFactory, x)
   ; above jump will rts

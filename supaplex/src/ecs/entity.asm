@@ -15,16 +15,8 @@ ECS_ENTITY_ASM_ = 1
 
 !zone ecsEntity {
 
-NUM_ENTITY_TYPES         = 16
-
-!macro entityField {
-    !for i, 1, NUM_ENTITY_TYPES {
-        !byte $00
-    }
-}
-
-.lastEntityIdsLSB: +entityField
-.lastEntityIdsMSB: +entityField
+.nextEntityIdsLSB: !byte $00
+.nextEntityIdsMSB: !byte $00
 
 
 ; Change of heart. I don't think I should encode the entity type in the
@@ -48,57 +40,41 @@ NUM_ENTITY_TYPES         = 16
 ; 1 MSB  [       index (11:8)           ][          entity type id       ]
 ; -----------------------------------------------------------------------------
 
+; number of bytes per bank.
+; note: this limits the number of entities we can create
+;       we're capped at 8KB / ECS_BYTES_PER_BANK entities
+ECS_BYTES_PER_BANK = 5
+
+ECS_ATTRIBUTE_ENTITY_TYPE = 0
+
+ecsInit:
+  lda #>BANKED_RAM_START
+  sta .nextEntityIdsMSB
+  stx .nextEntityIdsLSB
+
+  jsr ecsRegisterSystems
+
+  rts
 
 
 ; -----------------------------------------------------------------------------
 ; ecsEntityCreate: create an entity
 ; -----------------------------------------------------------------------------
-; Inputs:
-;  y: entity type
-; Outputs:
-;  New entity Id stored in currentEntityId
+; Inputs: None
+; Outputs: New entity Id stored in ZP_ECS_CURRENT_ENTITY
+; -----------------------------------------------------------------------------
 ecsEntityCreate:
-
-  sty ZP_ECS_CURRENT_ENTITY_MSB
-
-  pha
-  lda .lastEntityIdsLSB, y
-  inc
-  sta .lastEntityIdsLSB, y
+  lda .nextEntityIdsLSB
   sta ZP_ECS_CURRENT_ENTITY_LSB
-  bne +
-  lda .lastEntityIdsMSB, y
-  inc
-  sta .lastEntityIdsMSB, y
-+
-  lda .lastEntityIdsMSB, y
+  clc
+  adc #ECS_BYTES_PER_BANK
+  sta .nextEntityIdsLSB
 
-
-  ; if MSB is 0, we can skip all this
-  beq +
-  asl
-  asl
-  asl
-  asl
-  asl
-  ora ZP_ECS_CURRENT_ENTITY_MSB
+  lda .nextEntityIdsMSB
   sta ZP_ECS_CURRENT_ENTITY_MSB
+  bcc +
+  inc .nextEntityIdsMSB
 +
-  pla
-  rts
-
-
-; -----------------------------------------------------------------------------
-; ecsEntityCreateTemp: reset the msb for a given type
-; -----------------------------------------------------------------------------
-ecsEntityCreateTemp:
-  pha
-  sty ZP_ECS_TEMP_ENTITY_MSB
-  lda .lastEntityIdsLSB, y
-  inc
-  sta .lastEntityIdsLSB, y
-  sta ZP_ECS_TEMP_ENTITY_LSB
-  pla
   rts
 
 }
