@@ -22,14 +22,25 @@ ECS_TRANSITIONING_ASM_ = 1
 !ifndef CMN_QUEUE_ASM_ !error "Requires queue"
 
 
-ecsEntityCreateTransitioning:
-  lda #ENTITY_TYPE_EMPTY
-  sta ZP_ECS_TEMP_ENTITY_MSB
+ecsEntitySetTransitioning:
+  lda #ENTITY_TYPE_TRANSITION
+  jsr ecsEntitySetType
+  
+  lda #(animBlank - animationDefs) >> 3
+  sta ZP_ECS_CURRENT_ANIM_ID
+  lda #0
+  sta ZP_ECS_CURRENT_ANIM_FL
+
+  jsr ecsSetAnimation
+  jmp ecsAnimationPush
 
   rts
 
 
 transitionAnimCB:
+  lda #ENTITY_TYPE_EMPTY
+  jsr ecsEntitySetType
+
   rts
 
 

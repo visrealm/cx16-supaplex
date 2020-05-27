@@ -346,6 +346,7 @@ ecsLocationSwap:
 
   ; set temporary entity to current location
   jsr ecsSetLocation
+  jsr ecsEntitySetTransitioning
 
   ; restore current entity back
   lda R7L

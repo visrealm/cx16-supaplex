@@ -80,7 +80,7 @@ objectFactory:
 !word createSnikSnak
 !word createRam
 !word createHardware
-!word createTransition
+!word createEmpty
 
 ; -----------------------------------------------------------------------------
 ; placeholder callbacks (not yet implemented)

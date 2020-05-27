@@ -55,8 +55,6 @@ testCell:
   ; clear current cell and move into the next one
   +setRamBank RAM_BANK_ECS_PRIMARY
   jsr ecsLocationSwap
-  lda #ENTITY_TYPE_EMPTY
-  jsr ecsTempEntitySetType
   
   sec
   rts
