@@ -21,7 +21,7 @@ createElectron:
   lda #ENEMY_FACING_UP
   jsr ecsSetEnemyState
 
-  lda #(animElectron - animationDefs) >> 3
+  +ldaAnimId animElectron
   sta ZP_ECS_CURRENT_ANIM_ID
   stz ZP_ECS_CURRENT_ANIM_FL
   jsr ecsSetAnimation
@@ -45,12 +45,12 @@ electronAnimCB:
 
   tax
 
-  cmp #(animElectron - animationDefs) >> 3
+  +cmpAnimId animElectron
   bne +
-  lda #(animElectron2 - animationDefs) >> 3
+  +ldaAnimId animElectron2
   bra .doneElectron
 +
-  lda #(animElectron - animationDefs) >> 3
+  +ldaAnimId animElectron
 .doneElectron:
 
   sta ZP_ECS_CURRENT_ANIM_ID

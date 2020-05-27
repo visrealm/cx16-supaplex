@@ -151,6 +151,10 @@ TMP_ANIM_FL         = R2
   +animDefByte tile7
 }
 
+!macro ldaAnimId animAddress { lda #(animAddress - animationDefs) >> 3 }
+!macro cmpAnimId animAddress { cmp #(animAddress - animationDefs) >> 3 }
+!macro byteAnimId animAddress { !byte (animAddress - animationDefs) >> 3 }
+
 ; -----------------------------------------------------------------------------
 ; animation definitions
 ; -----------------------------------------------------------------------------
@@ -235,9 +239,6 @@ animationCompleteCallback:
 ; initialise the animation system
 ; -----------------------------------------------------------------------------
 ecsAnimationSystemInit:
-  stz ZP_ECS_ANIM_ID_TABLE_LSB
-  stz ZP_ECS_ANIM_FL_TABLE_LSB
-
   +qCreate .entityLsbQueueId, .entityLsbQueueMsb
   sta .smcEntityLsb - 1
 

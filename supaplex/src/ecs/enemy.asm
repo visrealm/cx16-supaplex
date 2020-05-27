@@ -51,7 +51,7 @@ ecsSetEnemyState:
   ldy #RAM_BANK_ENEMY_COMPONENT
   sty RAM_BANK
 
-  ldy #ECS_ATTRIBUTE_ENEMY_STATE
+  ldy #ECS_ATTRIBUTE_STATE
 
   ; set enemy state
   sta (ZP_ECS_CURRENT_ENTITY), y
@@ -74,7 +74,7 @@ ecsGetEnemyState:
   ldy #RAM_BANK_ENEMY_COMPONENT
   sty RAM_BANK
 
-  ldy #ECS_ATTRIBUTE_ENEMY_STATE
+  ldy #ECS_ATTRIBUTE_STATE
 
   ; set enemy state
   lda (ZP_ECS_CURRENT_ENTITY), y

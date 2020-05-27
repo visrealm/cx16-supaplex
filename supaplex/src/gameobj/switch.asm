@@ -31,7 +31,7 @@ createSwitch:
 ;  ZP_CURRENT_CELL_X, ZP_CURRENT_CELL_Y are set
 ; -----------------------------------------------------------------------------
 createTerminal:
-  lda #(animTermGreen - animationDefs) >> 3
+  +ldaAnimId animTermGreen
   sta ZP_ECS_CURRENT_ANIM_ID
   lda #ANIM_FLAG_REPEAT
   sta ZP_ECS_CURRENT_ANIM_FL

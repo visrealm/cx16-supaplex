@@ -21,7 +21,7 @@ createSnikSnak:
   lda #ENEMY_FACING_UP
   jsr ecsSetEnemyState
 
-  lda #(animSnikU2L - animationDefs) >> 3
+  +ldaAnimId animSnikU2L
   sta ZP_ECS_CURRENT_ANIM_ID
   lda #0
   sta ZP_ECS_CURRENT_ANIM_FL
@@ -33,22 +33,22 @@ createSnikSnak:
 
 
 animationIdTable:
-.l2lId: !byte (animSnikL2L - animationDefs) >> 3  ; todo
-.l2uId: !byte (animSnikU2L - animationDefs) >> 3  ; r
+.l2lId: +byteAnimId animSnikL2L
+.l2uId: +byteAnimId animSnikU2L
 .l2rId: !byte 0
-.l2dId: !byte (animSnikL2D - animationDefs) >> 3
-.u2lId: !byte (animSnikU2L - animationDefs) >> 3
-.u2uId: !byte (animSnikU2U - animationDefs) >> 3  ; todo
-.u2rId: !byte (animSnikR2U - animationDefs) >> 3  ; r
+.l2dId: +byteAnimId animSnikL2D
+.u2lId: +byteAnimId animSnikU2L
+.u2uId: +byteAnimId animSnikU2U
+.u2rId: +byteAnimId animSnikR2U
 .u2dId: !byte 0
 .r2lId: !byte 0
-.r2uId: !byte (animSnikR2U - animationDefs) >> 3 
-.r2rId: !byte (animSnikR2R - animationDefs) >> 3  ; todo
-.r2dId: !byte (animSnikD2R - animationDefs) >> 3  ; r
-.d2lId: !byte (animSnikL2D - animationDefs) >> 3  ;IdrId
+.r2uId: +byteAnimId animSnikR2U
+.r2rId: +byteAnimId animSnikR2R
+.r2dId: +byteAnimId animSnikD2R
+.d2lId: +byteAnimId animSnikL2D
 .d2uId: !byte 0
-.d2rId: !byte (animSnikD2R - animationDefs) >> 3 
-.d2dId: !byte (animSnikD2D - animationDefs) >> 3 ; todo
+.d2rId: +byteAnimId animSnikD2R
+.d2dId: +byteAnimId animSnikD2D
 
 
 animationFlTable:

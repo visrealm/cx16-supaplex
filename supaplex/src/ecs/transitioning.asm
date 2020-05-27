@@ -25,8 +25,11 @@ ECS_TRANSITIONING_ASM_ = 1
 ecsEntitySetTransitioning:
   lda #ENTITY_TYPE_TRANSITION
   jsr ecsEntitySetType
-  
-  lda #(animBlank - animationDefs) >> 3
+
+  ; TODO. We don't necessarily need to waste an animation
+  ;       slot with this (unless it's an explosion)
+  ;       perhaps a separate queue
+  +ldaAnimId animBlank
   sta ZP_ECS_CURRENT_ANIM_ID
   lda #0
   sta ZP_ECS_CURRENT_ANIM_FL
@@ -40,6 +43,22 @@ ecsEntitySetTransitioning:
 transitionAnimCB:
   lda #ENTITY_TYPE_EMPTY
   jsr ecsEntitySetType
+
+  ; need to do this before we start peeking
+  jsr ecsGetLocation
+
+  jsr ecsLocationPeekUp
+  jsr ecsTempEntityGetType
+
+  tax
+  lda entityTypeFlags1, x
+  bit #ENTITY_FLAGL_CANFALL
+  beq +
+  jsr ecsLocationSwap2
++
+
+  ; Here, we want to notify our surrounding cells
+  ; that this cell just opened up
 
   rts
 
@@ -63,7 +82,7 @@ transitionAnimCB:
 ; -----------------------------------------------------------------------------
 
 ; -----------------------------------------------------------------------------
-; falling "awake" queues
+; transitioning queues
 ; -----------------------------------------------------------------------------
 .entityLsbQueueId:  !byte $00
 .entityMsbQueueId:  !byte $00
@@ -71,6 +90,55 @@ transitionAnimCB:
 .entityLsbQueueMsb: !byte $00
 .entityMsbQueueMsb: !byte $00
 
+
+
+
+; -----------------------------------------------------------------------------
+; animation callbacks
+; -----------------------------------------------------------------------------
+; Animation callback (when an animation completes)
+;
+; Inputs:
+;  ZP_ECS_CURRENT_ENTITY
+;  ZP_CURRENT_CELL_X, ZP_CURRENT_CELL_Y
+;  ZP_ECS_CURRENT_ANIM_ID, ZP_ECS_CURRENT_ANIM_FL
+; -----------------------------------------------------------------------------
+
+checkBelowCallbacks:
+  !word nullCheckBelowCB
+  !word fallingCheckBelowCB
+  !word nullCheckBelowCB
+  !word nullCheckBelowCB
+  !word nullCheckBelowCB
+  !word nullCheckBelowCB
+  !word fallingCheckBelowCB
+  !word nullCheckBelowCB
+  !word nullCheckBelowCB
+  !word nullCheckBelowCB
+  !word fallingCheckBelowCB
+  !word nullCheckBelowCB
+  !word nullCheckBelowCB
+  !word nullCheckBelowCB
+  !word nullCheckBelowCB
+  !word nullCheckBelowCB
+
+; -----------------------------------------------------------------------------
+; placeholder callbacks (not yet implemented)
+; -----------------------------------------------------------------------------
+nullCheckBelowCB:
+fallingCheckBelowCB:
+  rts
+
+  
+; -----------------------------------------------------------------------------
+; JSR wrapper called for checkBelowCallbacks
+; -----------------------------------------------------------------------------
+checkBelowCallback:
+  jsr ecsEntityGetType
+  asl
+  tax
+  jmp (checkBelowCallbacks, x)
+  ; above jump will rts
 
 ; -----------------------------------------------------------------------------
 ; ecsTransitioningSystemInit

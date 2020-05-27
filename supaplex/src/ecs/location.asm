@@ -371,4 +371,73 @@ ecsLocationSwap:
 
   rts
 
+
+
+
+; -----------------------------------------------------------------------------
+; ecsLocationSwap2
+; -----------------------------------------------------------------------------
+; return the entity (as a temporary entity) below the current location
+; Inputs:
+;   ZP_ECS_CURRENT_ENTITY
+;   ZP_ECS_LOCATION_SYSTEM
+;   ZP_CURRENT_CELL_X/Y set for current entity
+;
+;   ZP_TEMP_CELL - location of temporary entity
+;   ZP_ECS_TEMP_ENTITY (entity to swap with)
+; -----------------------------------------------------------------------------
+ecsLocationSwap2:
+
+  jsr vSetTemp
+  ldx VERA_DATA0
+  ldy VERA_DATA0
+
+  jsr vSetCurrent
+  stx VERA_DATA0  
+  sty VERA_DATA0
+
+  ; back-up current entity
+  lda ZP_ECS_CURRENT_ENTITY_LSB
+  sta R7L
+  lda ZP_ECS_CURRENT_ENTITY_MSB
+  sta R7H
+
+  ; set new entity
+  lda ZP_ECS_TEMP_ENTITY_LSB
+  sta ZP_ECS_CURRENT_ENTITY_LSB
+  lda ZP_ECS_TEMP_ENTITY_MSB
+  sta ZP_ECS_CURRENT_ENTITY_MSB
+
+
+  ; TODO: here, I think we'll need a different temporary
+  ;       entity type (wake/transitioning). once it expires
+  ;       it can notify its surrounding cells
+
+  ; set temporary entity to current location
+  jsr ecsSetLocation
+
+  ; restore current entity back
+  lda R7L
+  sta ZP_ECS_CURRENT_ENTITY_LSB
+  lda R7H
+  sta ZP_ECS_CURRENT_ENTITY_MSB
+
+  ; set new location
+  lda ZP_TEMP_CELL_X
+  sta ZP_CURRENT_CELL_X
+  lda ZP_TEMP_CELL_Y
+  sta ZP_CURRENT_CELL_Y
+  jsr ecsSetLocation
+  jsr ecsEntitySetTransitioning
+
+  ; Here, we want to look at cells adjacent
+  ; the newly blank cell (above for fallers)
+  ; and (left and right, above-left and above-right
+  ; for rollers) and let them know a space just opened up. 
+  ; perhaps we add them to a queue to process on the next frame?
+  
+  ;jsr adjacentCellClearedCB
+
+  rts  
+
 }; ecsLocationSystem

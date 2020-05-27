@@ -227,6 +227,28 @@ vSetCurrent:
   sta VERA_ADDRx_H
   rts
 
+  ; -----------------------------------------------------------------------------
+; vSetTemp: set vram address to temp tile
+; -----------------------------------------------------------------------------
+; inputs:
+;  ZP_TEMP_CELL_X/Y set
+; -----------------------------------------------------------------------------
+vSetTemp:
+  lda ZP_TEMP_CELL_Y
+  sta R7
+  lda ZP_TEMP_CELL_X
+  asl
+  asl
+  lsr R7
+  ror
+  sta VERA_ADDRx_L
+  lda R7
+  adc #>VRADDR_MAP_BASE_ODD
+  sta VERA_ADDRx_M
+  lda #$10
+  sta VERA_ADDRx_H
+  rts
+
 ; -----------------------------------------------------------------------------
 ; vTile: get the contents of a cell using its x/y coordinates
 ; -----------------------------------------------------------------------------
