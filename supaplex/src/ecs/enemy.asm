@@ -51,10 +51,13 @@ ecsSetEnemyState:
   ldy #RAM_BANK_ENEMY_COMPONENT
   sty RAM_BANK
 
-  ldy #ECS_ATTRIBUTE_ENTITY_TYPE
+  ldy #ECS_ATTRIBUTE_ENEMY_STATE
 
   ; set enemy state
   sta (ZP_ECS_CURRENT_ENTITY), y
+
+  ldy #RAM_BANK_ECS_PRIMARY
+  sty RAM_BANK
 
   rts
 
@@ -71,10 +74,13 @@ ecsGetEnemyState:
   ldy #RAM_BANK_ENEMY_COMPONENT
   sty RAM_BANK
 
-  ldy #ECS_ATTRIBUTE_ENTITY_TYPE
+  ldy #ECS_ATTRIBUTE_ENEMY_STATE
 
   ; set enemy state
   lda (ZP_ECS_CURRENT_ENTITY), y
+
+  ldy #RAM_BANK_ECS_PRIMARY
+  sty RAM_BANK
 
   rts
 
@@ -215,20 +221,17 @@ enemyAnimCB:
   stz R5H ; count of tests
 
   jsr .enemyPeekStep1
-  lda ZP_ECS_TEMP_ENTITY_MSB
-  and #$0f
+  jsr ecsTempEntityGetType
   beq .endSearch ;  is empty?
   inc R5H
 
   jsr .enemyPeekStep2
-  lda ZP_ECS_TEMP_ENTITY_MSB
-  and #$0f
+  jsr ecsTempEntityGetType
   beq .endSearch ;  is empty?
   inc R5H
 
   jsr .enemyPeekStep3
-  lda ZP_ECS_TEMP_ENTITY_MSB
-  and #$0f
+  jsr ecsTempEntityGetType
   beq .endSearch ;  is empty?
   stz R5H  ; clear count.. do the first one
 

@@ -42,12 +42,14 @@ createGameObject:
 ; JSR wrapper for objectFactory
 ; -----------------------------------------------------------------------------
 .doCreate
+  phx
+  phy
   jsr ecsEntityCreate
   +setRamBank RAM_BANK_ECS_PRIMARY
-  tya
+  pla
   jsr ecsEntitySetType
   jsr ecsSetLocation
-
+  plx
   jmp (objectFactory, x)
   ; above jump will rts
 
@@ -74,8 +76,8 @@ objectFactory:
 !word createPort
 !word createBug
 !word createInfotron
-!word createEmpty;createElectron
-!word createEmpty;createSnikSnak
+!word createElectron
+!word createSnikSnak
 !word createRam
 !word createHardware
 !word createTransition

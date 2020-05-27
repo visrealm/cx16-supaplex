@@ -38,12 +38,12 @@ ecsSetAnimation:
   ldy #ECS_ATTRIBUTE_ANIM_ID
 
   ; set animation id
-  lda ECS_ATTRIBUTE_ANIM_ID
+  lda ZP_ECS_CURRENT_ANIM_ID
   sta (ZP_ECS_CURRENT_ENTITY), y
 
   ; set animation flags
   iny    ; flags
-  lda ECS_ATTRIBUTE_ANIM_FL
+  lda ZP_ECS_CURRENT_ANIM_FL
   sta (ZP_ECS_CURRENT_ENTITY), y
 
   ply
@@ -67,12 +67,12 @@ ecsGetAnimation:
 
   ; get animation id
   lda (ZP_ECS_CURRENT_ENTITY), y
-  sta ECS_ATTRIBUTE_ANIM_ID
+  sta ZP_ECS_CURRENT_ANIM_ID
 
   ; get animation flags
   iny    ; flags
   lda (ZP_ECS_CURRENT_ENTITY), y
-  sta ECS_ATTRIBUTE_ANIM_FL
+  sta ZP_ECS_CURRENT_ANIM_FL
 
   ply
   rts
@@ -224,7 +224,7 @@ hardwareAnimCB:
 ; JSR wrapper called for animationCallbacks
 ; -----------------------------------------------------------------------------
 animationCompleteCallback:
-  lda ZP_ECS_CURRENT_ENTITY_MSB
+  jsr ecsEntityGetType
   asl
   tax
   jmp (animationCallbacks, x)
@@ -292,8 +292,8 @@ ecsAnimationSystemTick:
   sta ZP_ECS_CURRENT_ENTITY_MSB
 
   phy
-  jsr ecsGetAnimation
   jsr ecsGetLocation
+  jsr ecsGetAnimation
   
   jsr vSetCurrent
 

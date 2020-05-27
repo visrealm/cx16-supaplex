@@ -14,6 +14,30 @@ ECS_LOCATION_ASM_ = 1
 !ifndef CMN_QUEUE_ASM_ !error "Requires queue"
 
 ; =============================================================================
+; .setCurrentLocationAddress
+; -----------------------------------------------------------------------------
+; Sets ZP_ECS_LOCATION_SYSTEM for the msb address of ZP_CURRENT_CELL
+; -----------------------------------------------------------------------------
+!macro setCurrentLocationAddress {
+
+  ; cell address: two rows per 256 byte page
+  ; even row [0 -> 119],  odd row [128 -> 247]
+  ; [x0, y0, x1, y1, x2, y2, etc.]
+
+  stz ZP_ECS_LOCATION_SYSTEM_LSB
+  lda ZP_CURRENT_CELL_Y
+  lsr                              ; halve it. we get two rows per 256 byte page
+  ror ZP_ECS_LOCATION_SYSTEM_LSB   ; if y was odd, then start at 128 in current page
+  ora #>LOCATION_MAP_ADDR           ; set high nibble (would need to add if it wasn't a 4KB mutiple)
+  sta ZP_ECS_LOCATION_SYSTEM_MSB
+  lda ZP_CURRENT_CELL_X            ; double x since we stoe two bytes per cell (entity id)
+  asl
+  ora ZP_ECS_LOCATION_SYSTEM_LSB
+  sta ZP_ECS_LOCATION_SYSTEM_LSB
+}
+
+
+; =============================================================================
 !zone ecsLocationComponent {
 ; -----------------------------------------------------------------------------
 ; Used to set and get the location attributes for a given entity
@@ -68,6 +92,9 @@ ecsGetLocation:
   iny    ; Y
   lda (ZP_ECS_CURRENT_ENTITY), y
   sta ZP_CURRENT_CELL_Y
+
+  +setCurrentLocationAddress
+  
   ply
 
   rts
@@ -88,28 +115,6 @@ ecsLocationSystemInit:
   rts
 
 
-; =============================================================================
-; .setCurrentLocationAddress
-; -----------------------------------------------------------------------------
-; Sets ZP_ECS_LOCATION_SYSTEM for the msb address of ZP_CURRENT_CELL
-; -----------------------------------------------------------------------------
-!macro .setCurrentLocationAddress {
-
-  ; cell address: two rows per 256 byte page
-  ; even row [0 -> 119],  odd row [128 -> 247]
-  ; [x0, y0, x1, y1, x2, y2, etc.]
-
-  stz ZP_ECS_LOCATION_SYSTEM_LSB
-  lda ZP_CURRENT_CELL_Y
-  lsr                              ; halve it. we get two rows per 256 byte page
-  ror ZP_ECS_LOCATION_SYSTEM_LSB   ; if y was odd, then start at 128 in current page
-  ora #>LOCATION_MAP_ADDR           ; set high nibble (would need to add if it wasn't a 4KB mutiple)
-  sta ZP_ECS_LOCATION_SYSTEM_MSB
-  lda ZP_CURRENT_CELL_X            ; double x since we stoe two bytes per cell (entity id)
-  asl
-  ora ZP_ECS_LOCATION_SYSTEM_LSB
-  sta ZP_ECS_LOCATION_SYSTEM_LSB
-}
 
 ; -----------------------------------------------------------------------------
 ; ecsLocationSetEntity
@@ -121,7 +126,7 @@ ecsLocationSystemInit:
 ;   ZP_ECS_LOCATION_SYSTEM will be set to cell LSB
 ; -----------------------------------------------------------------------------
 ecsLocationSetEntity:
-  +.setCurrentLocationAddress
+  +setCurrentLocationAddress
 
   lda ZP_ECS_CURRENT_ENTITY_LSB
   sta (ZP_ECS_LOCATION_SYSTEM)
@@ -141,7 +146,7 @@ ecsLocationSetEntity:
 ;   ZP_ECS_CURRENT_ENTITY - also ZP_ECS_LOCATION_SYSTEM is set to cell LSB
 ; -----------------------------------------------------------------------------
 ecsLocationGetEntity:
-  +.setCurrentLocationAddress
+  +setCurrentLocationAddress
 
   lda (ZP_ECS_LOCATION_SYSTEM)
   sta ZP_ECS_CURRENT_ENTITY_LSB
@@ -314,7 +319,14 @@ ecsLocationPeekDown:
 ;   ZP_ECS_TEMP_ENTITY (entity to swap with)
 ; -----------------------------------------------------------------------------
 ecsLocationSwap:
-  +dbgBreak
+
+  ; show current location as empty
+  jsr vSetCurrent
+  lda tileBlank
+  sta VERA_DATA0  
+  lda tileBlank + 1
+  sta VERA_DATA0
+
   ; back-up current entity
   lda ZP_ECS_CURRENT_ENTITY_LSB
   sta R7L
@@ -326,6 +338,7 @@ ecsLocationSwap:
   sta ZP_ECS_CURRENT_ENTITY_LSB
   lda ZP_ECS_TEMP_ENTITY_MSB
   sta ZP_ECS_CURRENT_ENTITY_MSB
+
 
   ; TODO: here, I think we'll need a different temporary
   ;       entity type (wake/transitioning). once it expires
@@ -339,12 +352,6 @@ ecsLocationSwap:
   sta ZP_ECS_CURRENT_ENTITY_LSB
   lda R7H
   sta ZP_ECS_CURRENT_ENTITY_MSB
-
-  jsr vSetCurrent
-  lda tileBlank
-  sta VERA_DATA0  
-  lda tileBlank + 1
-  sta VERA_DATA0
 
   ; set new location
   lda ZP_TEMP_CELL_X

@@ -51,13 +51,12 @@ testCell:
   jsr hudSetInfotrons
 
 .cellPassable
+
+  ; clear current cell and move into the next one
+  +setRamBank RAM_BANK_ECS_PRIMARY
+  jsr ecsLocationSwap
   lda #ENTITY_TYPE_EMPTY
-  jsr ecsTempEntitySetType;ecsLocationClearTemp
-  lda ZP_TEMP_CELL_X
-  sta ZP_CURRENT_CELL_X
-  lda ZP_TEMP_CELL_Y
-  sta ZP_CURRENT_CELL_Y
-  jsr ecsSetLocation
+  jsr ecsTempEntitySetType
   
   sec
   rts
@@ -151,9 +150,9 @@ doInput:
   !if xOrY = "y" { sta ZP_PLAYER_OFFSET_Y }
 
   ; clear old cell
-  ldy ZP_PLAYER_CELL_Y
-  lda ZP_PLAYER_CELL_X
-  jsr clearTile
+  ;ldy ZP_PLAYER_CELL_Y
+  ;lda ZP_PLAYER_CELL_X
+  ;jsr clearTile
 
   ; adjust player location
   !if incOrDec = 1 {

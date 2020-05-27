@@ -14,6 +14,7 @@
 ; register all ecs systems
 ; -----------------------------------------------------------------------------
 ecsRegisterSystems:
+  +setRamBank RAM_BANK_ECS_PRIMARY
   jsr ecsAnimationSystemInit
   jsr ecsLocationSystemInit
   jsr ecsEnemySystemInit
@@ -24,11 +25,10 @@ ecsRegisterSystems:
 ; tick all ecs systems
 ; -----------------------------------------------------------------------------
 ecsTickSystems:
-  jsr ecsEnemySystemTick
   +setRamBank RAM_BANK_ECS_PRIMARY
-
+  jsr ecsEnemySystemTick
   jsr ecsFallingSystemTick
-  ;jmp ecsAnimationSystemTick
+  jmp ecsAnimationSystemTick
   rts
   
   ; rts

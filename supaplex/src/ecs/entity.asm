@@ -53,7 +53,7 @@ ECS_ATTRIBUTE_ANIM_ID     = 3
 ECS_ATTRIBUTE_ANIM_FL     = 4
 
 ; second bank attributes
-ECS_ATTRIBUTE_ENTITY_TYPE = 0
+ECS_ATTRIBUTE_ENEMY_STATE = 0
 
 
 ecsInit:

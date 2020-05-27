@@ -25,6 +25,7 @@ createSnikSnak:
   sta ZP_ECS_CURRENT_ANIM_ID
   lda #0
   sta ZP_ECS_CURRENT_ANIM_FL
+
   jsr ecsSetAnimation
 
   jmp ecsAnimationPush
