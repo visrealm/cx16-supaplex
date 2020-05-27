@@ -11,17 +11,10 @@
 
 ; contains search logic for dynamic enemies (snik snaks and electrons)
 
-ECS_LOCATION_ASM_ = 1
+ECS_ENEMY_ASM_ = 1
 
 !ifndef CMN_QUEUE_ASM_ !error "Requires queue"
 
-
-
-; =============================================================================
-!zone ecsEnemyComponent {
-; -----------------------------------------------------------------------------
-; Used to set and get the enemy attributes for a given entity
-; =============================================================================
 
 
 ; the direction we're facing
@@ -38,56 +31,6 @@ ENEMY_FLAG_MOVING = $10
 ; facing     1:0
 ; justTurned  :2
 ; moving      :4
-
-
-; -----------------------------------------------------------------------------
-; ecsSetEnemyState
-; -----------------------------------------------------------------------------
-; Inputs:
-;   ZP_ECS_CURRENT_ENTITY
-;   A: State
-; -----------------------------------------------------------------------------
-ecsSetEnemyState:
-  ldy #RAM_BANK_ENEMY_COMPONENT
-  sty RAM_BANK
-
-  ldy #ECS_ATTRIBUTE_STATE
-
-  ; set enemy state
-  sta (ZP_ECS_CURRENT_ENTITY), y
-
-  ldy #RAM_BANK_ECS_PRIMARY
-  sty RAM_BANK
-
-  rts
-
-; -----------------------------------------------------------------------------
-; ecsGetEnemyState
-; -----------------------------------------------------------------------------
-; Inputs:
-;   ZP_ECS_CURRENT_ENTITY
-; Outputs:
-;   A: State
-; -----------------------------------------------------------------------------
-ecsGetEnemyState:
-
-  ldy #RAM_BANK_ENEMY_COMPONENT
-  sty RAM_BANK
-
-  ldy #ECS_ATTRIBUTE_STATE
-
-  ; set enemy state
-  lda (ZP_ECS_CURRENT_ENTITY), y
-
-  ldy #RAM_BANK_ECS_PRIMARY
-  sty RAM_BANK
-
-  rts
-
-} ; ecsEnemyComponent
-
-
-
 
 
 ; =============================================================================
@@ -212,8 +155,8 @@ newStateAfterStep3:
 ;  ZP_ECS_CURRENT_ANIM_ID, ZP_ECS_CURRENT_ANIM_FL
 ; -----------------------------------------------------------------------------
 enemyAnimCB:
-  jsr ecsGetEnemyState
-  sta ZP_ECS_ENEMY_STATE_CURRENT
+  jsr ecsGetState
+  sta ZP_ECS_STATE_CURRENT
 
   and #$07 ; only care about first 3 bits
   asl   ; double it because we're searching words
@@ -237,14 +180,14 @@ enemyAnimCB:
 
   ; no match found. doesn't matter we just turned in that case
   ; reset that flag
-  lda ZP_ECS_ENEMY_STATE_CURRENT
+  lda ZP_ECS_STATE_CURRENT
   and #$03;!ENEMY_FLAG_JUST_TURNED
-  sta ZP_ECS_ENEMY_STATE_CURRENT
+  sta ZP_ECS_STATE_CURRENT
 
 
 .endSearch
 
-  lda ZP_ECS_ENEMY_STATE_CURRENT
+  lda ZP_ECS_STATE_CURRENT
   and #$07 ; only care about first 3 bits
 
 ; now we want to find our new state, so need to look it up
@@ -260,10 +203,10 @@ enemyAnimCB:
 +
   tax
   lda newStateLookup, x
-  ; set the new state. but ZP_ECS_ENEMY_STATE_CURRENT 
+  ; set the new state. but ZP_ECS_STATE_CURRENT 
   ; can still be used to compare with old state
   sta R5H
-  jsr ecsSetEnemyState 
+  jsr ecsSetState 
   
   bit #ENEMY_FLAG_MOVING
   beq +
@@ -279,7 +222,7 @@ enemyAnimCB:
   ; now, in A, we'll store the old and new directions
   ; so our spscific enemy can animate it if he feels so inclined
   ; (3:2) old direction   (1:0) new direction
-  lda ZP_ECS_ENEMY_STATE_CURRENT ; load old state
+  lda ZP_ECS_STATE_CURRENT ; load old state
   and #$03 ; only care about direction
   asl
   asl

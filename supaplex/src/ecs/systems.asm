@@ -18,8 +18,9 @@ ecsRegisterSystems:
   jsr ecsAnimationSystemInit
   jsr ecsLocationSystemInit
   jsr ecsEnemySystemInit
-  jmp ecsFallingSystemInit
-  ; rts
+  jsr ecsFallingSystemInit
+  jsr ecsTransitioningSystemInit
+  rts
 
 ; -----------------------------------------------------------------------------
 ; tick all ecs systems
@@ -28,7 +29,8 @@ ecsTickSystems:
   +setRamBank RAM_BANK_ECS_PRIMARY
   jsr ecsEnemySystemTick
   jsr ecsFallingSystemTick
-  jmp ecsAnimationSystemTick
+  jsr ecsAnimationSystemTick
+  jsr ecsTransitioningSystemTick
   rts
   
   ; rts

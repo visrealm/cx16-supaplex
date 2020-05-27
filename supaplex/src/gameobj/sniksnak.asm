@@ -19,7 +19,7 @@
 ; -----------------------------------------------------------------------------
 createSnikSnak:
   lda #ENEMY_FACING_UP
-  jsr ecsSetEnemyState
+  jsr ecsSetState
 
   +ldaAnimId animSnikU2L
   sta ZP_ECS_CURRENT_ANIM_ID

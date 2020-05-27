@@ -221,6 +221,7 @@ bugAnimCB:
 infotronAnimCB:
 ramAnimCB:
 hardwareAnimCB:
+transitionAnimCB:
   rts
 
   

@@ -105,6 +105,7 @@ ADDR_ECS           = $7000 ; 4KB
 !source "src/ecs/systems.asm"
 !source "src/ecs/location.asm"
 !source "src/ecs/animation.asm"
+!source "src/ecs/state.asm"
 !source "src/ecs/enemy.asm"
 !source "src/ecs/falling.asm"
 !source "src/ecs/transitioning.asm"

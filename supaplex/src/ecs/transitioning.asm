@@ -26,43 +26,23 @@ ecsEntitySetTransitioning:
   lda #ENTITY_TYPE_TRANSITION
   jsr ecsEntitySetType
 
+  lda #$08
+  jsr ecsSetState
+
+  jsr ecsTransitionPush
+
   ; TODO. We don't necessarily need to waste an animation
   ;       slot with this (unless it's an explosion)
   ;       perhaps a separate queue
-  +ldaAnimId animBlank
-  sta ZP_ECS_CURRENT_ANIM_ID
-  lda #0
-  sta ZP_ECS_CURRENT_ANIM_FL
+  ;+ldaAnimId animBlank
+  ;sta ZP_ECS_CURRENT_ANIM_ID
+  ;lda #0
+  ;sta ZP_ECS_CURRENT_ANIM_FL
 
-  jsr ecsSetAnimation
-  jmp ecsAnimationPush
-
-  rts
-
-
-transitionAnimCB:
-  lda #ENTITY_TYPE_EMPTY
-  jsr ecsEntitySetType
-
-  ; need to do this before we start peeking
-  jsr ecsGetLocation
-
-  jsr ecsLocationPeekUp
-  jsr ecsTempEntityGetType
-
-  tax
-  lda entityTypeFlags1, x
-  bit #ENTITY_FLAGL_CANFALL
-  beq +
-  jsr ecsLocationSwap2
-+
-
-  ; Here, we want to notify our surrounding cells
-  ; that this cell just opened up
+  ;jsr ecsSetAnimation
+  ;jmp ecsAnimationPush
 
   rts
-
-
 
 
 ; =============================================================================
@@ -143,11 +123,32 @@ checkBelowCallback:
 ; -----------------------------------------------------------------------------
 ; ecsTransitioningSystemInit
 ; -----------------------------------------------------------------------------
-; Initialise the falling system
+; Initialise the transition system
 ; -----------------------------------------------------------------------------
 ecsTransitioningSystemInit:
+  +qCreate .entityLsbQueueId, .entityLsbQueueMsb
+  sta .smcEntityLsb - 1
+
+  +qCreate .entityMsbQueueId, .entityMsbQueueMsb
+  sta .smcEntityMsb - 1
   rts
 
+; -----------------------------------------------------------------------------
+; ecsTransitionPush
+; -----------------------------------------------------------------------------
+; Inputs:
+;   ZP_ECS_CURRENT_ENTITY
+; -----------------------------------------------------------------------------
+ecsTransitionPush:
+  lda ZP_ECS_CURRENT_ENTITY_LSB
+  ldx .entityLsbQueueId
+  jsr qPush
+
+  lda ZP_ECS_CURRENT_ENTITY_MSB
+  ldx .entityMsbQueueId
+  jsr qPush
+
+  rts
 
 
 ; -----------------------------------------------------------------------------
@@ -156,6 +157,70 @@ ecsTransitioningSystemInit:
 ; Called for each frame
 ; -----------------------------------------------------------------------------
 ecsTransitioningSystemTick:
+  
+  +vchannel0
+  ldx .entityLsbQueueId
+  jsr qSize
+  bne +
+  rts
++
+
+  sta R9 ; store queue size in R9
+  
+  jsr qIterate ; get starting point (y)
+
+.loop:
+  lda SELF_MODIFY_MSB_ADDR, y   ; modified to address of .entityLsbQueueId
+.smcEntityLsb:
+  sta ZP_ECS_CURRENT_ENTITY_LSB
+
+  lda SELF_MODIFY_MSB_ADDR, y   ; modified to address of .entityMsbQueueId
+.smcEntityMsb:
+  sta ZP_ECS_CURRENT_ENTITY_MSB
+
+  phy
+  jsr ecsGetState
+
+  dec
+  beq +
+  jsr ecsSetState
+  bra ++
++
+  lda #ENTITY_TYPE_EMPTY
+  jsr ecsEntitySetType
+
+  ldx .entityLsbQueueId
+  jsr qPop
+  ldx .entityMsbQueueId
+  jsr qPop
+
+  ; need to do this before we start peeking
+
+  jsr ecsGetLocation
+
+  jsr ecsLocationPeekUp
+  jsr ecsTempEntityGetType
+
+  tax
+  lda entityTypeFlags1, x
+  bit #ENTITY_FLAGL_CANFALL
+  beq ++
+  jsr ecsLocationSwap2
+    jsr vSetCurrent
+  lda tileBlank
+  sta VERA_DATA0  
+  lda tileBlank + 1
+  sta VERA_DATA0
+
+++
+
+  ply
+  iny
+  dec R9
+  clc ; I don't understand why this is necessary. but it is
+  bne .loop
+
+.end:
   rts
 
 

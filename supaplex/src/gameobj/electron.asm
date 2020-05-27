@@ -19,7 +19,7 @@
 ; -----------------------------------------------------------------------------
 createElectron:
   lda #ENEMY_FACING_UP
-  jsr ecsSetEnemyState
+  jsr ecsSetState
 
   +ldaAnimId animElectron
   sta ZP_ECS_CURRENT_ANIM_ID
