@@ -27,12 +27,16 @@ ECS_FALLING_ASM_ = 1
 
 
 ecsDoFall:
-  jsr ecsLocationSwap2
+
   jsr vSetCurrent
-  lda tileBlank
-  sta VERA_DATA0  
-  lda tileBlank + 1
-  sta VERA_DATA0
+  ldx VERA_DATA0
+  ldy VERA_DATA0
+
+  jsr vSetTemp
+  stx VERA_DATA0  
+  sty VERA_DATA0
+
+  jsr ecsLocationSwap
 
   lda #$08
   jsr ecsSetState
@@ -122,8 +126,8 @@ ecsFallingSystemTick:
   jsr ecsSetState
   bra ++
 +
-  lda #ENTITY_TYPE_EMPTY
-  jsr ecsEntitySetType
+;  lda #ENTITY_TYPE_EMPTY
+;  jsr ecsEntitySetType
 
   ldx .entityLsbQueueId
   jsr qPop

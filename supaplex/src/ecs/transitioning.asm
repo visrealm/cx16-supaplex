@@ -205,13 +205,13 @@ ecsTransitioningSystemTick:
   lda entityTypeFlags1, x
   bit #ENTITY_FLAGL_CANFALL
   beq ++
-  jsr ecsLocationSwap2
-    jsr vSetCurrent
-  lda tileBlank
-  sta VERA_DATA0  
-  lda tileBlank + 1
-  sta VERA_DATA0
-
+  lda ZP_ECS_TEMP_ENTITY_LSB
+  sta ZP_ECS_CURRENT_ENTITY_LSB
+  lda ZP_ECS_TEMP_ENTITY_MSB
+  sta ZP_ECS_CURRENT_ENTITY_MSB
+  jsr ecsGetLocation
+  jsr ecsLocationPeekDown
+  jsr ecsDoFall
 ++
 
   ply

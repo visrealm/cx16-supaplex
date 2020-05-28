@@ -339,11 +339,6 @@ ecsLocationSwap:
   lda ZP_ECS_TEMP_ENTITY_MSB
   sta ZP_ECS_CURRENT_ENTITY_MSB
 
-
-  ; TODO: here, I think we'll need a different temporary
-  ;       entity type (wake/transitioning). once it expires
-  ;       it can notify its surrounding cells
-
   ; set temporary entity to current location
   jsr ecsSetLocation
   jsr ecsEntitySetTransitioning
@@ -360,14 +355,6 @@ ecsLocationSwap:
   lda ZP_TEMP_CELL_Y
   sta ZP_CURRENT_CELL_Y
   jsr ecsSetLocation
-
-  ; Here, we want to look at cells adjacent
-  ; the newly blank cell (above for fallers)
-  ; and (left and right, above-left and above-right
-  ; for rollers) and let them know a space just opened up. 
-  ; perhaps we add them to a queue to process on the next frame?
-  
-  ;jsr adjacentCellClearedCB
 
   rts
 
@@ -408,11 +395,6 @@ ecsLocationSwap2:
   lda ZP_ECS_TEMP_ENTITY_MSB
   sta ZP_ECS_CURRENT_ENTITY_MSB
 
-
-  ; TODO: here, I think we'll need a different temporary
-  ;       entity type (wake/transitioning). once it expires
-  ;       it can notify its surrounding cells
-
   ; set temporary entity to current location
   jsr ecsSetLocation
 
@@ -429,14 +411,6 @@ ecsLocationSwap2:
   sta ZP_CURRENT_CELL_Y
   jsr ecsSetLocation
   jsr ecsEntitySetTransitioning
-
-  ; Here, we want to look at cells adjacent
-  ; the newly blank cell (above for fallers)
-  ; and (left and right, above-left and above-right
-  ; for rollers) and let them know a space just opened up. 
-  ; perhaps we add them to a queue to process on the next frame?
-  
-  ;jsr adjacentCellClearedCB
 
   rts  
 
