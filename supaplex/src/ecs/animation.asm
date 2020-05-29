@@ -172,6 +172,7 @@ animTermGreen: +animDef 9, tileConsoleGn1, tileConsoleGn1, tileConsoleGn2, tileC
 animTermReg:   +animDef 10, tileConsoleRd1, tileConsoleRd2, tileConsoleRd3, tileConsoleRd4, tileConsoleRd5, tileConsoleRd6, tileConsoleRd7, tileConsoleRd8
 animElectron:  +animDef 11,  tileElectron1, tileElectron2, tileElectron2, tileElectron3, tileElectron4, tileElectron5, tileElectron6, tileElectron6
 animElectron2:  +animDef 12, tileElectron7, tileElectron7, tileElectron6, tileElectron5, tileElectron4, tileElectron3, tileElectron2, tileElectron2
+animExplode:  +animDef 13, tileExplod1, tileExplod2, tileExplod3, tileExplod4, tileExplod5, tileExplod6, tileBlank, tileBlank
 
 ; TODO: Add a lookup for the above to save computing the address each time
 

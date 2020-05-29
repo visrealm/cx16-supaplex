@@ -41,10 +41,9 @@ outputText:
   beq .done
   sec
   sbc #32
-  clc
-  rol
-  rol
-  rol
+  asl
+  asl
+  asl
   rol
   rol
   sta R1L
@@ -160,13 +159,11 @@ outputBcdChar:
   +vpush
   
   lda R1L
-  clc
-  adc #'0' - ' '
-  clc
-  rol
-  rol
-  rol
-  rol
+  ora #$10 ; add 16
+  asl
+  asl
+  asl
+  asl
   rol
   sta R1L
   rol
@@ -246,5 +243,3 @@ textPixelOperation:
   ply
 
   rts
-  
-  

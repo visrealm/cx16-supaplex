@@ -184,7 +184,7 @@ ecsTransitioningSystemTick:
   dec
   beq +
   jsr ecsSetState
-  bra ++
+  bra .next
 +
   lda #ENTITY_TYPE_EMPTY
   jsr ecsEntitySetType
@@ -204,7 +204,7 @@ ecsTransitioningSystemTick:
   tax
   lda entityTypeFlags1, x
   bit #ENTITY_FLAGL_CANFALL
-  beq ++
+  beq +
   lda ZP_ECS_TEMP_ENTITY_LSB
   sta ZP_ECS_CURRENT_ENTITY_LSB
   lda ZP_ECS_TEMP_ENTITY_MSB
@@ -212,8 +212,27 @@ ecsTransitioningSystemTick:
   jsr ecsGetLocation
   jsr ecsLocationPeekDown
   jsr ecsDoFall
-++
+  bra .next
++
 
+  jsr ecsLocationPeekLeft
+  jsr ecsTempEntityGetType
+
+  tax
+  lda entityTypeFlags1, x
+  bit #ENTITY_FLAGL_ROUNDED
+  beq +
+  lda ZP_ECS_TEMP_ENTITY_LSB
+  sta ZP_ECS_CURRENT_ENTITY_LSB
+  lda ZP_ECS_TEMP_ENTITY_MSB
+  sta ZP_ECS_CURRENT_ENTITY_MSB
+  jsr ecsGetLocation
+  jsr ecsLocationPeekRight
+  jsr ecsDoRoll
++
+
+
+.next:
   ply
   iny
   dec R9

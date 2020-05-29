@@ -108,6 +108,18 @@ ecsGetLocation:
 
 LOCATION_MAP_ADDR = ADDR_ECS
 
+; storage for the current 3x3 square of cells
+currentNine:
+ul: !word $0000
+u:  !word $0000
+ur: !word $0000
+l:  !word $0000
+c:  !word $0000
+r:  !word $0000
+dl: !word $0000
+d:  !word $0000
+dr: !word $0000
+
 ; -----------------------------------------------------------------------------
 ; initialise the location system
 ; -----------------------------------------------------------------------------
@@ -302,6 +314,121 @@ ecsLocationPeekDown:
 +
 
   sty ZP_ECS_LOCATION_SYSTEM_LSB ; restore current location
+
+  rts
+
+; -----------------------------------------------------------------------------
+; ecsLocationPeekAll
+; -----------------------------------------------------------------------------
+; scan all adjacent cells and place in currentNine
+; Inputs:
+;   ZP_ECS_LOCATION_SYSTEM is set to the current location
+; Outputs:
+;   currentNine : All surrounding entities
+; -----------------------------------------------------------------------------
+ecsLocationPeekAll:
+  ; update temp cell to point to last cell peeked
+  lda ZP_CURRENT_CELL_X
+  sta ZP_TEMP_CELL_X
+  lda ZP_CURRENT_CELL_Y
+  dec
+  sta ZP_TEMP_CELL_Y
+
+  lda ZP_ECS_LOCATION_SYSTEM_LSB
+  eor #$80   ; toggle first bit (switches between odd and even rows)
+  sec
+  sbc #2
+  sta ZP_ECS_LOCATION_SYSTEM_LSB
+
+  bpl +
+    dec ZP_ECS_LOCATION_SYSTEM_MSB ; go back a page
++
+
+  ; now, we're pointing at top left
+  lda (ZP_ECS_LOCATION_SYSTEM)
+  sta ul
+
+  ldy #1
+  lda (ZP_ECS_LOCATION_SYSTEM), y
+  sta ul + 1
+
+  iny
+  lda (ZP_ECS_LOCATION_SYSTEM), y
+  sta u
+
+  iny
+  lda (ZP_ECS_LOCATION_SYSTEM), y
+  sta u + 1
+
+  iny
+  lda (ZP_ECS_LOCATION_SYSTEM), y
+  sta ur
+
+  iny
+  lda (ZP_ECS_LOCATION_SYSTEM), y
+  sta ur + 1
+
+  inc ZP_ECS_LOCATION_SYSTEM_MSB
+
+  ; now, we're pointing at bottom left
+  lda (ZP_ECS_LOCATION_SYSTEM)
+  sta dl
+
+  ldy #1
+  lda (ZP_ECS_LOCATION_SYSTEM), y
+  sta dl + 1
+
+  iny
+  lda (ZP_ECS_LOCATION_SYSTEM), y
+  sta d
+
+  iny
+  lda (ZP_ECS_LOCATION_SYSTEM), y
+  sta d + 1
+
+  iny
+  lda (ZP_ECS_LOCATION_SYSTEM), y
+  sta dr
+
+  iny
+  lda (ZP_ECS_LOCATION_SYSTEM), y
+  sta dr + 1
+
+  lda ZP_ECS_LOCATION_SYSTEM_LSB
+  eor #$80   ; toggle first bit (switches between odd and even rows)
+  sta ZP_ECS_LOCATION_SYSTEM_LSB
+
+  bpl +
+    inc ZP_ECS_LOCATION_SYSTEM_MSB ; go forward a page
++
+
+  ; now, we're pointing at left
+  lda (ZP_ECS_LOCATION_SYSTEM)
+  sta l
+
+  ldy #1
+  lda (ZP_ECS_LOCATION_SYSTEM), y
+  sta l + 1
+
+  iny
+  lda (ZP_ECS_LOCATION_SYSTEM), y
+  sta c
+
+  iny
+  lda (ZP_ECS_LOCATION_SYSTEM), y
+  sta c + 1
+
+  iny
+  lda (ZP_ECS_LOCATION_SYSTEM), y
+  sta r
+
+  iny
+  lda (ZP_ECS_LOCATION_SYSTEM), y
+  sta r + 1
+
+  ; reset back to centre from left
+  inc ZP_ECS_LOCATION_SYSTEM_LSB
+  inc ZP_ECS_LOCATION_SYSTEM_LSB
 
   rts
 

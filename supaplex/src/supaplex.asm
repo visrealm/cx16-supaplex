@@ -108,6 +108,7 @@ ADDR_ECS           = $7000 ; 4KB
 !source "src/ecs/state.asm"
 !source "src/ecs/enemy.asm"
 !source "src/ecs/falling.asm"
+!source "src/ecs/rolling.asm"
 !source "src/ecs/transitioning.asm"
 !source "src/gameobj/murphy.asm"
 !source "src/gameobj/sniksnak.asm"
@@ -119,7 +120,7 @@ ADDR_ECS           = $7000 ; 4KB
 ; -----------------------------------------------------------------------------
 ; temporarily store the level here. TBD: load it!
 ; -----------------------------------------------------------------------------
-LEVEL_NUMBER = 1
+LEVEL_NUMBER = 0
 
 levelNumber: !byte LEVEL_NUMBER
 levelDat: 

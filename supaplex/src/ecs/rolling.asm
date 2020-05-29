@@ -1,6 +1,6 @@
 ; Supaplex - Commander X16
 ;
-; ECS falling objects
+; ECS rolling objects
 ;
 ; Copyright (c) 2020 Troy Schrapel
 ;
@@ -10,23 +10,23 @@
 ;
 
 
-ECS_FALLING_ASM_ = 1
+ECS_ROLLING_ASM_ = 1
 
 !ifndef CMN_QUEUE_ASM_ !error "Requires queue"
 
 
 
 ; =============================================================================
-!zone ecsFallingComponent {
+!zone ecsRollingComponent {
 ; -----------------------------------------------------------------------------
-; Used to set and get the fall attributes for a given entity
+; Used to set and get the roll attributes for a given entity
 ; =============================================================================
 
 
-} ; ecsFallingComponent
+} ; ecsRollingComponent
 
 
-ecsDoFall:
+ecsDoRoll:
 
   jsr vSetCurrent
   ldx VERA_DATA0
@@ -41,17 +41,17 @@ ecsDoFall:
   lda #$08
   jsr ecsSetState
 
-  jsr ecsFallingPush
+  jsr ecsRollingPush
   rts
 
 
 
 ; =============================================================================
-!zone ecsFallingSystem {
+!zone ecsRollingSystem {
 ; -----------------------------------------------------------------------------
 
 ; -----------------------------------------------------------------------------
-; falling "awake" queues
+; rolling "awake" queues
 ; -----------------------------------------------------------------------------
 .entityLsbQueueId:  !byte $00
 .entityMsbQueueId:  !byte $00
@@ -61,11 +61,11 @@ ecsDoFall:
 
 
 ; -----------------------------------------------------------------------------
-; ecsFallingSystemInit
+; ecsRollingSystemInit
 ; -----------------------------------------------------------------------------
-; Initialise the falling system
+; Initialise the rolling system
 ; -----------------------------------------------------------------------------
-ecsFallingSystemInit:
+ecsRollingSystemInit:
   +qCreate .entityLsbQueueId, .entityLsbQueueMsb
   sta .smcEntityLsb - 1
 
@@ -74,12 +74,12 @@ ecsFallingSystemInit:
   rts
 
 ; -----------------------------------------------------------------------------
-; ecsFallingPush
+; ecsRollingPush
 ; -----------------------------------------------------------------------------
 ; Inputs:
 ;   ZP_ECS_CURRENT_ENTITY
 ; -----------------------------------------------------------------------------
-ecsFallingPush:
+ecsRollingPush:
   lda ZP_ECS_CURRENT_ENTITY_LSB
   ldx .entityLsbQueueId
   jsr qPush
@@ -92,11 +92,11 @@ ecsFallingPush:
 
 
 ; -----------------------------------------------------------------------------
-; ecsFallingSystemTick
+; ecsRollingSystemTick
 ; -----------------------------------------------------------------------------
 ; Called for each frame
 ; -----------------------------------------------------------------------------
-ecsFallingSystemTick:
+ecsRollingSystemTick:
   
   +vchannel0
   ldx .entityLsbQueueId
@@ -124,7 +124,7 @@ ecsFallingSystemTick:
   dec
   beq +
   jsr ecsSetState
-  bra .next
+  bra ++
 +
 ;  lda #ENTITY_TYPE_EMPTY
 ;  jsr ecsEntitySetType
@@ -140,44 +140,10 @@ ecsFallingSystemTick:
 
   jsr ecsLocationPeekDown
   jsr ecsTempEntityGetType
-  bne +
-  jsr ecsDoFall
-  bra .next
-+
-  ;bra .next
-  jsr ecsLocationPeekAll
-  ldx #0
-  ldy #9
--
-  lda currentNine, x
-  sta ZP_ECS_CURRENT_ENTITY_LSB
-  inx
-  lda currentNine, x
-  sta ZP_ECS_CURRENT_ENTITY_MSB
-  jsr ecsGetLocation
-  jsr vSetCurrent
-  lda tileExplod1
-  sta VERA_DATA0  
-  lda tileExplod1 + 1
-  sta VERA_DATA0
-  
-  ;+ldaAnimId animExplode
-  ;sta ZP_ECS_CURRENT_ANIM_ID
-  ;stz ZP_ECS_CURRENT_ANIM_FL
-  ;phy
-  ;phx
-  ;jsr ecsSetAnimation
-  ;jsr ecsAnimationPush
-  ;plx
-  ;ply
-  
-  inx
-  dey
-  bne -
+  bne ++
+  jsr ecsDoRoll
+++
 
-
-
-.next:
   ply
   iny
   dec R9
@@ -190,4 +156,4 @@ ecsFallingSystemTick:
 
 
 
-} ; ecsFallingSystem
+} ; ecsRollingSystem
