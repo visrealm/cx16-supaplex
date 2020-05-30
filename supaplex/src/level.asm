@@ -80,15 +80,6 @@ loadMap:
   ; increment the lda address above
   +inc16 .loadLevelValue + 1
 
-  ; load the two tile bytes for vera
-  lda tileBlank,x
-  sta VERA_DATA0
-  sta VERA_DATA1
-  inx
-  lda tileBlank,x
-  sta VERA_DATA0
-  sta VERA_DATA1
-
   ; restore y
   inc ZP_CURRENT_CELL_X
   plx

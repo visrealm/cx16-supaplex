@@ -215,6 +215,7 @@ ecsTransitioningSystemTick:
   bra .next
 +
 
+  bra .next
   jsr ecsLocationPeekLeft
   jsr ecsTempEntityGetType
 

@@ -52,6 +52,8 @@ ECS_LOCATION_ASM_ = 1
 ;   ZP_CURRENT_CELL_Y
 ; -----------------------------------------------------------------------------
 ecsSetLocation:
+  +ramBankSanityCheck RAM_BANK_LOC_COMPONENT
+
   phy
   ldy #ECS_ATTRIBUTE_LOCATION_X
 
@@ -81,7 +83,10 @@ ecsSetLocation:
 ; -----------------------------------------------------------------------------
 ecsGetLocation:
 
+  +ramBankSanityCheck RAM_BANK_LOC_COMPONENT
+
   phy
+
   ldy #ECS_ATTRIBUTE_LOCATION_X
 
   ; get x location

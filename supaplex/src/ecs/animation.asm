@@ -35,6 +35,9 @@ ANIM_FLAG_REVERSE = $40   ; reverse the order of frames
 ecsSetAnimation:
   phy
 
+  ldy #RAM_BANK_ANIM_COMPONENT
+  sty RAM_BANK
+
   ldy #ECS_ATTRIBUTE_ANIM_ID
 
   ; set animation id
@@ -45,6 +48,9 @@ ecsSetAnimation:
   iny    ; flags
   lda ZP_ECS_CURRENT_ANIM_FL
   sta (ZP_ECS_CURRENT_ENTITY), y
+
+  ldy #RAM_BANK_ECS_PRIMARY
+  sty RAM_BANK
 
   ply
   rts
@@ -63,6 +69,9 @@ ecsGetAnimation:
   
   phy
 
+  ldy #RAM_BANK_ANIM_COMPONENT
+  sty RAM_BANK
+
   ldy #ECS_ATTRIBUTE_ANIM_ID
 
   ; get animation id
@@ -73,6 +82,9 @@ ecsGetAnimation:
   iny    ; flags
   lda (ZP_ECS_CURRENT_ENTITY), y
   sta ZP_ECS_CURRENT_ANIM_FL
+
+  ldy #RAM_BANK_ECS_PRIMARY
+  sty RAM_BANK
 
   ply
   rts

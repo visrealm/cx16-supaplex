@@ -44,6 +44,9 @@ NUM_ENTITY_TYPES         = 16
 ; Inputs: A: Entity type
 ; -----------------------------------------------------------------------------
 ecsEntitySetType:
+
+  +ramBankSanityCheck RAM_BANK_ENTITY_TYPE
+
   sta (ZP_ECS_CURRENT_ENTITY)
   rts
 
@@ -53,6 +56,8 @@ ecsEntitySetType:
 ; Returns: A: Entity type
 ; -----------------------------------------------------------------------------
 ecsEntityGetType:
+  +ramBankSanityCheck RAM_BANK_ENTITY_TYPE
+
   lda (ZP_ECS_CURRENT_ENTITY)
   rts
 
@@ -62,6 +67,8 @@ ecsEntityGetType:
 ; Returns: A: Entity type
 ; -----------------------------------------------------------------------------
 ecsTempEntitySetType:
+  +ramBankSanityCheck RAM_BANK_ENTITY_TYPE
+
   sta (ZP_ECS_TEMP_ENTITY)
   rts
 
@@ -72,6 +79,8 @@ ecsTempEntitySetType:
 ; Returns: A: Entity type
 ; -----------------------------------------------------------------------------
 ecsTempEntityGetType:
+  +ramBankSanityCheck RAM_BANK_ENTITY_TYPE
+  
   lda (ZP_ECS_TEMP_ENTITY)
   rts
 

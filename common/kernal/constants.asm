@@ -50,6 +50,20 @@ RAM_BANK            = $9F61
   lda #bank
   sta ROM_BANK
 }
+
+!macro ramBankSanityCheck bank {
+  !ifdef SANITY {
+    phy
+    ldy RAM_BANK
+    cpy #bank
+    beq +
+    !byte $ff
++
+    ply
+  }
+}
+
+
 ; Joystick constants
 ; ----------------------------------------------------------------------------
 ; subroutines

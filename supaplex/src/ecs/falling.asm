@@ -38,7 +38,7 @@ ecsDoFall:
 
   jsr ecsLocationSwap
 
-  lda #$08
+  lda #$09
   jsr ecsSetState
 
   jsr ecsFallingPush
@@ -140,11 +140,15 @@ ecsFallingSystemTick:
 
   jsr ecsLocationPeekDown
   jsr ecsTempEntityGetType
-  bne +
+  beq +  
+  cmp #$ff
+  bne ++
++  
   jsr ecsDoFall
   bra .next
-+
-  ;bra .next
+++
+  jsr hudOutputDebug
+  bra .next
   jsr ecsLocationPeekAll
   ldx #0
   ldy #9

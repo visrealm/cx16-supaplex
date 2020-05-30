@@ -26,6 +26,7 @@ createGameObject:
   phx
   phy
   pha
+  sta ZP_CURRENT_OBJECT_TYPE
   tax ; look up entity type
   lda spriteTypes, x
   tay
@@ -49,6 +50,8 @@ createGameObject:
   pla
   jsr ecsEntitySetType
   jsr ecsSetLocation
+  lda ZP_CURRENT_OBJECT_TYPE
+  jsr ecsSetTile
   plx
   jmp (objectFactory, x)
   ; above jump will rts

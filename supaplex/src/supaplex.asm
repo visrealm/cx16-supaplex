@@ -104,6 +104,7 @@ ADDR_ECS           = $7000 ; 4KB
 !source "src/ecs/entity.asm"
 !source "src/ecs/systems.asm"
 !source "src/ecs/location.asm"
+!source "src/ecs/tile.asm"
 !source "src/ecs/animation.asm"
 !source "src/ecs/state.asm"
 !source "src/ecs/enemy.asm"
@@ -120,7 +121,7 @@ ADDR_ECS           = $7000 ; 4KB
 ; -----------------------------------------------------------------------------
 ; temporarily store the level here. TBD: load it!
 ; -----------------------------------------------------------------------------
-LEVEL_NUMBER = 0
+LEVEL_NUMBER = 1
 
 levelNumber: !byte LEVEL_NUMBER
 levelDat: 

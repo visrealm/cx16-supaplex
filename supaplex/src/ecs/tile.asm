@@ -1,6 +1,6 @@
 ; Supaplex - Commander X16
 ;
-; State component
+; Tile component
 ;
 ; Copyright (c) 2020 Troy Schrapel
 ;
@@ -9,88 +9,70 @@
 ; https://github.com/visrealm/supaplex-x16
 ;
 
-ECS_STATE_ASM_ = 1
+ECS_TILE_ASM_ = 1
 
 
 ; =============================================================================
-!zone ecsStateComponent {
+!zone ecsTileComponent {
+; -----------------------------------------------------------------------------
+; Used to set and get the tile attributes for a given entity
+; =============================================================================
 
 ; -----------------------------------------------------------------------------
-; ecsSetState
+; setTile
 ; -----------------------------------------------------------------------------
 ; Inputs:
 ;   ZP_ECS_CURRENT_ENTITY
-;   A: State
+;   A: tileId
 ; -----------------------------------------------------------------------------
-ecsSetState:
+ecsSetTile:
+  +ramBankSanityCheck RAM_BANK_TILE_COMPONENT
 
-  +ramBankSanityCheck RAM_BANK_STATE_COMPONENT
+  phy
+  ldy #ECS_ATTRIBUTE_TILE_ID
 
-  ldy #ECS_ATTRIBUTE_STATE
-
-  ; set enemy state
+  ; set tile id
   sta (ZP_ECS_CURRENT_ENTITY), y
 
+  jsr ecsUpdateTile
+
+  ply
+
   rts
 
 ; -----------------------------------------------------------------------------
-; ecsGetState
+; ecsGetTile
 ; -----------------------------------------------------------------------------
 ; Inputs:
 ;   ZP_ECS_CURRENT_ENTITY
 ; Outputs:
-;   A: State
+;   A: tileId
 ; -----------------------------------------------------------------------------
-ecsGetState:
+ecsGetTile:
+  +ramBankSanityCheck RAM_BANK_TILE_COMPONENT
 
-  +ramBankSanityCheck RAM_BANK_STATE_COMPONENT
+  phy
+  ldy #ECS_ATTRIBUTE_TILE_ID
 
-  ldy #ECS_ATTRIBUTE_STATE
-
-  ; set enemy state
+  ; get tile id
   lda (ZP_ECS_CURRENT_ENTITY), y
-
-  rts
-
-
-
-; -----------------------------------------------------------------------------
-; ecsSetState
-; -----------------------------------------------------------------------------
-; Inputs:
-;   ZP_ECS_CURRENT_ENTITY
-;   A: State
-; -----------------------------------------------------------------------------
-ecsSetStateTemp:
-
-  +ramBankSanityCheck RAM_BANK_STATE_COMPONENT
-
-  ldy #ECS_ATTRIBUTE_STATE
-
-  ; set enemy state
-  sta (ZP_ECS_TEMP_ENTITY), y
+  
+  ply
 
   rts
 
 ; -----------------------------------------------------------------------------
-; ecsGetState
+; ecsUpdateTile - update VRAM
 ; -----------------------------------------------------------------------------
 ; Inputs:
 ;   ZP_ECS_CURRENT_ENTITY
-; Outputs:
-;   A: State
 ; -----------------------------------------------------------------------------
-ecsGetStateTemp:
+ecsUpdateTile:
+  jsr ecsGetLocation
+  jsr vSetCurrent
+  jsr ecsGetTile
+  jsr outputTile
+  rts
 
-  +ramBankSanityCheck RAM_BANK_STATE_COMPONENT
-
-  ldy #ECS_ATTRIBUTE_STATE
-
-  ; set enemy state
-  lda (ZP_ECS_TEMP_ENTITY), y
-
-  rts  
-
-} ; ecsStateComponent
-
+} ; ecsTileComponent
 
