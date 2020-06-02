@@ -36,9 +36,9 @@ gameLoop:
 
   jsr checkTime
 
-  jsr centreMap
-
   jsr updateMurphy
+
+  jsr centreMap
 
   ;+dbgBreak
 

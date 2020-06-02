@@ -26,6 +26,9 @@ ecsEntitySetTransitioning:
   lda #ENTITY_TYPE_TRANSITION
   jsr ecsEntitySetType
 
+  lda #0
+  jsr ecsSetTile
+
   lda #$08
   jsr ecsSetState
 

@@ -52,7 +52,6 @@ testCell:
 
 .cellPassable
 
-  ; clear current cell and move into the next one
   +setRamBank RAM_BANK_ECS_PRIMARY
   jsr ecsLocationSwap
   
@@ -119,10 +118,6 @@ doInput:
   ; no match?, move on
   beq .endCheck
 
-  ; get player location
- ; lda ZP_PLAYER_CELL_X
- ; ldy ZP_PLAYER_CELL_Y
-  
   ; adjust x or y
   !if incOrDec > 0 {
     !if xOrY = "x" { jsr ecsLocationPeekRight }
@@ -147,20 +142,6 @@ doInput:
   !if xOrY = "x" { sta ZP_PLAYER_OFFSET_X }
   !if xOrY = "y" { sta ZP_PLAYER_OFFSET_Y }
 
-  ; clear old cell
-  ;ldy ZP_PLAYER_CELL_Y
-  ;lda ZP_PLAYER_CELL_X
-  ;jsr clearTile
-
-  ; adjust player location
-  !if incOrDec = 1 {
-    !if xOrY = "x" { inc ZP_PLAYER_CELL_X }
-    !if xOrY = "y" { inc ZP_PLAYER_CELL_Y }
-  } else {
-    !if xOrY = "x" { dec ZP_PLAYER_CELL_X }
-    !if xOrY = "y" { dec ZP_PLAYER_CELL_Y }
-  }
-  
   ; no further checks (one direction only)
   jmp doneTests
 
@@ -169,11 +150,12 @@ doInput:
 }
 
 .allowInput:  
-  lda ZP_PLAYER_CELL_X
-  ldy ZP_PLAYER_CELL_Y
-  sta ZP_CURRENT_CELL_X
-  sty ZP_CURRENT_CELL_Y
-  jsr ecsLocationGetEntity
+  +setRamBank RAM_BANK_ECS_PRIMARY
+  lda ZP_PLAYER_ENTITY_LSB
+  sta ZP_ECS_CURRENT_ENTITY_LSB
+  lda ZP_PLAYER_ENTITY_MSB
+  sta ZP_ECS_CURRENT_ENTITY_MSB
+  jsr ecsGetLocation
 
   +checkDirection JOY_LEFT,  -1, "x"
   +checkDirection JOY_RIGHT,  1, "x"
@@ -182,12 +164,11 @@ doInput:
 
 doneTests:
 
-  ;jsr ecsLocationGetEntity
-  ;jsr ecsLocationPeekDown
-
-  ;lda ZP_ECS_TEMP_ENTITY_MSB
-  ;and #$0f
-  ;jsr hudOutputDebug
+  jsr ecsGetLocation
+  lda ZP_CURRENT_CELL_X
+  sta ZP_PLAYER_CELL_X
+  lda ZP_CURRENT_CELL_Y
+  sta ZP_PLAYER_CELL_Y
 
   rts
 

@@ -48,6 +48,12 @@ ELECTR_PAL  = 9
 TILE_FLIP_H = $04
 TILE_FLIP_V = $08
 
+
+
+!macro ldaTileId tileAddress { lda #(tileAddress - tileTable) >> 1 }
+!macro cmpTileId tileAddress { cmp #(tileAddress - tileTable) >> 1 }
+!macro byteTileId tileAddress { !byte (tileAddress - tileTable) >> 1 }
+
 ; -----------------------------------------------------------------------------
 ; load the tiles from disk into vram
 ; -----------------------------------------------------------------------------

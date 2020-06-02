@@ -72,11 +72,6 @@ loadMap:
   
   jsr createGameObject
 
-  ; double the index since our map lookup has 
-  ; 2 bytes per tile type and store in y
-  asl
-  tax
-
   ; increment the lda address above
   +inc16 .loadLevelValue + 1
 

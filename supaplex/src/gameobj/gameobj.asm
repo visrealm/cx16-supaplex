@@ -26,7 +26,6 @@ createGameObject:
   phx
   phy
   pha
-  sta ZP_CURRENT_OBJECT_TYPE
   tax ; look up entity type
   lda spriteTypes, x
   tay

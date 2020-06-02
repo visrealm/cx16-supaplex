@@ -28,15 +28,8 @@ ECS_ROLLING_ASM_ = 1
 
 ecsDoRoll:
 
-  jsr vSetCurrent
-  ldx VERA_DATA0
-  ldy VERA_DATA0
-
-  jsr vSetTemp
-  stx VERA_DATA0  
-  sty VERA_DATA0
-
   jsr ecsLocationSwap
+  jsr ecsUpdateTile
 
   lda #$08
   jsr ecsSetState

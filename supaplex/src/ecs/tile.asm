@@ -68,10 +68,16 @@ ecsGetTile:
 ;   ZP_ECS_CURRENT_ENTITY
 ; -----------------------------------------------------------------------------
 ecsUpdateTile:
+  phx
+  phy
+  pha
   jsr ecsGetLocation
   jsr vSetCurrent
   jsr ecsGetTile
   jsr outputTile
+  pla
+  ply
+  plx
   rts
 
 } ; ecsTileComponent

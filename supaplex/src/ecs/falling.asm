@@ -28,15 +28,8 @@ ECS_FALLING_ASM_ = 1
 
 ecsDoFall:
 
-  jsr vSetCurrent
-  ldx VERA_DATA0
-  ldy VERA_DATA0
-
-  jsr vSetTemp
-  stx VERA_DATA0  
-  sty VERA_DATA0
-
   jsr ecsLocationSwap
+  jsr ecsUpdateTile
 
   lda #$09
   jsr ecsSetState
@@ -147,7 +140,6 @@ ecsFallingSystemTick:
   jsr ecsDoFall
   bra .next
 ++
-  jsr hudOutputDebug
   bra .next
   jsr ecsLocationPeekAll
   ldx #0

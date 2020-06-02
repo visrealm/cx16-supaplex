@@ -213,6 +213,7 @@ enemyAnimCB:
 
   ; moving
   jsr ecsLocationSwap
+  jsr ecsUpdateTile
 
 +
   lda R5H

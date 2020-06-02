@@ -24,6 +24,14 @@ createPlayer:
   sta ZP_PLAYER_CELL_X
   lda ZP_CURRENT_CELL_Y
   sta ZP_PLAYER_CELL_Y
+  lda ZP_ECS_CURRENT_ENTITY_LSB
+  sta ZP_PLAYER_ENTITY_LSB
+  lda ZP_ECS_CURRENT_ENTITY_MSB
+  sta ZP_PLAYER_ENTITY_MSB
+
+  +ldaTileId tileBlank
+  jsr ecsSetTile
+
   rts
 
 
@@ -33,6 +41,12 @@ createPlayer:
 ; HACK: this code is very temporary. just a hack to get some animation
 ; -----------------------------------------------------------------------------
 updateMurphy:
+  lda ZP_PLAYER_ENTITY_LSB
+  sta ZP_ECS_CURRENT_ENTITY_LSB
+  lda ZP_PLAYER_ENTITY_MSB
+  sta ZP_ECS_CURRENT_ENTITY_MSB
+
+
   lda ZP_PLAYER_SPEED_X
   beq .notMovingX
   

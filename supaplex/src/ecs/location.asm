@@ -68,6 +68,7 @@ ecsSetLocation:
 
   ; set this entity in the location map
   jsr ecsLocationSetEntity
+
   ply
 
   rts
@@ -452,18 +453,11 @@ ecsLocationPeekAll:
 ; -----------------------------------------------------------------------------
 ecsLocationSwap:
 
-  ; show current location as empty
-  jsr vSetCurrent
-  lda tileBlank
-  sta VERA_DATA0  
-  lda tileBlank + 1
-  sta VERA_DATA0
-
   ; back-up current entity
   lda ZP_ECS_CURRENT_ENTITY_LSB
-  sta R7L
+  sta R11L
   lda ZP_ECS_CURRENT_ENTITY_MSB
-  sta R7H
+  sta R11H
 
   ; set new entity
   lda ZP_ECS_TEMP_ENTITY_LSB
@@ -474,11 +468,12 @@ ecsLocationSwap:
   ; set temporary entity to current location
   jsr ecsSetLocation
   jsr ecsEntitySetTransitioning
+  jsr ecsUpdateTile
 
   ; restore current entity back
-  lda R7L
+  lda R11L
   sta ZP_ECS_CURRENT_ENTITY_LSB
-  lda R7H
+  lda R11H
   sta ZP_ECS_CURRENT_ENTITY_MSB
 
   ; set new location
@@ -487,7 +482,6 @@ ecsLocationSwap:
   lda ZP_TEMP_CELL_Y
   sta ZP_CURRENT_CELL_Y
   jsr ecsSetLocation
-
   rts
 
 
@@ -507,14 +501,6 @@ ecsLocationSwap:
 ; -----------------------------------------------------------------------------
 ecsLocationSwap2:
 
-  jsr vSetTemp
-  ldx VERA_DATA0
-  ldy VERA_DATA0
-
-  jsr vSetCurrent
-  stx VERA_DATA0  
-  sty VERA_DATA0
-
   ; back-up current entity
   lda ZP_ECS_CURRENT_ENTITY_LSB
   sta R7L
@@ -529,6 +515,7 @@ ecsLocationSwap2:
 
   ; set temporary entity to current location
   jsr ecsSetLocation
+  jsr ecsUpdateTile
 
   ; restore current entity back
   lda R7L
@@ -543,6 +530,7 @@ ecsLocationSwap2:
   sta ZP_CURRENT_CELL_Y
   jsr ecsSetLocation
   jsr ecsEntitySetTransitioning
+  jsr ecsUpdateTile
 
   rts  
 

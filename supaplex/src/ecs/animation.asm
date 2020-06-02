@@ -148,19 +148,16 @@ TMP_ANIM_FL         = R2
 ; -----------------------------------------------------------------------------
 ; animation definition macros
 ; -----------------------------------------------------------------------------
-!macro animDefByte tileAddress {
-    !byte (tileAddress - tileTable) >> 1
-}
 
 !macro animDef id, tile0, tile1, tile2, tile3, tile4, tile5, tile6, tile7 {
-  +animDefByte tile0
-  +animDefByte tile1
-  +animDefByte tile2
-  +animDefByte tile3
-  +animDefByte tile4
-  +animDefByte tile5
-  +animDefByte tile6
-  +animDefByte tile7
+  +byteTileId tile0
+  +byteTileId tile1
+  +byteTileId tile2
+  +byteTileId tile3
+  +byteTileId tile4
+  +byteTileId tile5
+  +byteTileId tile6
+  +byteTileId tile7
 }
 
 !macro ldaAnimId animAddress { lda #(animAddress - animationDefs) >> 3 }
@@ -309,8 +306,6 @@ ecsAnimationSystemTick:
   phy
   jsr ecsGetLocation
   jsr ecsGetAnimation
-  
-  jsr vSetCurrent
 
   ; fill ZP_ECS_CURRENT_ANIM_ID and ZP_ECS_CURRENT_ANIM_FL
 
@@ -351,7 +346,7 @@ ecsAnimationSystemTick:
 .afterInc
 
   ; here, a is the tile Id
-  jsr outputTile
+  jsr ecsSetTile
 
   lda ZP_ECS_CURRENT_ANIM_FL
   and #$0f
