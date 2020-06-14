@@ -14,7 +14,7 @@
 !source "src/vram.asm"
 !source "src/rambank.asm"
 
-!source "../common/bootstrap.asm"
+!source "src/common/bootstrap.asm"
 
 ; -----------------------------------------------------------------------------
 ; constants
@@ -76,20 +76,20 @@ ADDR_ECS           = $7000 ; 4KB
 ; -----------------------------------------------------------------------------
 
 
-!source "../common/kernal/constants.asm"
+!source "src/common/kernal/constants.asm"
 
-!source "../common/util.asm"
-!source "../common/file.asm"
-!source "../common/memory.asm"
-!source "../common/queue.asm"
-!source "../common/string.asm"
+!source "src/common/util.asm"
+!source "src/common/file.asm"
+!source "src/common/memory.asm"
+!source "src/common/queue.asm"
+!source "src/common/string.asm"
 
-!source "../common/vera/constants.asm"
-!source "../common/vera/macros.asm"
-!source "../common/vera/vera.asm"
-!source "../common/vera/pcx.asm"
-!source "../common/vera/text.asm"
-!source "../common/vera/vsync.asm"
+!source "src/common/vera/constants.asm"
+!source "src/common/vera/macros.asm"
+!source "src/common/vera/vera.asm"
+!source "src/common/vera/pcx.asm"
+!source "src/common/vera/text.asm"
+!source "src/common/vera/vsync.asm"
 
 !source "src/tiles.asm"
 !source "src/strings.asm"

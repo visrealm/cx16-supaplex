@@ -1,0 +1,4 @@
+[submodule "src/common"]
+	path = src/common
+	url = https://github.com/visrealm/cx16-common-asm.git
+	branch = master

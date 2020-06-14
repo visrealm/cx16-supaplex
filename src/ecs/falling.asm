@@ -138,7 +138,7 @@ ecsFallingSystemTick:
   jsr ecsDoFall
   bra .next
 ++
-  ;bra .next
+  bra .next
   jsr ecsLocationPeekAll
   ldx #0
   ldy #9
