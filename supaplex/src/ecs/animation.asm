@@ -20,8 +20,9 @@ ECS_ANIMATION_ASM_ = 1
 ; Used to set and get the animation attributes for a given entity
 ; =============================================================================
 
-ANIM_FLAG_REPEAT  = $80
-ANIM_FLAG_REVERSE = $40   ; reverse the order of frames
+ANIM_FLAG_REPEAT    = $80
+ANIM_FLAG_REVERSE   = $40   ; reverse the order of frames
+ANIM_FLAG_PROCESSED = $20   ; processed frame (odd or even)
 
 
 ; -----------------------------------------------------------------------------

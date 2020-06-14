@@ -98,7 +98,7 @@ ecsFallingSystemTick:
   rts
 +
 
-  sta R9 ; store queue size in R9
+  sta R1 ; store queue size in R9
   
   jsr qIterate ; get starting point (y)
 
@@ -133,14 +133,12 @@ ecsFallingSystemTick:
 
   jsr ecsLocationPeekDown
   jsr ecsTempEntityGetType
-  beq +  
-  cmp #$ff
   bne ++
 +  
   jsr ecsDoFall
   bra .next
 ++
-  bra .next
+  ;bra .next
   jsr ecsLocationPeekAll
   ldx #0
   ldy #9
@@ -151,21 +149,18 @@ ecsFallingSystemTick:
   lda currentNine, x
   sta ZP_ECS_CURRENT_ENTITY_MSB
   jsr ecsGetLocation
-  jsr vSetCurrent
-  lda tileExplod1
-  sta VERA_DATA0  
-  lda tileExplod1 + 1
-  sta VERA_DATA0
+ ; +ldaTileId tileExplod4
+ ; jsr ecsSetTile
   
-  ;+ldaAnimId animExplode
-  ;sta ZP_ECS_CURRENT_ANIM_ID
-  ;stz ZP_ECS_CURRENT_ANIM_FL
-  ;phy
-  ;phx
-  ;jsr ecsSetAnimation
-  ;jsr ecsAnimationPush
-  ;plx
-  ;ply
+  +ldaAnimId animExplode
+  sta ZP_ECS_CURRENT_ANIM_ID
+  stz ZP_ECS_CURRENT_ANIM_FL
+  phy
+  phx
+  jsr ecsSetAnimation
+  jsr ecsAnimationPush
+  plx
+  ply
   
   inx
   dey
@@ -176,7 +171,7 @@ ecsFallingSystemTick:
 .next:
   ply
   iny
-  dec R9
+  dec R1
   clc ; I don't understand why this is necessary. but it is
   bne .loop
 

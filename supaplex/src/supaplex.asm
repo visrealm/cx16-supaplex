@@ -121,7 +121,7 @@ ADDR_ECS           = $7000 ; 4KB
 ; -----------------------------------------------------------------------------
 ; temporarily store the level here. TBD: load it!
 ; -----------------------------------------------------------------------------
-LEVEL_NUMBER = 0
+LEVEL_NUMBER = 1
 
 levelNumber: !byte LEVEL_NUMBER
 levelDat: 

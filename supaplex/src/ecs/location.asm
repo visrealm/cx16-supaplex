@@ -405,7 +405,7 @@ ecsLocationPeekAll:
   sta ZP_ECS_LOCATION_SYSTEM_LSB
 
   bpl +
-    inc ZP_ECS_LOCATION_SYSTEM_MSB ; go forward a page
+    dec ZP_ECS_LOCATION_SYSTEM_MSB ; go forward a page
 +
 
   ; now, we're pointing at left

@@ -26,7 +26,7 @@ ecsEntitySetTransitioning:
   lda #ENTITY_TYPE_TRANSITION
   jsr ecsEntitySetType
 
-  lda #0
+  lda #18
   jsr ecsSetTile
 
   lda #$08
@@ -196,6 +196,10 @@ ecsTransitioningSystemTick:
   jsr qPop
   ldx .entityMsbQueueId
   jsr qPop
+
+
+  lda #0
+  jsr ecsSetTile
 
   ; need to do this before we start peeking
 
