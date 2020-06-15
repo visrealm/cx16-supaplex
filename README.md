@@ -29,9 +29,9 @@ RUN
 Build batch files currently expect a given layout:
 
 ```c:\cx16
-c:\cx16\x16emu    <-- the emulator
-c:\cx16\acme      <-- acme assembler
-c:\cx16\code      <-- this repository
+c:\cx16\x16emu    		<-- the emulator
+c:\cx16\acme      		<-- acme assembler
+c:\cx16\code\supaplex   <-- this repository
 ```
 
 To build, head to c:\cx16\code\supaplex:

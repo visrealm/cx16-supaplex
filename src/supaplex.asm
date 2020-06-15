@@ -4,7 +4,7 @@
 ;
 ; This code is licensed under the MIT license
 ;
-; https://github.com/visrealm/supaplex-x16
+; https://github.com/visrealm/cx16-supaplex
 ;
 ;
 
